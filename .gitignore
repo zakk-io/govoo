@@ -1,0 +1,32 @@
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+*.whl
+
+# Docker
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Playwright logs
+.playwright-mcp/
+
+# Temporary
+/tmp/
+*.log
+
+# Node
+node_modules/
+
+# Git
+.git/

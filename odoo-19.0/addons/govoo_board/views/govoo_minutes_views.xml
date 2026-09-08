@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="govoo_minutes_view_form" model="ir.ui.view">
+        <field name="name">govoo.minutes.form</field>
+        <field name="model">govoo.minutes</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit_for_approval" string="Submit for Approval"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve" string="Approve"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'for_approval'"/>
+                    <button name="action_sign" string="Sign"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'approved'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="meeting_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="retention_until"/>
+                            <field name="signed_document_id"/>
+                       </group>
+                    </group>
+                    <group string="Attendance">
+                        <group>
+                            <field name="attendance_ids" widget="many2many_tags"/>
+                        </group>
+                        <group>
+                            <field name="apologies_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <group string="Minutes Content">
+                        <field name="body" placeholder="Minutes of the meeting..."/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="govoo_minutes_view_list" model="ir.ui.view">
+        <field name="name">govoo.minutes.list</field>
+        <field name="model">govoo.minutes</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="meeting_id"/>
+                <field name="state" widget="badge"
+                       decoration-success="state in ('approved', 'signed')"
+                       decoration-info="state == 'for_approval'"
+                       decoration-warning="state == 'draft'"/>
+                <field name="retention_until"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="govoo_minutes_action" model="ir.actions.act_window">
+        <field name="name">Minutes</field>
+        <field name="res_model">govoo.minutes</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

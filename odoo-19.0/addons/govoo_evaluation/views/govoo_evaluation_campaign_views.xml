@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="govoo_evaluation_campaign_search" model="ir.ui.view">
+        <field name="name">govoo.evaluation.campaign.search</field>
+        <field name="model">govoo.evaluation.campaign</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="committee_id"/>
+                <field name="evaluation_type"/>
+                <filter name="filter_draft"
+                        string="Draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_open"
+                        string="Open"
+                        domain="[('state', '=', 'open')]"/>
+                <filter name="filter_closed"
+                        string="Closed"
+                        domain="[('state', '=', 'closed')]"/>
+                <group>
+                    <filter name="group_state"
+                            string="By Status"
+                            context="{'group_by': 'state'}"/>
+                    <filter name="group_type"
+                            string="By Type"
+                            context="{'group_by': 'evaluation_type'}"/>
+                    <filter name="group_company"
+                            string="By Company"
+                            context="{'group_by': 'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="govoo_evaluation_campaign_action" model="ir.actions.act_window">
+        <field name="name">Evaluation Campaigns</field>
+        <field name="res_model">govoo.evaluation.campaign</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="govoo_evaluation_campaign_search"/>
+        <field name="context">{'search_default_group_state': 1}</field>
+    </record>
+
+    <record id="govoo_evaluation_campaign_list" model="ir.ui.view">
+        <field name="name">govoo.evaluation.campaign.list</field>
+        <field name="model">govoo.evaluation.campaign</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="evaluation_type"/>
+                <field name="committee_id"/>
+                <field name="survey_id"/>
+                <field name="response_count" string="Responses"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'open'"
+                       decoration-info="state == 'draft'"
+                       decoration-muted="state == 'closed'"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="govoo_evaluation_campaign_form" model="ir.ui.view">
+        <field name="name">govoo.evaluation.campaign.form</field>
+        <field name="model">govoo.evaluation.campaign</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_open"
+                            string="Open Campaign"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_close"
+                            string="Close Campaign"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state != 'open'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,open,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Campaign Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="evaluation_type"/>
+                            <field name="committee_id"/>
+                            <field name="survey_id"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="response_count"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Participants" name="participants">
+                            <field name="participant_ids" widget="many2many_tags"/>
+                        </page>
+                        <page string="Results" name="results"
+                              invisible="state != 'closed'">
+                            <field name="result_ids"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+</odoo>

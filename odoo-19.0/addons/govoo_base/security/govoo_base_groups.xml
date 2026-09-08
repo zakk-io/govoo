@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record model="res.groups.privilege" id="res_groups_privilege_governance">
+        <field name="name">Corporate Governance</field>
+        <field name="sequence">100</field>
+        <field name="category_id" ref="base.module_category_extra"/>
+    </record>
+
+    <!-- Base governance user: read own-company governance data -->
+    <record id="group_govoo_user" model="res.groups">
+        <field name="name">Governance User</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="res_groups_privilege_governance"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Base governance access: read own-company governance data.</field>
+    </record>
+
+    <!-- Power user: create/manage all governance records -->
+    <record id="group_govoo_secretary" model="res.groups">
+        <field name="name">Company Secretary</field>
+        <field name="sequence">20</field>
+        <field name="privilege_id" ref="res_groups_privilege_governance"/>
+        <field name="implied_ids" eval="[(4, ref('group_govoo_user'))]"/>
+        <field name="comment">Power user: create/manage all governance records. Cannot cast votes.</field>
+    </record>
+
+    <!-- Config admin: system configuration, groups, obligation catalogue -->
+    <record id="group_govoo_admin" model="res.groups">
+        <field name="name">Board Administrator</field>
+        <field name="sequence">30</field>
+        <field name="privilege_id" ref="res_groups_privilege_governance"/>
+        <field name="implied_ids" eval="[(4, ref('group_govoo_user'))]"/>
+        <field name="comment">Config admin: system configuration, groups, obligation catalogue. Cannot cast any vote (BR-SEC-004).</field>
+    </record>
+
+    <!-- Director portal: external director self-service -->
+    <record id="group_govoo_director_portal" model="res.groups">
+        <field name="name">Director (Portal)</field>
+        <field name="sequence">40</field>
+        <field name="privilege_id" ref="res_groups_privilege_governance"/>
+        <field name="comment">External director self-service. Portal-only, no internal licence.</field>
+    </record>
+
+    <!-- Shareholder portal: external shareholder self-service -->
+    <record id="group_govoo_shareholder_portal" model="res.groups">
+        <field name="name">Shareholder (Portal)</field>
+        <field name="sequence">50</field>
+        <field name="privilege_id" ref="res_groups_privilege_governance"/>
+        <field name="comment">External shareholder self-service. Portal-only, no internal licence.</field>
+    </record>
+
+    <!-- Auditor: global read, no write -->
+    <record id="group_govoo_auditor" model="res.groups">
+        <field name="name">Auditor (Read-only)</field>
+        <field name="sequence">60</field>
+        <field name="privilege_id" ref="res_groups_privilege_governance"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Global read-only access, no write permissions.</field>
+    </record>
+
+</odoo>

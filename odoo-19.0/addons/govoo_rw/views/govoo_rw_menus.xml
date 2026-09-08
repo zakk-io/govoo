@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="govoo_menu_rw"
+              name="Rwanda"
+              parent="govoo_base.govoo_menu_root"
+              sequence="60"/>
+
+    <menuitem id="govoo_menu_rw_retention"
+              name="Retention Rules"
+              parent="govoo_menu_rw"
+              action="govoo_rw_retention_action"
+              sequence="10"/>
+
+</odoo>

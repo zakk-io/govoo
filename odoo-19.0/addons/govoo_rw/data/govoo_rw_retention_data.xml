@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Rwanda Document Retention Configuration                       -->
+    <!-- All periods from RDB guidance; active by default              -->
+    <!-- ============================================================ -->
+
+    <record id="retention_minutes" model="govoo.rw.retention">
+        <field name="name">Minutes Retention (10 Years)</field>
+        <field name="retention_category">minutes</field>
+        <field name="retention_years">10</field>
+        <field name="basis">years</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="retention_resolutions" model="govoo.rw.retention">
+        <field name="name">Resolutions Retention (10 Years)</field>
+        <field name="retention_category">resolutions</field>
+        <field name="retention_years">10</field>
+        <field name="basis">years</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="retention_accounts" model="govoo.rw.retention">
+        <field name="name">Accounts Retention (10 Periods)</field>
+        <field name="retention_category">accounts</field>
+        <field name="retention_periods">10</field>
+        <field name="basis">periods</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="retention_auditor_reports" model="govoo.rw.retention">
+        <field name="name">Auditor Reports Retention (10 Periods)</field>
+        <field name="retention_category">auditor_reports</field>
+        <field name="retention_periods">10</field>
+        <field name="basis">periods</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="retention_board_reports" model="govoo.rw.retention">
+        <field name="name">Board Reports Retention (10 Years)</field>
+        <field name="retention_category">board_reports</field>
+        <field name="retention_years">10</field>
+        <field name="basis">years</field>
+        <field name="active">True</field>
+    </record>
+
+</odoo>

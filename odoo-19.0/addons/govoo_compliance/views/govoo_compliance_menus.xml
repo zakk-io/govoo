@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="govoo_menu_compliance"
+              name="Compliance"
+              parent="govoo_base.govoo_menu_root"
+              sequence="50"/>
+
+    <menuitem id="govoo_menu_compliance_obligation"
+              name="Obligations"
+              parent="govoo_menu_compliance"
+              action="govoo_compliance_obligation_action"
+              sequence="10"/>
+
+    <menuitem id="govoo_menu_compliance_instance"
+              name="Instances"
+              parent="govoo_menu_compliance"
+              action="govoo_compliance_instance_action"
+              sequence="20"/>
+
+</odoo>

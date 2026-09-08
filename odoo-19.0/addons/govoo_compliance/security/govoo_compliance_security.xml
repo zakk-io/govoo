@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Multi-company record rules -->
+    <record id="govoo_compliance_obligation_comp_rule" model="ir.rule">
+        <field name="name">Compliance Obligation: multi-company</field>
+        <field name="model_id" ref="model_govoo_compliance_obligation"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+    <record id="govoo_compliance_instance_comp_rule" model="ir.rule">
+        <field name="name">Compliance Instance: multi-company</field>
+        <field name="model_id" ref="model_govoo_compliance_instance"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+</odoo>

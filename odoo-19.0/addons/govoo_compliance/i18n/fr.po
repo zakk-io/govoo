@@ -1,0 +1,122 @@
+# Translation of Govoo Compliance module in French.
+msgid ""
+msgstr ""
+"Project-Id-Version: Govoo Compliance 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-01 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: French <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. module: govoo_compliance
+#: model:ir.model,name:govoo_compliance.model_govoo_compliance_obligation
+msgid "Compliance Obligation (Catalogue)"
+msgstr "Obligation de Conformité (Catalogue)"
+
+#. module: govoo_compliance
+#: model:ir.model,name:govoo_compliance.model_govoo_compliance_instance
+msgid "Compliance Instance"
+msgstr "Instance de Conformité"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_obligation__name
+msgid "Obligation Name"
+msgstr "Nom de l'Obligation"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_obligation__authority
+msgid "Authority"
+msgstr "Autorité"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_obligation__frequency
+msgid "Frequency"
+msgstr "Fréquence"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_obligation__basis
+msgid "Due Date Basis"
+msgstr "Base de la Date d'Échéance"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_obligation__lead_time_days
+msgid "Lead Time (Days)"
+msgstr "Délai (Jours)"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_obligation__active
+msgid "Active"
+msgstr "Actif"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__obligation_id
+msgid "Obligation"
+msgstr "Obligation"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__period
+msgid "Period"
+msgstr "Période"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__due_date
+msgid "Due Date"
+msgstr "Date d'Échéance"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__responsible_id
+msgid "Responsible"
+msgstr "Responsable"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__state
+msgid "Status"
+msgstr "Statut"
+
+#. module: govoo_compliance
+#: selection:govoo.compliance.instance,state
+msgid "Upcoming"
+msgstr "À Venir"
+
+#. module: govoo_compliance
+#: selection:govoo.compliance.instance,state
+msgid "In Progress"
+msgstr "En Cours"
+
+#. module: govoo_compliance
+#: selection:govoo.compliance.instance,state
+msgid "Filed"
+msgstr "Déposé"
+
+#. module: govoo_compliance
+#: selection:govoo.compliance.instance,state
+msgid "Late"
+msgstr "En Retard"
+
+#. module: govoo_compliance
+#: selection:govoo.compliance.instance,state
+msgid "Waived"
+msgstr "Exonéré"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__reference_no
+msgid "Filing Reference"
+msgstr "Référence du Dépôt"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__filed_date
+msgid "Filed Date"
+msgstr "Date de Dépôt"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__days_to_due
+msgid "Days to Due"
+msgstr "Jours Restants"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__rag_color
+msgid "RAG Status"
+msgstr "Statut RAG"

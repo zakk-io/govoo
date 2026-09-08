@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="govoo_board_pack_view_form" model="ir.ui.view">
+        <field name="name">govoo.board.pack.form</field>
+        <field name="model">govoo.board.pack</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_compile" string="Compile Pack"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_distribute" string="Distribute"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'compiled'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="meeting_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="document_id"/>
+                        </group>
+                    </group>
+                    <group string="Distribution">
+                        <field name="distribution_ids"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="govoo_board_pack_action" model="ir.actions.act_window">
+        <field name="name">Board Packs</field>
+        <field name="res_model">govoo.board.pack</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

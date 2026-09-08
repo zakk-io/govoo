@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Activate RWF with 2 decimal places for internal calculations -->
+    <record id="base.RWF" model="res.currency">
+        <field name="active" eval="True"/>
+        <field name="rounding">0.01</field>
+        <field name="symbol">FRw</field>
+    </record>
+
+    <!-- Activate UGX as secondary currency (East African Community) -->
+    <record id="base.UGX" model="res.currency">
+        <field name="active" eval="True"/>
+    </record>
+
+</odoo>

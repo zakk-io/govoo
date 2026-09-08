@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_report_govoo_cap_table" model="ir.actions.report">
+        <field name="name">Cap Table Snapshot</field>
+        <field name="model">govoo.share.holding</field>
+        <field name="model_id" ref="model_govoo_share_holding"/>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">govoo_shares.report_cap_table</field>
+        <field name="report_file">govoo_shares.report_cap_table</field>
+        <field name="binding_model_id" ref="model_govoo_share_holding"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_cap_table">
+        <t t-call="web.html_container">
+            <t t-foreach="docs.mapped('share_class_id')" t-as="share_class">
+                <t t-call="web.external_layout">
+                    <t t-set="o">
+                        <t t-esc="share_class"/>
+                    </t>
+                    <div class="page">
+                        <h2>
+                            Cap Table Snapshot —
+                            <t t-esc="share_class.name"/>
+                        </h2>
+                        <p>
+                            <strong>Company:</strong>
+                            <t t-esc="share_class.company_id.name"/>
+                        </p>
+                        <p>
+                            <strong>Total Authorised:</strong>
+                            <t t-esc="share_class.total_authorised"/>
+                        </p>
+                        <p>
+                            <strong>Total Allotted:</strong>
+                            <t t-esc="share_class.total_allotted"/>
+                        </p>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Shareholder</th>
+                                    <th class="text-end">Shares Held</th>
+                                    <th class="text-end">Ownership %</th>
+                                    <th class="text-end">Voting Power</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="class_holdings"
+                                   t-value="docs.filtered(lambda h: h.share_class_id == share_class)"/>
+                                <t t-foreach="class_holdings" t-as="h">
+                                    <tr>
+                                        <td>
+                                            <t t-esc="h.partner_id.name"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <t t-esc="h.quantity"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <t t-esc="'%.2f%%' % h.percentage"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <t t-esc="h.voting_power"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <td>Total</td>
+                                    <td class="text-end">
+                                        <t t-esc="sum(class_holdings.mapped('quantity'))"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <t t-esc="'%.2f%%' % sum(class_holdings.mapped('percentage'))"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <t t-esc="sum(class_holdings.mapped('voting_power'))"/>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

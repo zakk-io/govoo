@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Governance top-level menu -->
+    <menuitem id="govoo_menu_root"
+              name="Governance"
+              sequence="100"
+              web_icon="govoo_base,static/description/icon.png"/>
+
+    <!-- Appointments submenu -->
+    <menuitem id="govoo_menu_appointments"
+              name="Appointments"
+              parent="govoo_menu_root"
+              sequence="10"/>
+
+    <menuitem id="govoo_menu_appointment_list"
+              name="All Appointments"
+              parent="govoo_menu_appointments"
+              action="govoo_appointment_action"
+              sequence="10"/>
+
+    <!-- Committees submenu -->
+    <menuitem id="govoo_menu_committees"
+              name="Committees"
+              parent="govoo_menu_root"
+              sequence="20"/>
+
+    <menuitem id="govoo_menu_committee_list"
+              name="All Committees"
+              parent="govoo_menu_committees"
+              action="govoo_committee_action"
+              sequence="10"/>
+
+</odoo>

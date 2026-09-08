@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Multi-company record rules -->
+    <record id="govoo_meeting_comp_rule" model="ir.rule">
+        <field name="name">Meeting: multi-company</field>
+        <field name="model_id" ref="model_govoo_meeting"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+    <record id="govoo_agenda_item_comp_rule" model="ir.rule">
+        <field name="name">Agenda Item: multi-company</field>
+        <field name="model_id" ref="model_govoo_agenda_item"/>
+        <field name="domain_force">[('meeting_id.company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+    <record id="govoo_board_pack_comp_rule" model="ir.rule">
+        <field name="name">Board Pack: multi-company</field>
+        <field name="model_id" ref="model_govoo_board_pack"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+    <record id="govoo_minutes_comp_rule" model="ir.rule">
+        <field name="name">Minutes: multi-company</field>
+        <field name="model_id" ref="model_govoo_minutes"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+    <record id="govoo_resolution_comp_rule" model="ir.rule">
+        <field name="name">Resolution: multi-company</field>
+        <field name="model_id" ref="model_govoo_resolution"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+    <record id="govoo_vote_comp_rule" model="ir.rule">
+        <field name="name">Vote: multi-company</field>
+        <field name="model_id" ref="model_govoo_vote"/>
+        <field name="domain_force">[('resolution_id.company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+    <!-- Director Portal: committee-membership scoping for meetings/agenda/pack/minutes -->
+    <record id="govoo_meeting_portal_rule" model="ir.rule">
+        <field name="name">Meeting: Director Portal committee scope</field>
+        <field name="model_id" ref="model_govoo_meeting"/>
+        <field name="domain_force">[('committee_id.member_ids.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_director_portal'))]"/>
+    </record>
+
+    <record id="govoo_agenda_item_portal_rule" model="ir.rule">
+        <field name="name">Agenda Item: Director Portal committee scope</field>
+        <field name="model_id" ref="model_govoo_agenda_item"/>
+        <field name="domain_force">[('meeting_id.committee_id.member_ids.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_director_portal'))]"/>
+    </record>
+
+    <record id="govoo_board_pack_portal_rule" model="ir.rule">
+        <field name="name">Board Pack: Director Portal committee scope</field>
+        <field name="model_id" ref="model_govoo_board_pack"/>
+        <field name="domain_force">[('meeting_id.committee_id.member_ids.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_director_portal'))]"/>
+    </record>
+
+    <record id="govoo_minutes_portal_rule" model="ir.rule">
+        <field name="name">Minutes: Director Portal committee scope</field>
+        <field name="model_id" ref="model_govoo_minutes"/>
+        <field name="domain_force">[('meeting_id.committee_id.member_ids.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_director_portal'))]"/>
+    </record>
+
+    <record id="govoo_resolution_director_portal_rule" model="ir.rule">
+        <field name="name">Resolution: Director Portal committee scope</field>
+        <field name="model_id" ref="model_govoo_resolution"/>
+        <field name="domain_force">[('meeting_id.committee_id.member_ids.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_director_portal'))]"/>
+    </record>
+
+    <record id="govoo_resolution_shareholder_portal_rule" model="ir.rule">
+        <field name="name">Resolution: Shareholder Portal eligible resolutions</field>
+        <field name="model_id" ref="model_govoo_resolution"/>
+        <field name="domain_force">[('resolution_type', 'in', ['ordinary', 'special']), ('company_id', 'in', user.company_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_shareholder_portal'))]"/>
+    </record>
+
+    <record id="govoo_board_pack_recipient_comp_rule" model="ir.rule">
+        <field name="name">Board Pack Recipient: multi-company</field>
+        <field name="model_id" ref="model_govoo_board_pack_recipient"/>
+        <field name="domain_force">[('pack_id.company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+    <record id="govoo_vote_own_portal_rule" model="ir.rule">
+        <field name="name">Vote: Portal own vote only</field>
+        <field name="model_id" ref="model_govoo_vote"/>
+        <field name="domain_force">[('voter_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_director_portal')), (4, ref('govoo_base.group_govoo_shareholder_portal'))]"/>
+    </record>
+
+</odoo>

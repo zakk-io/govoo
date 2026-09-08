@@ -1,0 +1,58 @@
+# Translation of govoo_portal.
+# Copyright (C) 2026 Govoo
+# This file contains the translation of the following modules:
+#   * govoo_portal
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: govoo_portal 19.0.1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-01 00:00+0000\n"
+"PO-Revision-Date: 2026-01-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: govoo_portal
+#: model_terms:ir.ui.view,arch_db:govoo_portal.portal_my_meetings
+msgid "My Meetings"
+msgstr "Mes r\u00e9unions"
+
+#. module: govoo_portal
+#: model_terms:ir.ui.view,arch_db:govoo_portal.portal_my_votes
+msgid "My Votes"
+msgstr "Mes votes"
+
+#. module: govoo_portal
+#: model_terms:ir.ui.view,arch_db:govoo_portal.portal_my_holdings
+msgid "My Holdings"
+msgstr "Mes participations"
+
+#. module: govoo_portal
+#: model_terms:ir.ui.view,arch_db:govoo_portal.portal_my_appointment
+msgid "My Appointment"
+msgstr "Mon mandat"
+
+#. module: govoo_portal
+#: model:ir.actions.act_window,name:govoo_portal.action_govoo_dashboard
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
+#. module: govoo_portal
+#: model:ir.ui.menuitem,name:govoo_portal.govoo_menu_dashboard
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
+#. module: govoo_portal
+#: model:ir.ui.menuitem,name:govoo_portal.govoo_menu_dashboard_compliance
+msgid "Compliance RAG"
+msgstr "Conformit\u00e9 RAG"
+
+#. module: govoo_portal
+#: model:ir.ui.menuitem,name:govoo_portal.govoo_menu_dashboard_evaluation
+msgid "Evaluation Trends"
+msgstr "Tendances d'\u00e9valuation"

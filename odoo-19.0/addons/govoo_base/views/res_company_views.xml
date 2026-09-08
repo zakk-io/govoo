@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Company form: add Governance section -->
+    <record id="res_company_form_govoo" model="ir.ui.view">
+        <field name="name">res.company.form.govoo</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='social_media']" position="before">
+                <group string="Governance"
+                       groups="govoo_base.group_govoo_user">
+                    <group>
+                        <field name="govoo_company_number"/>
+                        <field name="govoo_tin"/>
+                        <field name="govoo_incorporation_date"/>
+                    </group>
+                    <group>
+                        <field name="govoo_entity_type"/>
+                        <field name="govoo_registered_office_id"/>
+                        <field name="govoo_financial_year_end"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

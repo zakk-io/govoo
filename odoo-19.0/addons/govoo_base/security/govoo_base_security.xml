@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Multi-company record rules for govoo.appointment -->
+    <record id="govoo_appointment_comp_rule" model="ir.rule">
+        <field name="name">Appointment: multi-company</field>
+        <field name="model_id" ref="model_govoo_appointment"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_govoo_user'))]"/>
+    </record>
+
+    <!-- Director Portal: own appointments only -->
+    <record id="govoo_appointment_portal_rule" model="ir.rule">
+        <field name="name">Appointment: Director Portal own</field>
+        <field name="model_id" ref="model_govoo_appointment"/>
+        <field name="domain_force">[('partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_govoo_director_portal'))]"/>
+    </record>
+
+    <!-- Multi-company record rules for govoo.committee -->
+    <record id="govoo_committee_comp_rule" model="ir.rule">
+        <field name="name">Committee: multi-company</field>
+        <field name="model_id" ref="model_govoo_committee"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_govoo_user'))]"/>
+    </record>
+
+    <!-- Director Portal: committees the portal user's partner belongs to -->
+    <record id="govoo_committee_portal_rule" model="ir.rule">
+        <field name="name">Committee: Director Portal membership</field>
+        <field name="model_id" ref="model_govoo_committee"/>
+        <field name="domain_force">[('member_ids.partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_govoo_director_portal'))]"/>
+    </record>
+
+</odoo>

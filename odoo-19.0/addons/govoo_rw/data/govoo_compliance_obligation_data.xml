@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Rwanda Compliance Obligation Templates                        -->
+    <!-- All records active=False until advisor confirmation           -->
+    <!-- BR-COMP-001, BR-RW-002                                        -->
+    <!-- [CONFIRM] All rates, dates, and thresholds are provisional    -->
+    <!-- ============================================================ -->
+
+    <!-- Monthly obligations (15th of following month) -->
+
+    <record id="obligation_vat_monthly" model="govoo.compliance.obligation">
+        <field name="name">VAT Return (Monthly)</field>
+        <field name="authority">RRA</field>
+        <field name="frequency">monthly</field>
+        <field name="basis">fixed_date</field>
+        <field name="fixed_day">15</field>
+        <field name="fixed_month">1</field>
+        <field name="lead_time_days">7</field>
+        <field name="applies_to_entity_type">company</field>
+        <field name="active">False</field>
+    </record>
+
+    <record id="obligation_paye_monthly" model="govoo.compliance.obligation">
+        <field name="name">PAYE Return (Monthly)</field>
+        <field name="authority">RRA</field>
+        <field name="frequency">monthly</field>
+        <field name="basis">fixed_date</field>
+        <field name="fixed_day">15</field>
+        <field name="fixed_month">1</field>
+        <field name="lead_time_days">7</field>
+        <field name="applies_to_entity_type">company</field>
+        <field name="active">False</field>
+    </record>
+
+    <record id="obligation_wht_monthly" model="govoo.compliance.obligation">
+        <field name="name">WHT Return (Monthly)</field>
+        <field name="authority">RRA</field>
+        <field name="frequency">monthly</field>
+        <field name="basis">fixed_date</field>
+        <field name="fixed_day">15</field>
+        <field name="fixed_month">1</field>
+        <field name="lead_time_days">7</field>
+        <field name="applies_to_entity_type">company</field>
+        <field name="active">False</field>
+    </record>
+
+    <record id="obligation_rssb_monthly" model="govoo.compliance.obligation">
+        <field name="name">RSSB Contribution (Monthly)</field>
+        <field name="authority">RSSB</field>
+        <field name="frequency">monthly</field>
+        <field name="basis">fixed_date</field>
+        <field name="fixed_day">15</field>
+        <field name="fixed_month">1</field>
+        <field name="lead_time_days">7</field>
+        <field name="applies_to_entity_type">company</field>
+        <field name="active">False</field>
+    </record>
+
+    <!-- Quarterly obligation -->
+
+    <record id="obligation_vat_small_taxpayers" model="govoo.compliance.obligation">
+        <field name="name">VAT Return - Small Taxpayers (Quarterly)</field>
+        <field name="authority">RRA</field>
+        <field name="frequency">quarterly</field>
+        <field name="basis">fye_relative</field>
+        <field name="fye_offset_months">0</field>
+        <field name="fixed_day">15</field>
+        <field name="lead_time_days">14</field>
+        <field name="applies_to_entity_type">company</field>
+        <field name="active">False</field>
+    </record>
+
+    <!-- CIT Quarterly Instalments (annual frequency, 3 instalments) -->
+
+    <record id="obligation_cit_instalment_1" model="govoo.compliance.obligation">
+        <field name="name">CIT Quarterly Instalment (1st - 30 Jun)</field>
+        <field name="authority">RRA</field>
+        <field name="frequency">annual</field>
+        <field name="basis">fixed_date</field>
+        <field name="fixed_day">30</field>
+        <field name="fixed_month">6</field>
+        <field name="lead_time_days">14</field>
+        <field name="applies_to_entity_type">company</field>
+        <field name="active">False</field>
+    </record>
+
+    <record id="obligation_cit_instalment_2" model="govoo.compliance.obligation">
+        <field name="name">CIT Quarterly Instalment (2nd - 30 Sep)</field>
+        <field name="authority">RRA</field>
+        <field name="frequency">annual</field>
+        <field name="basis">fixed_date</field>
+        <field name="fixed_day">30</field>
+        <field name="fixed_month">9</field>
+        <field name="lead_time_days">14</field>
+        <field name="applies_to_entity_type">company</field>
+        <field name="active">False</field>
+    </record>
+
+    <record id="obligation_cit_instalment_3" model="govoo.compliance.obligation">
+        <field name="name">CIT Quarterly Instalment (3rd - 31 Dec)</field>
+        <field name="authority">RRA</field>
+        <field name="frequency">annual</field>
+        <field name="basis">fixed_date</field>
+        <field name="fixed_day">31</field>
+        <field name="fixed_month">12</field>
+        <field name="lead_time_days">14</field>
+        <field name="applies_to_entity_type">company</field>
+        <field name="active">False</field>
+    </record>
+
+    <!-- Annual obligations -->
+
+    <record id="obligation_cit_annual" model="govoo.compliance.obligation">
+        <field name="name">CIT Annual Declaration</field>
+        <field name="authority">RRA</field>
+        <field name="frequency">annual</field>
+        <field name="basis">fye_relative</field>
+        <field name="fye_offset_months">3</field>
+        <field name="lead_time_days">30</field>
+        <field name="applies_to_entity_type">company</field>
+        <field name="active">False</field>
+    </record>
+
+    <record id="obligation_annual_return_accounts" model="govoo.compliance.obligation">
+        <field name="name">Annual Return + Accounts (RDB)</field>
+        <field name="authority">RDB</field>
+        <field name="frequency">annual</field>
+        <field name="basis">fye_relative</field>
+        <field name="fye_offset_months">6</field>
+        <field name="lead_time_days">30</field>
+        <field name="applies_to_entity_type">company</field>
+        <field name="active">False</field>
+    </record>
+
+    <record id="obligation_cma_governance_self_assessment" model="govoo.compliance.obligation">
+        <field name="name">CMA Governance Self-Assessment</field>
+        <field name="authority">CMA</field>
+        <field name="frequency">annual</field>
+        <field name="basis">fye_relative</field>
+        <field name="fye_offset_months">6</field>
+        <field name="lead_time_days">30</field>
+        <field name="applies_to_entity_type">public</field>
+        <field name="active">False</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,93 @@
+# Translations for govoo_evaluation
+msgid ""
+msgstr ""
+"Project-Id-Version: govoo_evaluation 19.0.1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-01 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. module: govoo_evaluation
+#: model:ir.model.fields,field_description:govoo_evaluation.field_govoo_evaluation_campaign__name
+msgid "Campaign Name"
+msgstr ""
+
+#. module: govoo_evaluation
+#: model:ir.model.fields,field_description:govoo_evaluation.field_govoo_evaluation_campaign__committee_id
+msgid "Committee"
+msgstr ""
+
+#. module: govoo_evaluation
+#: model:ir.model.fields,field_description:govoo_evaluation.field_govoo_evaluation_campaign__survey_id
+msgid "Survey"
+msgstr ""
+
+#. module: govoo_evaluation
+#: model:ir.model.fields,field_description:govoo_evaluation.field_govoo_evaluation_campaign__evaluation_type
+msgid "Evaluation Type"
+msgstr ""
+
+#. module: govoo_evaluation
+#: model:ir.model.fields,field_description:govoo_evaluation.field_govoo_evaluation_campaign__participant_ids
+msgid "Participants"
+msgstr ""
+
+#. module: govoo_evaluation
+#: model:ir.model.fields,field_description:govoo_evaluation.field_govoo_evaluation_campaign__state
+msgid "Status"
+msgstr ""
+
+#. module: govoo_evaluation
+#: model:ir.model.fields,field_description:govoo_evaluation.field_govoo_evaluation_campaign__response_count
+msgid "Responses"
+msgstr ""
+
+#. module: govoo_evaluation
+#: model:ir.model.fields,field_description:govoo_evaluation.field_govoo_evaluation_result__campaign_id
+msgid "Campaign"
+msgstr ""
+
+#. module: govoo_evaluation
+#: model:ir.model.fields,field_description:govoo_evaluation.field_govoo_evaluation_result__dimension_name
+msgid "Dimension Name"
+msgstr ""
+
+#. module: govoo_evaluation
+#: model:ir.model.fields,field_description:govoo_evaluation.field_govoo_evaluation_result__aggregate_score
+msgid "Aggregate Score"
+msgstr ""
+
+#. module: govoo_evaluation
+#: model:ir.model.fields,field_description:govoo_evaluation.field_govoo_evaluation_result__participant_count
+msgid "Participants"
+msgstr ""
+
+#. module: govoo_evaluation
+#: model:ir.actions.act_window,name:govoo_evaluation.govoo_evaluation_campaign_action
+msgid "Evaluation Campaigns"
+msgstr ""
+
+#. module: govoo_evaluation
+#: model:ir.actions.act_window,name:govoo_evaluation.govoo_evaluation_result_action
+msgid "Evaluation Results"
+msgstr ""
+
+#. module: govoo_evaluation
+#: model:ir.ui.menuitem,name:govoo_evaluation.govoo_menu_evaluation
+msgid "Evaluations"
+msgstr ""
+
+#. module: govoo_evaluation
+#: model:ir.ui.menuitem,name:govoo_evaluation.govoo_menu_evaluation_campaign
+msgid "Campaigns"
+msgstr ""
+
+#. module: govoo_evaluation
+#: model:ir.ui.menuitem,name:govoo_evaluation.govoo_menu_evaluation_result
+msgid "Results"
+msgstr ""

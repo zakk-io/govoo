@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_report_govoo_minutes" model="ir.actions.report">
+        <field name="name">Minutes Document</field>
+        <field name="model">govoo.minutes</field>
+        <field name="model_id" ref="model_govoo_minutes"/>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">govoo_board.report_minutes</field>
+        <field name="report_file">govoo_board.report_minutes</field>
+        <field name="binding_model_id" ref="model_govoo_minutes"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <record id="action_report_govoo_resolution_summary" model="ir.actions.report">
+        <field name="name">Resolution &amp; Voting Summary</field>
+        <field name="model">govoo.resolution</field>
+        <field name="model_id" ref="model_govoo_resolution"/>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">govoo_board.report_resolution_summary</field>
+        <field name="report_file">govoo_board.report_resolution_summary</field>
+        <field name="binding_model_id" ref="model_govoo_resolution"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Minutes document template -->
+    <template id="report_minutes">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="minutes">
+                <t t-call="web.external_layout">
+                    <t t-set="o">
+                        <t t-esc="minutes"/>
+                    </t>
+                    <div class="page">
+                        <h2>Minutes</h2>
+                        <p>
+                            <strong>Meeting:</strong>
+                            <t t-esc="minutes.meeting_id.name"/>
+                        </p>
+                        <p>
+                            <strong>Date:</strong>
+                            <t t-esc="minutes.meeting_id.date"/>
+                        </p>
+                        <p>
+                            <strong>Committee:</strong>
+                            <t t-esc="minutes.meeting_id.committee_id.name"/>
+                        </p>
+
+                        <h3>Attendance</h3>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Present</th>
+                                    <th>Apologies</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <t t-foreach="minutes.attendance_ids" t-as="a">
+                                            <t t-esc="a.name"/><br/>
+                                        </t>
+                                    </td>
+                                    <td>
+                                        <t t-foreach="minutes.apologies_ids" t-as="ap">
+                                            <t t-esc="ap.name"/><br/>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h3>Minutes</h3>
+                        <div t-field="minutes.body"/>
+
+                        <p t-if="minutes.retention_until">
+                            <strong>Retention Until:</strong>
+                            <t t-esc="minutes.retention_until"/>
+                        </p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- Resolution / Voting Summary template -->
+    <template id="report_resolution_summary">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="resolution">
+                <t t-call="web.external_layout">
+                    <t t-set="o">
+                        <t t-esc="resolution"/>
+                    </t>
+                    <div class="page">
+                        <h2>Resolution Summary</h2>
+                        <p>
+                            <strong>Title:</strong>
+                            <t t-esc="resolution.title"/>
+                        </p>
+                        <p>
+                            <strong>Type:</strong>
+                            <t t-esc="resolution.resolution_type"/>
+                        </p>
+                        <p>
+                            <strong>Meeting:</strong>
+                            <t t-if="resolution.meeting_id">
+                                <t t-esc="resolution.meeting_id.name"/>
+                            </t>
+                            <t t-else="">
+                                Written Resolution (no meeting)
+                            </t>
+                        </p>
+                        <p>
+                            <strong>Status:</strong>
+                            <t t-esc="resolution.state"/>
+                        </p>
+                        <p t-if="resolution.result">
+                            <strong>Result:</strong>
+                            <t t-esc="resolution.result"/>
+                        </p>
+
+                        <h3>Resolution Text</h3>
+                        <div t-field="resolution.text"/>
+
+                        <h3>Vote Tally</h3>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Voter</th>
+                                    <th class="text-center">Choice</th>
+                                    <th class="text-end">Weight</th>
+                                    <th class="text-center">Conflicted</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="resolution.vote_ids" t-as="vote">
+                                    <tr>
+                                        <td>
+                                            <t t-esc="vote.voter_id.name"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <t t-esc="vote.choice"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <t t-esc="vote.weight"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <t t-if="vote.is_conflicted">Yes</t>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <tfoot>
+                                <t t-set="eligible_votes"
+                                   t-value="resolution.vote_ids.filtered(lambda v: not v.is_conflicted)"/>
+                                <tr class="fw-bold">
+                                    <td>Total (eligible)</td>
+                                    <td></td>
+                                    <td class="text-end">
+                                        <t t-esc="sum(eligible_votes.mapped('weight'))"/>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_report_retention_disposal" model="ir.actions.report">
+        <field name="name">Retention Disposal Report</field>
+        <field name="model">govoo.rw.retention</field>
+        <field name="model_id" ref="model_govoo_rw_retention"/>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">govoo_rw.report_retention_disposal</field>
+        <field name="report_file">govoo_rw.report_retention_disposal</field>
+        <field name="binding_model_id" ref="model_govoo_rw_retention"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_retention_disposal">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="retention">
+                <t t-call="web.external_layout">
+                    <t t-set="o">
+                        <t t-esc="retention"/>
+                    </t>
+                    <div class="page">
+                        <h2>Document Retention Disposal Report</h2>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Retention Rule:</strong></td>
+                                <td><t t-esc="retention.name"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Category:</strong></td>
+                                <td><t t-esc="retention.retention_category"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Basis:</strong></td>
+                                <td><t t-esc="retention.basis"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Company:</strong></td>
+                                <td><t t-esc="retention.company_id.name"/></td>
+                            </tr>
+                        </table>
+                        <h3>Instructions</h3>
+                        <ol>
+                            <li>Verify the records listed below have exceeded their retention period.</li>
+                            <li>Obtain approval from the Company Secretary before disposal.</li>
+                            <li>Complete the disposal process and record the outcome.</li>
+                        </ol>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

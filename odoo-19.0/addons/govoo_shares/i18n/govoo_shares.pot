@@ -1,0 +1,184 @@
+# Translation template for Govoo Shares module.
+# Copyright (C) 2026 Govoo
+# This file contains the translation of the following modules:
+msgid ""
+msgstr ""
+"Project-Id-Version: Govoo Shares 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-01 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. module: govoo_shares
+#: model:ir.model,name:govoo_shares.model_govoo_share_class
+msgid "Share Class"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model,name:govoo_shares.model_govoo_share_allotment
+msgid "Share Allotment (Issuance)"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model,name:govoo_shares.model_govoo_share_transfer
+msgid "Share Transfer"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model,name:govoo_shares.model_govoo_share_holding
+msgid "Share Holding"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_class__name
+msgid "Share Class Name"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_class__nominal_value
+msgid "Nominal Value"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_class__votes_per_share
+msgid "Votes per Share"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_class__total_authorised
+msgid "Total Authorised Shares"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_class__is_redeemable
+msgid "Redeemable"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_class__total_allotted
+msgid "Total Allotted"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_allotment__share_class_id
+msgid "Share Class"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_allotment__partner_id
+msgid "Allottee"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_allotment__quantity
+msgid "Number of Shares"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_allotment__price_per_share
+msgid "Price per Share"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_allotment__date_allotted
+msgid "Date Allotted"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_allotment__certificate_no
+msgid "Certificate Number"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_allotment__certificate_document_id
+msgid "Share Certificate"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_transfer__share_class_id
+msgid "Share Class"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_transfer__transferor_id
+msgid "Transferor (Seller)"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_transfer__transferee_id
+msgid "Transferee (Buyer)"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_transfer__quantity
+msgid "Number of Shares"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_transfer__price
+msgid "Price"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_transfer__date_transferred
+msgid "Date Transferred"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_transfer__stamp_duty
+msgid "Stamp Duty"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_transfer__transfer_instrument_id
+msgid "Transfer Instrument"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_transfer__sign_request_id
+msgid "Sign Request"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_transfer__state
+msgid "Status"
+msgstr ""
+
+#. module: govoo_shares
+#: selection:govoo.share.transfer,state
+msgid "Draft"
+msgstr ""
+
+#. module: govoo_shares
+#: selection:govoo.share.transfer,state
+msgid "Approved"
+msgstr ""
+
+#. module: govoo_shares
+#: selection:govoo.share.transfer,state
+msgid "Registered"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_holding__partner_id
+msgid "Shareholder"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_holding__quantity
+msgid "Shares Held"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_holding__percentage
+msgid "Ownership %"
+msgstr ""
+
+#. module: govoo_shares
+#: model:ir.model.fields,field_description:govoo_shares.field_govoo_share_holding__voting_power
+msgid "Voting Power"
+msgstr ""

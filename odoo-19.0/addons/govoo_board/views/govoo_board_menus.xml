@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="govoo_menu_board"
+              name="Board &amp; Meetings"
+              parent="govoo_base.govoo_menu_root"
+              sequence="40"/>
+
+    <menuitem id="govoo_menu_meeting"
+              name="Meetings"
+              parent="govoo_menu_board"
+              action="govoo_meeting_action"
+              sequence="10"/>
+
+    <menuitem id="govoo_menu_board_pack"
+              name="Board Packs"
+              parent="govoo_menu_board"
+              action="govoo_board_pack_action"
+              sequence="20"/>
+
+    <menuitem id="govoo_menu_minutes"
+              name="Minutes"
+              parent="govoo_menu_board"
+              action="govoo_minutes_action"
+              sequence="30"/>
+
+    <menuitem id="govoo_menu_resolution"
+              name="Resolutions"
+              parent="govoo_menu_board"
+              action="govoo_resolution_action"
+              sequence="40"/>
+
+    <menuitem id="govoo_menu_vote"
+              name="Votes"
+              parent="govoo_menu_board"
+              action="govoo_vote_action"
+              sequence="50"/>
+
+</odoo>

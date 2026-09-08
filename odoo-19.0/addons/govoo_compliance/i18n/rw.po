@@ -1,0 +1,122 @@
+# Translation of Govoo Compliance module in Kinyarwanda.
+msgid ""
+msgstr ""
+"Project-Id-Version: Govoo Compliance 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-01 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Kinyarwanda <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. module: govoo_compliance
+#: model:ir.model,name:govoo_compliance.model_govoo_compliance_obligation
+msgid "Compliance Obligation (Catalogue)"
+msgstr "Igihano cyo Kuburirana (Ibikubiyemo)"
+
+#. module: govoo_compliance
+#: model:ir.model,name:govoo_compliance.model_govoo_compliance_instance
+msgid "Compliance Instance"
+msgstr "Igice cyo Kuburirana"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_obligation__name
+msgid "Obligation Name"
+msgstr "Izina ry'Igihano"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_obligation__authority
+msgid "Authority"
+msgstr "Ubuyobozi"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_obligation__frequency
+msgid "Frequency"
+msgstr "Igice"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_obligation__basis
+msgid "Due Date Basis"
+msgstr "Insanganyamatsiko y'Itariki"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_obligation__lead_time_days
+msgid "Lead Time (Days)"
+msgstr "Igihe (Iminsi)"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_obligation__active
+msgid "Active"
+msgstr "Birakora"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__obligation_id
+msgid "Obligation"
+msgstr "Igihano"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__period
+msgid "Period"
+msgstr "Igihe"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__due_date
+msgid "Due Date"
+msgstr "Itariki"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__responsible_id
+msgid "Responsible"
+msgstr "Umukuru"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__state
+msgid "Status"
+msgstr "Imimerere"
+
+#. module: govoo_compliance
+#: selection:govoo.compliance.instance,state
+msgid "Upcoming"
+msgstr "Razoza"
+
+#. module: govoo_compliance
+#: selection:govoo.compliance.instance,state
+msgid "In Progress"
+msgstr "Birakorwa"
+
+#. module: govoo_compliance
+#: selection:govoo.compliance.instance,state
+msgid "Filed"
+msgstr "Yanditswe"
+
+#. module: govoo_compliance
+#: selection:govoo.compliance.instance,state
+msgid "Late"
+msgstr "Yarenze"
+
+#. module: govoo_compliance
+#: selection:govoo.compliance.instance,state
+msgid "Waived"
+msgstr "Yaraciwe"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__reference_no
+msgid "Filing Reference"
+msgstr "Ishusho yo Gushyira"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__filed_date
+msgid "Filed Date"
+msgstr "Itariki y'Ushusho"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__days_to_due
+msgid "Days to Due"
+msgstr "Iminsi y余り"
+
+#. module: govoo_compliance
+#: model:ir.model.fields,field_description:govoo_compliance.field_govoo_compliance_instance__rag_color
+msgid "RAG Status"
+msgstr "Imimerere ya RAG"

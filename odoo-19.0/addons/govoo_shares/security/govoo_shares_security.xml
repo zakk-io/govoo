@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Multi-company record rules -->
+    <record id="govoo_share_class_comp_rule" model="ir.rule">
+        <field name="name">Share Class: multi-company</field>
+        <field name="model_id" ref="model_govoo_share_class"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+    <record id="govoo_share_allotment_comp_rule" model="ir.rule">
+        <field name="name">Share Allotment: multi-company</field>
+        <field name="model_id" ref="model_govoo_share_allotment"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+    <record id="govoo_share_transfer_comp_rule" model="ir.rule">
+        <field name="name">Share Transfer: multi-company</field>
+        <field name="model_id" ref="model_govoo_share_transfer"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+    <record id="govoo_share_transfer_portal_rule" model="ir.rule">
+        <field name="name">Share Transfer: portal party access</field>
+        <field name="model_id" ref="model_govoo_share_transfer"/>
+        <field name="domain_force">['|', ('transferor_id', '=', user.partner_id.id), ('transferee_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_shareholder_portal'))]"/>
+    </record>
+
+    <record id="govoo_share_holding_comp_rule" model="ir.rule">
+        <field name="name">Share Holding: multi-company</field>
+        <field name="model_id" ref="model_govoo_share_holding"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+    <record id="govoo_share_holding_portal_rule" model="ir.rule">
+        <field name="name">Share Holding: Shareholder Portal own only</field>
+        <field name="model_id" ref="model_govoo_share_holding"/>
+        <field name="domain_force">[('partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_shareholder_portal'))]"/>
+    </record>
+
+</odoo>

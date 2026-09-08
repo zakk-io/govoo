@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="govoo_share_transfer_view_list" model="ir.ui.view">
+        <field name="name">govoo.share.transfer.list</field>
+        <field name="model">govoo.share.transfer</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="share_class_id"/>
+                <field name="transferor_id"/>
+                <field name="transferee_id"/>
+                <field name="quantity"/>
+                <field name="price" widget="monetary"
+                       options="{'currency_field': 'currency_id'}"/>
+                <field name="date_transferred"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'registered'"
+                       decoration-info="state == 'approved'"
+                       decoration-warning="state == 'draft'"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="govoo_share_transfer_view_form" model="ir.ui.view">
+        <field name="name">govoo.share.transfer.form</field>
+        <field name="model">govoo.share.transfer</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_approve" string="Approve"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_register" string="Register"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'approved'"/>
+                    <button name="action_draft" string="Reset to Draft"
+                            type="object"
+                            invisible="state == 'registered'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="share_class_id"/>
+                            <field name="transferor_id"/>
+                            <field name="transferee_id"/>
+                        </group>
+                        <group>
+                            <field name="quantity"/>
+                            <field name="price" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="stamp_duty" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"/>
+                            <field name="date_transferred"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group string="Documents"
+                           groups="govoo_base.group_govoo_secretary">
+                        <group>
+                            <field name="transfer_instrument_id"/>
+                        </group>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="govoo_share_transfer_view_search" model="ir.ui.view">
+        <field name="name">govoo.share.transfer.search</field>
+        <field name="model">govoo.share.transfer</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="share_class_id"/>
+                <field name="transferor_id"/>
+                <field name="transferee_id"/>
+                <filter name="filter_draft" string="Draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_approved" string="Approved"
+                        domain="[('state', '=', 'approved')]"/>
+                <filter name="filter_registered" string="Registered"
+                        domain="[('state', '=', 'registered')]"/>
+                <group>
+                    <filter name="group_state" string="Status"
+                            context="{'group_by': 'state'}"/>
+                    <filter name="group_class" string="Share Class"
+                            context="{'group_by': 'share_class_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="govoo_share_transfer_action" model="ir.actions.act_window">
+        <field name="name">Transfers</field>
+        <field name="res_model">govoo.share.transfer</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

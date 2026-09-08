@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="govoo_register_charge_view_list" model="ir.ui.view">
+        <field name="name">govoo.register.charge.list</field>
+        <field name="model">govoo.register.charge</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="chargee_partner_id"/>
+                <field name="amount" widget="monetary"
+                       options="{'currency_field': 'currency_id'}"/>
+                <field name="date_created"/>
+                <field name="date_registered"/>
+                <field name="satisfied" widget="boolean_toggle"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="govoo_register_charge_view_form" model="ir.ui.view">
+        <field name="name">govoo.register.charge.form</field>
+        <field name="model">govoo.register.charge</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="chargee_partner_id"/>
+                            <field name="amount" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="date_created"/>
+                            <field name="date_registered"/>
+                            <field name="satisfied"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group string="Property Details">
+                        <field name="property_description"/>
+                    </group>
+                    <group string="Document"
+                           groups="govoo_base.group_govoo_secretary">
+                        <field name="charge_document_id"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="govoo_register_charge_view_search" model="ir.ui.view">
+        <field name="name">govoo.register.charge.search</field>
+        <field name="model">govoo.register.charge</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="chargee_partner_id"/>
+                <filter name="filter_satisfied" string="Satisfied"
+                        domain="[('satisfied', '=', True)]"/>
+                <filter name="filter_unsatisfied" string="Outstanding"
+                        domain="[('satisfied', '=', False)]"/>
+                <group>
+                    <filter name="group_company" string="Company"
+                            context="{'group_by': 'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="govoo_register_charge_action" model="ir.actions.act_window">
+        <field name="name">Register of Charges</field>
+        <field name="res_model">govoo.register.charge</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

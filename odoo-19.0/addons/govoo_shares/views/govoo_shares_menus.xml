@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Shares submenu (under Governance) -->
+    <menuitem id="govoo_menu_shares"
+              name="Shares &amp; Cap Table"
+              parent="govoo_base.govoo_menu_root"
+              sequence="30"/>
+
+    <menuitem id="govoo_menu_share_class"
+              name="Share Classes"
+              parent="govoo_menu_shares"
+              action="govoo_share_class_action"
+              sequence="10"/>
+
+    <menuitem id="govoo_menu_share_allotment"
+              name="Allotments"
+              parent="govoo_menu_shares"
+              action="govoo_share_allotment_action"
+              sequence="20"/>
+
+    <menuitem id="govoo_menu_share_transfer"
+              name="Transfers"
+              parent="govoo_menu_shares"
+              action="govoo_share_transfer_action"
+              sequence="30"/>
+
+    <menuitem id="govoo_menu_share_holding"
+              name="Cap Table"
+              parent="govoo_menu_shares"
+              action="govoo_share_holding_action"
+              sequence="40"/>
+
+</odoo>

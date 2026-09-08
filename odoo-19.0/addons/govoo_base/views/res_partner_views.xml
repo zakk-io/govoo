@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Partner form: add Governance notebook page -->
+    <record id="res_partner_form_govoo" model="ir.ui.view">
+        <field name="name">res.partner.form.govoo</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Governance" name="governance"
+                      groups="govoo_base.group_govoo_user">
+                    <group>
+                        <group string="Roles">
+                            <field name="govoo_is_director"/>
+                            <field name="govoo_is_shareholder"/>
+                            <field name="govoo_is_officer"/>
+                            <field name="govoo_is_beneficial_owner"/>
+                        </group>
+                        <group string="Personal Information"
+                               groups="govoo_base.group_govoo_secretary,govoo_base.group_govoo_admin">
+                            <field name="govoo_national_id"/>
+                            <field name="govoo_date_of_birth"/>
+                            <field name="govoo_nationality_id"/>
+                        </group>
+                    </group>
+                    <field name="govoo_appointment_ids" readonly="1"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Partner list: add governance columns -->
+    <record id="res_partner_tree_govoo" model="ir.ui.view">
+        <field name="name">res.partner.tree.govoo</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='display_name']" position="after">
+                <field name="govoo_is_director" widget="boolean_toggle"/>
+                <field name="govoo_is_shareholder" widget="boolean_toggle"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

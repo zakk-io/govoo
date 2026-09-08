@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_report_filing_pack" model="ir.actions.report">
+        <field name="name">Filing Pack</field>
+        <field name="model">govoo.compliance.instance</field>
+        <field name="model_id" ref="model_govoo_compliance_instance"/>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">govoo_compliance.report_filing_pack</field>
+        <field name="report_file">govoo_compliance.report_filing_pack</field>
+        <field name="binding_model_id" ref="model_govoo_compliance_instance"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_filing_pack">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="instance">
+                <t t-call="web.external_layout">
+                    <t t-set="o">
+                        <t t-esc="instance"/>
+                    </t>
+                    <div class="page">
+                        <h2>Filing Pack</h2>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Obligation:</strong></td>
+                                <td>
+                                    <t t-esc="instance.obligation_id.name"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Company:</strong></td>
+                                <td>
+                                    <t t-esc="instance.company_id.name"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Period:</strong></td>
+                                <td>
+                                    <t t-esc="instance.period"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Due Date:</strong></td>
+                                <td>
+                                    <t t-esc="instance.due_date"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Authority:</strong></td>
+                                <td>
+                                    <t t-esc="instance.obligation_id.authority"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    <t t-esc="instance.state"/>
+                                </td>
+                            </tr>
+                            <tr t-if="instance.reference_no">
+                                <td><strong>Filing Reference:</strong></td>
+                                <td>
+                                    <t t-esc="instance.reference_no"/>
+                                </td>
+                            </tr>
+                            <tr t-if="instance.filed_date">
+                                <td><strong>Filed Date:</strong></td>
+                                <td>
+                                    <t t-esc="instance.filed_date"/>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <h3>Instructions</h3>
+                        <ol>
+                            <li>Download this filing pack.</li>
+                            <li>Prepare the required supporting documents.</li>
+                            <li>Submit via the relevant government portal.</li>
+                            <li>Record the filing reference and date on the instance record.</li>
+                        </ol>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

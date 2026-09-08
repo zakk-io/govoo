@@ -1,0 +1,72 @@
+# Part of Govoo. See LICENSE file for full copyright and licensing details.
+
+from odoo.exceptions import ValidationError
+from odoo.tests import tagged
+
+from .common import GovooBoardTestBase
+
+
+@tagged('post_install', '-at_install', 'govoo_board')
+class GovooMeetingTC(GovooBoardTestBase):
+    """TC-BOARD-001, 001b — Meeting quorum and state machine."""
+
+    def test_quorum_met_with_sufficient_attendees(self):
+        """TC-BOARD-001: Meeting with quorum_required=3, 4 attendees → quorum_met=True."""
+        meeting = self._make_meeting(quorum=3)
+        self.assertTrue(meeting.quorum_met)
+
+    def test_quorum_not_met(self):
+        """Meeting with quorum_required=5, 4 attendees → quorum_met=False."""
+        meeting = self._make_meeting(quorum=5)
+        self.assertFalse(meeting.quorum_met)
+
+    def test_quorum_required_must_be_positive(self):
+        """quorum_required must be > 0."""
+        with self.assertRaises(ValidationError):
+            self.env['govoo.meeting'].create({
+                'name': 'Invalid Meeting',
+                'meeting_type': 'board',
+                'committee_id': self.committee.id,
+                'date': '2026-04-01 10:00:00',
+                'quorum_required': 0,
+                'company_id': self.company.id,
+            })
+
+    def test_state_transition_out_of_order_rejected(self):
+        """TC-BOARD-001b: draft → held is rejected (must go through scheduled)."""
+        meeting = self._make_meeting()
+        self.assertEqual(meeting.state, 'draft')
+        with self.assertRaises(ValidationError):
+            meeting.action_hold()
+
+    def test_state_transition_sequential(self):
+        """State advances draft → scheduled → held correctly."""
+        meeting = self._make_meeting()
+        meeting.action_schedule()
+        self.assertEqual(meeting.state, 'scheduled')
+        meeting.action_hold()
+        self.assertEqual(meeting.state, 'held')
+
+    def test_close_blocked_by_open_resolution(self):
+        """Cannot close meeting with non-terminal resolutions."""
+        meeting = self._make_meeting()
+        meeting.action_schedule()
+        meeting.action_hold()
+
+        # Create minutes
+        minutes = self.env['govoo.minutes'].create({
+            'meeting_id': meeting.id,
+            'body': '<p>Minutes content.</p>',
+        })
+        minutes.action_submit_for_approval()
+        minutes.action_approve()
+        meeting.minutes_id = minutes
+        meeting.action_minute()
+        self.assertEqual(meeting.state, 'minuted')
+
+        # Create a resolution that is still open
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+
+        with self.assertRaises(ValidationError):
+            meeting.action_close()

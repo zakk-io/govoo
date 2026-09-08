@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="govoo_evaluation_result_search" model="ir.ui.view">
+        <field name="name">govoo.evaluation.result.search</field>
+        <field name="model">govoo.evaluation.result</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="campaign_id"/>
+                <field name="dimension_name"/>
+                <group>
+                    <filter name="group_campaign"
+                            string="By Campaign"
+                            context="{'group_by': 'campaign_id'}"/>
+                    <filter name="group_dimension"
+                            string="By Dimension"
+                            context="{'group_by': 'dimension_name'}"/>
+                    <filter name="group_company"
+                            string="By Company"
+                            context="{'group_by': 'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="govoo_evaluation_result_action" model="ir.actions.act_window">
+        <field name="name">Evaluation Results</field>
+        <field name="res_model">govoo.evaluation.result</field>
+        <field name="view_mode">list,graph,pivot</field>
+        <field name="search_view_id" ref="govoo_evaluation_result_search"/>
+    </record>
+
+    <record id="govoo_evaluation_result_list" model="ir.ui.view">
+        <field name="name">govoo.evaluation.result.list</field>
+        <field name="model">govoo.evaluation.result</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="campaign_id"/>
+                <field name="dimension_name"/>
+                <field name="aggregate_score"/>
+                <field name="participant_count"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="govoo_evaluation_result_graph" model="ir.ui.view">
+        <field name="name">govoo.evaluation.result.graph</field>
+        <field name="model">govoo.evaluation.result</field>
+        <field name="arch" type="xml">
+            <graph string="Evaluation Results"
+                   type="bar"
+                   sample="1">
+                <field name="campaign_id"/>
+                <field name="dimension_name"/>
+                <field name="aggregate_score" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="govoo_evaluation_result_pivot" model="ir.ui.view">
+        <field name="name">govoo.evaluation.result.pivot</field>
+        <field name="model">govoo.evaluation.result</field>
+        <field name="arch" type="xml">
+            <pivot string="Evaluation Results">
+                <field name="campaign_id" type="row"/>
+                <field name="dimension_name" type="col"/>
+                <field name="aggregate_score" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+</odoo>

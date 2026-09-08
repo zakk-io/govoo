@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Register of Directors Extract -->
+    <record id="report_register_director" model="ir.actions.report">
+        <field name="name">Register of Directors Extract</field>
+        <field name="model">govoo.register.director</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">govoo_secretarial.report_register_director</field>
+        <field name="report_file">govoo_secretarial.report_register_director</field>
+        <field name="binding_model_id" ref="model_govoo_register_director"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_register_director_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Register of Directors</h2>
+                        <p>Company: <strong t-field="doc.company_id.name"/></p>
+                        <p>Date: <strong t-field="fields.Date.context_today(self)"/></p>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Role</th>
+                                    <th>Date Appointed</th>
+                                    <th>Date Resigned</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="docs" t-as="row">
+                                    <td t-field="row.partner_id"/>
+                                    <td t-field="row.role"/>
+                                    <td t-field="row.date_appointed"/>
+                                    <td t-field="row.date_resigned"/>
+                                    <td t-field="row.state"/>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- Register of Members Extract -->
+    <record id="report_register_member" model="ir.actions.report">
+        <field name="name">Register of Members Extract</field>
+        <field name="model">govoo.register.member</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">govoo_secretarial.report_register_member</field>
+        <field name="report_file">govoo_secretarial.report_register_member</field>
+        <field name="binding_model_id" ref="model_govoo_register_member"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_register_member_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Register of Members</h2>
+                        <p>Company: <strong t-field="doc.company_id.name"/></p>
+                        <p>Date: <strong t-field="fields.Date.context_today(self)"/></p>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Date Entered</th>
+                                    <th>Date Ceased</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="docs" t-as="row">
+                                    <td t-field="row.partner_id"/>
+                                    <td t-field="row.date_entered"/>
+                                    <td t-field="row.date_ceased"/>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- Beneficial Ownership Extract -->
+    <record id="report_register_beneficial_owner" model="ir.actions.report">
+        <field name="name">Beneficial Ownership Extract</field>
+        <field name="model">govoo.register.beneficial.owner</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">govoo_secretarial.report_register_beneficial_owner</field>
+        <field name="report_file">govoo_secretarial.report_register_beneficial_owner</field>
+        <field name="binding_model_id" ref="model_govoo_register_beneficial_owner"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_register_beneficial_owner_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Register of Beneficial Owners</h2>
+                        <p>Company: <strong t-field="doc.company_id.name"/></p>
+                        <p>Date: <strong t-field="fields.Date.context_today(self)"/></p>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Nature of Control</th>
+                                    <th>Date Became Registrable</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="docs" t-as="row">
+                                    <td t-field="row.partner_id"/>
+                                    <td t-field="row.nature_of_control"/>
+                                    <td t-field="row.date_became_registrable"/>
+                                    <td>
+                                        <span t-if="row.is_provisional"
+                                              class="badge rounded-pill text-bg-danger">Provisional</span>
+                                        <span t-else="" class="badge rounded-pill text-bg-success">Confirmed</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- Register of Charges Extract -->
+    <record id="report_register_charge" model="ir.actions.report">
+        <field name="name">Register of Charges Extract</field>
+        <field name="model">govoo.register.charge</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">govoo_secretarial.report_register_charge</field>
+        <field name="report_file">govoo_secretarial.report_register_charge</field>
+        <field name="binding_model_id" ref="model_govoo_register_charge"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_register_charge_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Register of Charges</h2>
+                        <p>Company: <strong t-field="doc.company_id.name"/></p>
+                        <p>Date: <strong t-field="fields.Date.context_today(self)"/></p>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Chargee</th>
+                                    <th>Amount</th>
+                                    <th>Date Created</th>
+                                    <th>Date Registered</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="docs" t-as="row">
+                                    <td t-field="row.chargee_partner_id"/>
+                                    <td t-field="row.amount"
+                                        t-options="{'widget': 'monetary', 'currency_field': 'currency_id'}"/>
+                                    <td t-field="row.date_created"/>
+                                    <td t-field="row.date_registered"/>
+                                    <td>
+                                        <span t-if="row.satisfied"
+                                              class="badge rounded-pill text-bg-success">Satisfied</span>
+                                        <span t-else="" class="badge rounded-pill text-bg-warning">Outstanding</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

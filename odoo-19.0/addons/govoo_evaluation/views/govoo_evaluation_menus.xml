@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="govoo_menu_evaluation"
+              name="Evaluations"
+              parent="govoo_base.govoo_menu_root"
+              sequence="55"/>
+
+    <menuitem id="govoo_menu_evaluation_campaign"
+              name="Campaigns"
+              parent="govoo_menu_evaluation"
+              action="govoo_evaluation_campaign_action"
+              sequence="10"/>
+
+    <menuitem id="govoo_menu_evaluation_result"
+              name="Results"
+              parent="govoo_menu_evaluation"
+              action="govoo_evaluation_result_action"
+              sequence="20"/>
+
+</odoo>

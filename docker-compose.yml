@@ -1,0 +1,90 @@
+services:
+  db:
+    image: postgres:16
+    container_name: odoo-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-odoo}
+      POSTGRES_USER: ${POSTGRES_USER:-odoo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-odoo} -d ${POSTGRES_DB:-odoo}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  odoo:
+    build:
+      context: ./odoo-19.0
+    image: odoo19-local
+    container_name: odoo-app
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${ODOO_PORT:-8069}:8069"
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      ODOO_DB: ${POSTGRES_DB:-odoo}
+      ODOO_DB_HOST: db
+      ODOO_DB_PORT: "5432"
+      ODOO_DB_USER: ${POSTGRES_USER:-odoo}
+      ODOO_DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      ODOO_ADMIN_PASSWD: ${ODOO_ADMIN_PASSWD:?Set ODOO_ADMIN_PASSWD in .env}
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./odoo-19.0:/opt/odoo
+    command:
+      - "/opt/odoo/odoo-bin"
+      - "--config=/etc/odoo/odoo.conf"
+      - "--db_host=db"
+      - "--db_port=5432"
+      - "--db_user=${POSTGRES_USER:-odoo}"
+      - "--db_password=${POSTGRES_PASSWORD}"
+      - "--db-filter=^${POSTGRES_DB:-odoo}$"
+      - "-d"
+      - "${POSTGRES_DB:-odoo}"
+      - "-i"
+      - "muk_mcp"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    read_only: false
+    tmpfs:
+      - /tmp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  odoo-db-data:
+  odoo-data:

@@ -1,0 +1,70 @@
+# Translation of govoo_portal.
+# Copyright (C) 2026 Govoo
+# This file contains the translation of the following modules:
+#   * govoo_portal
+#
+# [ADVISOR REVIEW] - Kinyarwanda translations require review by a local legal
+# advisor to ensure accuracy of governance terminology. Do NOT mark as final
+# until reviewed.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: govoo_portal 19.0.1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-01 00:00+0000\n"
+"PO-Revision-Date: 2026-01-01 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: rw\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: govoo_portal
+#: model_terms:ir.ui.view,arch_db:govoo_portal.portal_my_meetings
+# [ADVISOR REVIEW]
+msgid "My Meetings"
+msgstr ""
+
+#. module: govoo_portal
+#: model_terms:ir.ui.view,arch_db:govoo_portal.portal_my_votes
+# [ADVISOR REVIEW]
+msgid "My Votes"
+msgstr ""
+
+#. module: govoo_portal
+#: model_terms:ir.ui.view,arch_db:govoo_portal.portal_my_holdings
+# [ADVISOR REVIEW]
+msgid "My Holdings"
+msgstr ""
+
+#. module: govoo_portal
+#: model_terms:ir.ui.view,arch_db:govoo_portal.portal_my_appointment
+# [ADVISOR REVIEW]
+msgid "My Appointment"
+msgstr ""
+
+#. module: govoo_portal
+#: model:ir.actions.act_window,name:govoo_portal.action_govoo_dashboard
+# [ADVISOR REVIEW]
+msgid "Dashboard"
+msgstr ""
+
+#. module: govoo_portal
+#: model:ir.ui.menuitem,name:govoo_portal.govoo_menu_dashboard
+# [ADVISOR REVIEW]
+msgid "Dashboard"
+msgstr ""
+
+#. module: govoo_portal
+#: model:ir.ui.menuitem,name:govoo_portal.govoo_menu_dashboard_compliance
+# [ADVISOR REVIEW]
+msgid "Compliance RAG"
+msgstr ""
+
+#. module: govoo_portal
+#: model:ir.ui.menuitem,name:govoo_portal.govoo_menu_dashboard_evaluation
+# [ADVISOR REVIEW]
+msgid "Evaluation Trends"
+msgstr ""

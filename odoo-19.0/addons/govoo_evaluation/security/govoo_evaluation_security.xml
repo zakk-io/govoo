@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Multi-company record rules                                     -->
+    <!-- ============================================================ -->
+
+    <record id="govoo_evaluation_campaign_comp_rule" model="ir.rule">
+        <field name="name">Evaluation Campaign: multi-company</field>
+        <field name="model_id" ref="model_govoo_evaluation_campaign"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+    <record id="govoo_evaluation_result_comp_rule" model="ir.rule">
+        <field name="name">Evaluation Result: multi-company</field>
+        <field name="model_id" ref="model_govoo_evaluation_result"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Director Portal: campaign participant-only access             -->
+    <!-- ============================================================ -->
+
+    <record id="govoo_evaluation_campaign_portal_rule" model="ir.rule">
+        <field name="name">Evaluation Campaign: portal participant-only</field>
+        <field name="model_id" ref="model_govoo_evaluation_campaign"/>
+        <field name="domain_force">[('participant_ids', 'in', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_director_portal'))]"/>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- BR-EVAL-001: survey.user_input confidentiality               -->
+    <!-- Secretary/Admin: full access to all evaluation inputs        -->
+    <!-- ============================================================ -->
+
+    <record id="survey_user_input_rule_govoo_admin" model="ir.rule">
+        <field name="name">Survey user input: Govoo Secretary/Admin: all</field>
+        <field name="model_id" ref="survey.model_survey_user_input"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_secretary')), (4, ref('govoo_base.group_govoo_admin'))]"/>
+    </record>
+
+    <!-- BR-EVAL-001: Global rule — participants see only their own input -->
+    <record id="survey_user_input_rule_govoo_confidential" model="ir.rule">
+        <field name="name">Survey user input: Govoo confidentiality (BR-EVAL-001)</field>
+        <field name="model_id" ref="survey.model_survey_user_input"/>
+        <field name="domain_force">['|', ('partner_id', '=', user.partner_id.id), ('partner_id', '=', False)]</field>
+    </record>
+
+    <!-- BR-EVAL-001: Secretary/Admin full access to survey input lines -->
+    <record id="survey_user_input_line_rule_govoo_admin" model="ir.rule">
+        <field name="name">Survey user input line: Govoo Secretary/Admin: all</field>
+        <field name="model_id" ref="survey.model_survey_user_input_line"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_secretary')), (4, ref('govoo_base.group_govoo_admin'))]"/>
+    </record>
+
+    <!-- BR-EVAL-001: Global rule — participants see only their own lines -->
+    <record id="survey_user_input_line_rule_govoo_confidential" model="ir.rule">
+        <field name="name">Survey user input line: Govoo confidentiality (BR-EVAL-001)</field>
+        <field name="model_id" ref="survey.model_survey_user_input_line"/>
+        <field name="domain_force">['|', ('user_input_id.partner_id', '=', user.partner_id.id), ('user_input_id.partner_id', '=', False)]</field>
+    </record>
+
+</odoo>

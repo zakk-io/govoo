@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="govoo_meeting_view_list" model="ir.ui.view">
+        <field name="name">govoo.meeting.list</field>
+        <field name="model">govoo.meeting</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="meeting_type"/>
+                <field name="committee_id"/>
+                <field name="date"/>
+                <field name="quorum_met" widget="boolean_toggle"/>
+                <field name="state" widget="badge"
+                       decoration-success="state in ('held', 'minuted', 'closed')"
+                       decoration-info="state == 'scheduled'"
+                       decoration-warning="state == 'draft'"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="govoo_meeting_view_form" model="ir.ui.view">
+        <field name="name">govoo.meeting.form</field>
+        <field name="model">govoo.meeting</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_schedule" string="Schedule"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_hold" string="Mark as Held"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'scheduled'"/>
+                    <button name="action_minute" string="Mark as Minuted"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'held'"/>
+                    <button name="action_close" string="Close Meeting"
+                            type="object" class="oe_highlight"
+                            invisible="state != 'minuted'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="meeting_type"/>
+                            <field name="committee_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="date"/>
+                            <field name="location"/>
+                            <field name="virtual_link"/>
+                            <field name="quorum_required"/>
+                            <field name="quorum_met"/>
+                        </group>
+                    </group>
+                    <group string="Attendees">
+                        <field name="attendee_ids" widget="many2many_tags"/>
+                    </group>
+                    <notebook>
+                        <page string="Agenda" name="agenda">
+                            <field name="agenda_ids"/>
+                        </page>
+                        <page string="Resolutions" name="resolutions">
+                            <field name="resolution_ids"/>
+                        </page>
+                        <page string="Pack" name="pack">
+                            <field name="pack_id"/>
+                        </page>
+                        <page string="Minutes" name="minutes">
+                            <field name="minutes_id"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="govoo_meeting_view_kanban" model="ir.ui.view">
+        <field name="name">govoo.meeting.kanban</field>
+        <field name="model">govoo.meeting</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="name"/>
+                <field name="state"/>
+                <field name="date"/>
+                <field name="committee_id"/>
+                <templates>
+                    <t t-name="card">
+                        <field name="name"/>
+                        <field name="committee_id"/>
+                        <field name="date"/>
+                        <field name="state" widget="badge"
+                               decoration-success="state in ('held', 'minuted', 'closed')"
+                               decoration-info="state == 'scheduled'"/>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="govoo_meeting_view_search" model="ir.ui.view">
+        <field name="name">govoo.meeting.search</field>
+        <field name="model">govoo.meeting</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="committee_id"/>
+                <filter name="filter_draft" string="Draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_scheduled" string="Scheduled"
+                        domain="[('state', '=', 'scheduled')]"/>
+                <filter name="filter_held" string="Held"
+                        domain="[('state', '=', 'held')]"/>
+                <group>
+                    <filter name="group_state" string="Status"
+                            context="{'group_by': 'state'}"/>
+                    <filter name="group_type" string="Meeting Type"
+                            context="{'group_by': 'meeting_type'}"/>
+                    <filter name="group_committee" string="Committee"
+                            context="{'group_by': 'committee_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="govoo_meeting_action" model="ir.actions.act_window">
+        <field name="name">Meetings</field>
+        <field name="res_model">govoo.meeting</field>
+        <field name="view_mode">list,form,kanban,calendar</field>
+    </record>
+
+</odoo>

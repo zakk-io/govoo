@@ -1,0 +1,222 @@
+# Translation of Govoo Board module in French.
+msgid ""
+msgstr ""
+"Project-Id-Version: Govoo Board 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-01 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: French <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. module: govoo_board
+#: model:ir.model,name:govoo_board.model_govoo_meeting
+msgid "Board / Committee Meeting"
+msgstr "Réunion du Conseil / Comité"
+
+#. module: govoo_board
+#: model:ir.model,name:govoo_board.model_govoo_agenda_item
+msgid "Meeting Agenda Item"
+msgstr "Point d'Ordre du Jour"
+
+#. module: govoo_board
+#: model:ir.model,name:govoo_board.model_govoo_board_pack
+msgid "Board Pack"
+msgstr "Dossier du Conseil"
+
+#. module: govoo_board
+#: model:ir.model,name:govoo_board.model_govoo_minutes
+msgid "Meeting Minutes"
+msgstr "Procès-Verbal"
+
+#. module: govoo_board
+#: model:ir.model,name:govoo_board.model_govoo_resolution
+msgid "Resolution"
+msgstr "Résolution"
+
+#. module: govoo_board
+#: model:ir.model,name:govoo_board.model_govoo_vote
+msgid "Vote on Resolution"
+msgstr "Vote sur une Résolution"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_meeting__name
+msgid "Meeting Name"
+msgstr "Nom de la Réunion"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_meeting__meeting_type
+msgid "Meeting Type"
+msgstr "Type de Réunion"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_meeting__date
+msgid "Meeting Date"
+msgstr "Date de la Réunion"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_meeting__quorum_required
+msgid "Quorum Required"
+msgstr "Quorum Requis"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_meeting__quorum_met
+msgid "Quorum Met"
+msgstr "Quorum Atteint"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_meeting__state
+msgid "Status"
+msgstr "Statut"
+
+#. module: govoo_board
+#: selection:govoo.meeting,state
+msgid "Draft"
+msgstr "Brouillon"
+
+#. module: govoo_board
+#: selection:govoo.meeting,state
+msgid "Scheduled"
+msgstr "Planifiée"
+
+#. module: govoo_board
+#: selection:govoo.meeting,state
+msgid "Held"
+msgstr "Tenue"
+
+#. module: govoo_board
+#: selection:govoo.meeting,state
+msgid "Minuted"
+msgstr "Procès-Verbal Rédigé"
+
+#. module: govoo_board
+#: selection:govoo.meeting,state
+msgid "Closed"
+msgstr "Clôturée"
+
+#. module: govoo_board
+#: selection:govoo.meeting,meeting_type
+msgid "Board Meeting"
+msgstr "Réunion du Conseil"
+
+#. module: govoo_board
+#: selection:govoo.meeting,meeting_type
+msgid "Committee Meeting"
+msgstr "Réunion de Comité"
+
+#. module: govoo_board
+#: selection:govoo.meeting,meeting_type
+msgid "Annual General Meeting"
+msgstr "Assemblée Générale Annuelle"
+
+#. module: govoo_board
+#: selection:govoo.meeting,meeting_type
+msgid "Extraordinary General Meeting"
+msgstr "Assemblée Générale Extraordinaire"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_agenda_item__title
+msgid "Title"
+msgstr "Titre"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_agenda_item__item_type
+msgid "Type"
+msgstr "Type"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_agenda_item__is_confidential
+msgid "Confidential"
+msgstr "Confidentiel"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_minutes__state
+msgid "Status"
+msgstr "Statut"
+
+#. module: govoo_board
+#: selection:govoo.minutes,state
+msgid "For Approval"
+msgstr "Pour Approbation"
+
+#. module: govoo_board
+#: selection:govoo.minutes,state
+msgid "Approved"
+msgstr "Approuvé"
+
+#. module: govoo_board
+#: selection:govoo.minutes,state
+msgid "Signed"
+msgstr "Signé"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_resolution__title
+msgid "Resolution Title"
+msgstr "Titre de la Résolution"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_resolution__resolution_type
+msgid "Resolution Type"
+msgstr "Type de Résolution"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_resolution__state
+msgid "Status"
+msgstr "Statut"
+
+#. module: govoo_board
+#: selection:govoo.resolution,state
+msgid "Open for Voting"
+msgstr "Ouvert au Vote"
+
+#. module: govoo_board
+#: selection:govoo.resolution,state
+msgid "Passed"
+msgstr "Adoptée"
+
+#. module: govoo_board
+#: selection:govoo.resolution,state
+msgid "Failed"
+msgstr "Rejetée"
+
+#. module: govoo_board
+#: selection:govoo.resolution,state
+msgid "Withdrawn"
+msgstr "Retirée"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_resolution__result
+msgid "Result"
+msgstr "Résultat"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_vote__choice
+msgid "Vote"
+msgstr "Vote"
+
+#. module: govoo_board
+#: selection:govoo.vote,choice
+msgid "For"
+msgstr "Pour"
+
+#. module: govoo_board
+#: selection:govoo.vote,choice
+msgid "Against"
+msgstr "Contre"
+
+#. module: govoo_board
+#: selection:govoo.vote,choice
+msgid "Abstain"
+msgstr "Abstention"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_vote__weight
+msgid "Vote Weight"
+msgstr "Poids du Vote"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_vote__is_conflicted
+msgid "Conflicted"
+msgstr "En Conflit"

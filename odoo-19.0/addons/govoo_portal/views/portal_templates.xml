@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Director Portal: My Meetings                                  -->
+    <!-- ============================================================ -->
+
+    <template id="portal_my_meetings" name="My Meetings">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar"/>
+
+            <t t-if="not meetings">
+                <p class="text-muted">No meetings found.</p>
+            </t>
+
+            <t t-foreach="meetings" t-as="meeting">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a t-attf-href="/my/meetings/#{meeting.id}?access_token=#{meeting._portal_ensure_token()}"
+                               t-esc="meeting.name"/>
+                        </h5>
+                        <p class="card-text text-muted mb-1">
+                            <strong>Committee:</strong> <t t-esc="meeting.committee_id.name"/>
+                        </p>
+                        <p class="card-text text-muted mb-1" t-if="meeting.dateScheduled">
+                            <strong>Date:</strong> <t t-esc="meeting.dateScheduled"
+                                                      t-options="{'widget': 'datetime'}"/>
+                        </p>
+                        <span class="badge"
+                              t-attf-class="badge #{meeting.state == 'draft' and 'bg-secondary' or meeting.state == 'scheduled' and 'bg-primary' or meeting.state == 'held' and 'bg-success' or 'bg-info'}"
+                              t-esc="meeting.state"/>
+                    </div>
+                </div>
+            </t>
+
+            <t t-call="portal.pager"/>
+        </t>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- Director Portal: Meeting Detail                               -->
+    <!-- ============================================================ -->
+
+    <template id="portal_my_meeting" name="Meeting Detail">
+        <t t-call="portal.portal_layout">
+            <div class="card">
+                <div class="card-body">
+                    <h3 t-esc="meeting.name"/>
+
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Committee:</strong></td>
+                            <td><t t-esc="meeting.committee_id.name"/></td>
+                        </tr>
+                        <tr t-if="meeting.dateScheduled">
+                            <td><strong>Scheduled:</strong></td>
+                            <td><t t-esc="meeting.dateScheduled"
+                                   t-options="{'widget': 'datetime'}"/></td>
+                        </tr>
+                        <tr t-if="meeting.dateHeld">
+                            <td><strong>Held:</strong></td>
+                            <td><t t-esc="meeting.dateHeld"
+                                   t-options="{'widget': 'datetime'}"/></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Status:</strong></td>
+                            <td><t t-esc="meeting.state"/></td>
+                        </tr>
+                        <tr t-if="meeting.location">
+                            <td><strong>Location:</strong></td>
+                            <td><t t-esc="meeting.location"/></td>
+                        </tr>
+                    </table>
+
+                    <h4 class="mt-4">Agenda</h4>
+                    <t t-if="meeting.agenda_item_ids">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Item</th>
+                                    <th>Confidential</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="meeting.agenda_item_ids" t-as="item">
+                                    <tr>
+                                        <td><t t-esc="item.sequence"/></td>
+                                        <td><t t-esc="item.name"/></td>
+                                        <td>
+                                            <t t-if="item.is_confidential">
+                                                <span class="badge bg-warning">Confidential</span>
+                                            </t>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+                    <t t-else="">
+                        <p class="text-muted">No agenda items.</p>
+                    </t>
+
+                    <div class="mt-4" t-if="meeting.state in ('held', 'minuted', 'closed')">
+                        <h4>Minutes</h4>
+                        <t t-if="meeting.minutes_id">
+                            <a t-attf-href="/web/report/#{meeting.minutes_id.report_pdf_url}?report_type=pdf&amp;access_token=#{meeting.minutes_id._portal_ensure_token()}"
+                               class="btn btn-secondary" target="_blank">
+                                Download Minutes
+                            </a>
+                        </t>
+                        <t t-else="">
+                            <p class="text-muted">Minutes not yet available.</p>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- Director Portal: My Votes                                     -->
+    <!-- ============================================================ -->
+
+    <template id="portal_my_votes" name="My Votes">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar"/>
+
+            <t t-if="not resolutions">
+                <p class="text-muted">No resolutions requiring your vote.</p>
+            </t>
+
+            <t t-foreach="resolutions" t-as="resolution">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a t-esc="resolution.name"/>
+                        </h5>
+                        <p class="card-text text-muted mb-1">
+                            <strong>Type:</strong> <t t-esc="resolution.resolution_type"/>
+                        </p>
+                        <p class="card-text text-muted mb-1" t-if="resolution.committee_id">
+                            <strong>Committee:</strong> <t t-esc="resolution.committee_id.name"/>
+                        </p>
+                        <a t-attf-href="/my/votes/#{resolution.id}/cast?access_token=#{resolution._portal_ensure_token()}"
+                           class="btn btn-primary btn-sm mt-2">
+                            Cast Vote
+                        </a>
+                    </div>
+                </div>
+            </t>
+
+            <t t-call="portal.pager"/>
+        </t>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- Director Portal: Cast Vote                                    -->
+    <!-- ============================================================ -->
+
+    <template id="portal_cast_vote" name="Cast Vote">
+        <t t-call="portal.portal_layout">
+            <div class="card">
+                <div class="card-body">
+                    <h3>Vote on: <t t-esc="resolution.name"/></h3>
+
+                    <t t-if="error">
+                        <div class="alert alert-danger" t-esc="error"/>
+                    </t>
+
+                    <form t-attf-action="/my/votes/#{resolution.id}/cast" method="POST">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Your Vote:</strong></label>
+                            <div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio"
+                                           name="vote_choice" value="for" id="vote_for"/>
+                                    <label class="form-check-label" for="vote_for">For</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio"
+                                           name="vote_choice" value="against" id="vote_against"/>
+                                    <label class="form-check-label" for="vote_against">Against</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio"
+                                           name="vote_choice" value="abstain" id="vote_abstain"/>
+                                    <label class="form-check-label" for="vote_abstain">Abstain</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       name="conflict_declared" value="1" id="conflict"/>
+                                <label class="form-check-label" for="conflict">
+                                    I declare a conflict of interest on this matter
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Submit Vote</button>
+                        <a href="/my/votes" class="btn btn-secondary ms-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- Director Portal: My Appointment                               -->
+    <!-- ============================================================ -->
+
+    <template id="portal_my_appointment" name="My Appointment">
+        <t t-call="portal.portal_layout">
+            <div class="card">
+                <div class="card-body">
+                    <h3>My Appointment</h3>
+                    <t t-if="appointment">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Committee:</strong></td>
+                                <td><t t-esc="appointment.committee_id.name"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Role:</strong></td>
+                                <td><t t-esc="appointment.role"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Date Appointed:</strong></td>
+                                <td><t t-esc="appointment.date_appointed"
+                                       t-options="{'widget': 'date'}"/></td>
+                            </tr>
+                            <tr t-if="appointment.date_ceased">
+                                <td><strong>Date Ceased:</strong></td>
+                                <td><t t-esc="appointment.date_ceased"
+                                       t-options="{'widget': 'date'}"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td><t t-esc="appointment.state"/></td>
+                            </tr>
+                        </table>
+                    </t>
+                    <t t-else="">
+                        <p class="text-muted">No active appointment found.</p>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- Shareholder Portal: My Holdings                                -->
+    <!-- ============================================================ -->
+
+    <template id="portal_my_holdings" name="My Holdings">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar"/>
+
+            <t t-if="not holdings">
+                <p class="text-muted">No holdings found.</p>
+            </t>
+
+            <t t-else="">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Share Class</th>
+                            <th>Quantity</th>
+                            <th>Percentage</th>
+                            <th>Voting Power</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="holdings" t-as="holding">
+                            <tr>
+                                <td><t t-esc="holding.share_class_id.name"/></td>
+                                <td><t t-esc="holding.quantity"/></td>
+                                <td><t t-esc="holding.percentage"/>%</td>
+                                <td><t t-esc="holding.voting_power"/></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </t>
+
+            <t t-call="portal.pager"/>
+        </t>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- Shareholder Portal: My Shareholder Votes                      -->
+    <!-- ============================================================ -->
+
+    <template id="portal_my_shareholder_votes" name="My Shareholder Votes">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar"/>
+
+            <t t-if="not resolutions">
+                <p class="text-muted">No shareholder resolutions requiring your vote.</p>
+            </t>
+
+            <t t-foreach="resolutions" t-as="resolution">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <t t-esc="resolution.name"/>
+                        </h5>
+                        <p class="card-text text-muted mb-1">
+                            <strong>Type:</strong> <t t-esc="resolution.resolution_type"/>
+                        </p>
+                        <a t-attf-href="/my/holdings/votes/#{resolution.id}/cast?access_token=#{resolution._portal_ensure_token()}"
+                           class="btn btn-primary btn-sm mt-2">
+                            Cast Vote
+                        </a>
+                    </div>
+                </div>
+            </t>
+
+            <t t-call="portal.pager"/>
+        </t>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- Shareholder Portal: Cast Vote                                 -->
+    <!-- ============================================================ -->
+
+    <template id="portal_cast_vote_shareholder" name="Cast Vote (Shareholder)">
+        <t t-call="portal.portal_layout">
+            <div class="card">
+                <div class="card-body">
+                    <h3>Vote on: <t t-esc="resolution.name"/></h3>
+
+                    <t t-if="error">
+                        <div class="alert alert-danger" t-esc="error"/>
+                    </t>
+
+                    <form t-attf-action="/my/holdings/votes/#{resolution.id}/cast" method="POST">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Your Vote:</strong></label>
+                            <div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio"
+                                           name="vote_choice" value="for" id="vote_for_sh"/>
+                                    <label class="form-check-label" for="vote_for_sh">For</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio"
+                                           name="vote_choice" value="against" id="vote_against_sh"/>
+                                    <label class="form-check-label" for="vote_against_sh">Against</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio"
+                                           name="vote_choice" value="abstain" id="vote_abstain_sh"/>
+                                    <label class="form-check-label" for="vote_abstain_sh">Abstain</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       name="conflict_declared" value="1" id="conflict_sh"/>
+                                <label class="form-check-label" for="conflict_sh">
+                                    I declare a conflict of interest on this matter
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Submit Vote</button>
+                        <a href="/my/holdings/votes" class="btn btn-secondary ms-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- Shareholder Portal: My Register Entry                         -->
+    <!-- ============================================================ -->
+
+    <template id="portal_my_register" name="My Register Entry">
+        <t t-call="portal.portal_layout">
+            <div class="card">
+                <div class="card-body">
+                    <h3>Register of Members — My Entry</h3>
+                    <t t-if="register_entry">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Name:</strong></td>
+                                <td><t t-esc="register_entry.partner_id.name"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Share Class:</strong></td>
+                                <td><t t-esc="register_entry.share_class_id.name"
+                                       t-if="register_entry.share_class_id"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Quantity:</strong></td>
+                                <td><t t-esc="register_entry.quantity"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Date From:</strong></td>
+                                <td><t t-esc="register_entry.date_from"
+                                       t-options="{'widget': 'date'}"/></td>
+                            </tr>
+                            <tr t-if="register_entry.date_to">
+                                <td><strong>Date To:</strong></td>
+                                <td><t t-esc="register_entry.date_to"
+                                       t-options="{'widget': 'date'}"/></td>
+                            </tr>
+                        </table>
+                    </t>
+                    <t t-else="">
+                        <p class="text-muted">No register entry found.</p>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Committee list view -->
+    <record id="govoo_committee_view_list" model="ir.ui.view">
+        <field name="name">govoo.committee.list</field>
+        <field name="model">govoo.committee</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="chair_partner_id"/>
+                <field name="parent_committee_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Committee form view -->
+    <record id="govoo_committee_view_form" model="ir.ui.view">
+        <field name="name">govoo.committee.form</field>
+        <field name="model">govoo.committee</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="chair_partner_id"/>
+                        </group>
+                        <group>
+                            <field name="parent_committee_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Members" name="members">
+                            <field name="member_ids" readonly="1"/>
+                        </page>
+                        <page string="Terms of Reference" name="terms"
+                              groups="govoo_base.group_govoo_secretary">
+                            <field name="terms_of_reference_id"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="govoo_committee_view_search" model="ir.ui.view">
+        <field name="name">govoo.committee.search</field>
+        <field name="model">govoo.committee</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="chair_partner_id"/>
+                <group>
+                    <filter name="group_company" string="Company"
+                            context="{'group_by': 'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Committee action -->
+    <record id="govoo_committee_action" model="ir.actions.act_window">
+        <field name="name">Committees</field>
+        <field name="res_model">govoo.committee</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="govoo_committee_view_search"/>
+        <field name="context">{'search_default_company_id': [allowed_company_ids[0]]}</field>
+    </record>
+
+</odoo>

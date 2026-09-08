@@ -1,0 +1,222 @@
+# Translation of Govoo Board module in Kinyarwanda.
+msgid ""
+msgstr ""
+"Project-Id-Version: Govoo Board 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-01 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Kinyarwanda <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. module: govoo_board
+#: model:ir.model,name:govoo_board.model_govoo_meeting
+msgid "Board / Committee Meeting"
+msgstr "Inama y'Ikibaho / Komite"
+
+#. module: govoo_board
+#: model:ir.model,name:govoo_board.model_govoo_agenda_item
+msgid "Meeting Agenda Item"
+msgstr "Ibintu bya Agenda y'Inama"
+
+#. module: govoo_board
+#: model:ir.model,name:govoo_board.model_govoo_board_pack
+msgid "Board Pack"
+msgstr "Agatebo k'Ikibaho"
+
+#. module: govoo_board
+#: model:ir.model,name:govoo_board.model_govoo_minutes
+msgid "Meeting Minutes"
+msgstr "Ibisobanuro by'Inama"
+
+#. module: govoo_board
+#: model:ir.model,name:govoo_board.model_govoo_resolution
+msgid "Resolution"
+msgstr "Izereka"
+
+#. module: govoo_board
+#: model:ir.model,name:govoo_board.model_govoo_vote
+msgid "Vote on Resolution"
+msgstr "Gutonga kuri Izereka"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_meeting__name
+msgid "Meeting Name"
+msgstr "Izina ry'Inama"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_meeting__meeting_type
+msgid "Meeting Type"
+msgstr "Ubwoko bw'Inama"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_meeting__date
+msgid "Meeting Date"
+msgstr "Itariki y'Inama"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_meeting__quorum_required
+msgid "Quorum Required"
+msgstr "Quorum Ikenewe"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_meeting__quorum_met
+msgid "Quorum Met"
+msgstr "Quorum Yabonetse"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_meeting__state
+msgid "Status"
+msgstr "Imimerere"
+
+#. module: govoo_board
+#: selection:govoo.meeting,state
+msgid "Draft"
+msgstr "Rasite"
+
+#. module: govoo_board
+#: selection:govoo.meeting,state
+msgid "Scheduled"
+msgstr "Yateguwe"
+
+#. module: govoo_board
+#: selection:govoo.meeting,state
+msgid "Held"
+msgstr "Yakoze"
+
+#. module: govoo_board
+#: selection:govoo.meeting,state
+msgid "Minuted"
+msgstr "Ibisobanuro byanditswe"
+
+#. module: govoo_board
+#: selection:govoo.meeting,state
+msgid "Closed"
+msgstr "Yafunguwe"
+
+#. module: govoo_board
+#: selection:govoo.meeting,meeting_type
+msgid "Board Meeting"
+msgstr "Inama y'Ikibaho"
+
+#. module: govoo_board
+#: selection:govoo.meeting,meeting_type
+msgid "Committee Meeting"
+msgstr "Inama y'Komite"
+
+#. module: govoo_board
+#: selection:govoo.meeting,meeting_type
+msgid "Annual General Meeting"
+msgstr "Inama Rusange y'Iyumunsi"
+
+#. module: govoo_board
+#: selection:govoo.meeting,meeting_type
+msgid "Extraordinary General Meeting"
+msgstr "Inama Rusange Yihariye"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_agenda_item__title
+msgid "Title"
+msgstr "Umutwe"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_agenda_item__item_type
+msgid "Type"
+msgstr "Ubwoko"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_agenda_item__is_confidential
+msgid "Confidential"
+msgstr "Bibitswe"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_minutes__state
+msgid "Status"
+msgstr "Imimerere"
+
+#. module: govoo_board
+#: selection:govoo.minutes,state
+msgid "For Approval"
+msgstr "Kubwishe"
+
+#. module: govoo_board
+#: selection:govoo.minutes,state
+msgid "Approved"
+msgstr "Yemejwe"
+
+#. module: govoo_board
+#: selection:govoo.minutes,state
+msgid "Signed"
+msgstr "Yasinywe"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_resolution__title
+msgid "Resolution Title"
+msgstr "Umutwe w'Izereka"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_resolution__resolution_type
+msgid "Resolution Type"
+msgstr "Ubwoko bw'Izereka"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_resolution__state
+msgid "Status"
+msgstr "Imimerere"
+
+#. module: govoo_board
+#: selection:govoo.resolution,state
+msgid "Open for Voting"
+msgstr "Iratangira Gutongwa"
+
+#. module: govoo_board
+#: selection:govoo.resolution,state
+msgid "Passed"
+msgstr "Yemejwe"
+
+#. module: govoo_board
+#: selection:govoo.resolution,state
+msgid "Failed"
+msgstr "Ntiyemejwe"
+
+#. module: govoo_board
+#: selection:govoo.resolution,state
+msgid "Withdrawn"
+msgstr "Yarusuwe"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_resolution__result
+msgid "Result"
+msgstr "Igisubizo"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_vote__choice
+msgid "Vote"
+msgstr "Ijambo"
+
+#. module: govoo_board
+#: selection:govoo.vote,choice
+msgid "For"
+msgstr "Kubwira"
+
+#. module: govoo_board
+#: selection:govoo.vote,choice
+msgid "Against"
+msgstr "Kurinda"
+
+#. module: govoo_board
+#: selection:govoo.vote,choice
+msgid "Abstain"
+msgstr "Gukurikiza"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_vote__weight
+msgid "Vote Weight"
+msgstr "Ibiro by'Ijambo"
+
+#. module: govoo_board
+#: model:ir.model.fields,field_description:govoo_board.field_govoo_vote__is_conflicted
+msgid "Conflicted"
+msgstr "Hanze"

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Vote is inline on resolution form; this view provides list for portal/readonly context -->
+    <record id="govoo_vote_view_list" model="ir.ui.view">
+        <field name="name">govoo.vote.list</field>
+        <field name="model">govoo.vote</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0">
+                <field name="voter_id"/>
+                <field name="choice" widget="badge"
+                       decoration-success="choice == 'for'"
+                       decoration-danger="choice == 'against'"
+                       decoration-warning="choice == 'abstain'"/>
+                <field name="weight"/>
+                <field name="is_conflicted" widget="boolean_toggle"/>
+                <field name="timestamp"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="govoo_vote_view_kanban" model="ir.ui.view">
+        <field name="name">govoo.vote.kanban</field>
+        <field name="model">govoo.vote</field>
+        <field name="arch" type="xml">
+            <kanban create="false" edit="false">
+                <field name="voter_id"/>
+                <field name="choice"/>
+                <field name="weight"/>
+                <templates>
+                    <t t-name="card">
+                        <field name="voter_id"/>
+                        <field name="choice" widget="badge"
+                               decoration-success="choice == 'for'"
+                               decoration-danger="choice == 'against'"/>
+                        <field name="weight"/>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="govoo_vote_action" model="ir.actions.act_window">
+        <field name="name">Votes</field>
+        <field name="res_model">govoo.vote</field>
+        <field name="view_mode">list,kanban</field>
+    </record>
+
+</odoo>
