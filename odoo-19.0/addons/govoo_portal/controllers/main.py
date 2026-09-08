@@ -18,7 +18,7 @@ class GovooPortalMain(CustomerPortal):
             'page_name': 'home',
         }
         # Determine which portal type this user is
-        user_group_names = [g.name for g in request.env.user.groups_id]
+        user_group_names = [g.name for g in request.env.user.group_ids]
         if 'govoo_director_portal' in user_group_names:
             values['portal_type'] = 'director'
         elif 'govoo_shareholder_portal' in user_group_names:
