@@ -1,11 +1,31 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
+from odoo import http
 from odoo.http import request
 
 from odoo.addons.portal.controllers.portal import CustomerPortal
 
 
 class GovooPortalMain(CustomerPortal):
+
+    @http.route('/my', type='http', auth='user')
+    def portal_my_home(self, **kw):
+        """Override base CustomerPortal home route to avoid website dependency."""
+        partner = request.env.user.partner_id
+        values = {
+            'partner': partner,
+            'user': request.env.user,
+            'page_name': 'home',
+        }
+        # Determine which portal type this user is
+        user_group_names = [g.name for g in request.env.user.groups_id]
+        if 'govoo_director_portal' in user_group_names:
+            values['portal_type'] = 'director'
+        elif 'govoo_shareholder_portal' in user_group_names:
+            values['portal_type'] = 'shareholder'
+        else:
+            values['portal_type'] = 'internal'
+        return request.render('govoo_portal.portal_home', values)
 
     def _prepare_home_portal_values(self, counters):
         values = super()._prepare_home_portal_values(counters)

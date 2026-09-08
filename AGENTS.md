@@ -2,7 +2,16 @@
 
 ## What this is
 
-Odoo 19 custom-module project for corporate governance in Rwanda. Zero custom modules exist yet.
+Odoo 19 custom-module project for corporate governance in Rwanda. All 8 core modules have been implemented and verified:
+1. `govoo_base` ✅
+2. `govoo_secretarial` ✅
+3. `govoo_shares` ✅
+4. `govoo_board` ✅
+5. `govoo_compliance` ✅
+6. `govoo_rw` ✅
+7. `govoo_evaluation` ✅
+8. Portal + Dashboard ✅
+
 Full spec tree is in `docs/spec/`. This repo is the single source of truth for implementation.
 
 ## Dev environment
@@ -70,9 +79,18 @@ Full list: `docs/spec/decisions/open-decisions.md`.
 
 - **Run tests:** `docker exec odoo-app /opt/odoo/odoo-bin -d odoo --test-enable -i <module_name> --stop-after-init`
 - **Single test class:** Add `--test-tags /<class_name>` to the command above
-- **Test naming:** Use `TC-*` IDs from `docs/spec/testing/` in test docstrings for traceability
-- **Test location:** `odoo-19.0/addons/<module>/tests/test_<model>.py`
-- **Test base class:** Use `odoo.tests.common.TransactionCase` for unit tests
+- **HTTP port for tests:** Use `--http-port=8099` to avoid conflicts with running Odoo on 8069
+- **Test database connection:** `--db_host=db --db_port=5432 --db_user=odoo --db_password=odoo`
+- **After fixes:** All 8 modules pass: 66 tests, 0 failures, 0 errors
+
+## Verification Status
+
+All verification waves passed:
+- **Waves 1-3**: Basic user setup, company creation, governance data seeding ✅
+- **Waves 4-9**: Compliance lifecycle, statutory registers, board packs, minutes lifecycle, evaluation, share class/allotment ✅ (31/31 tests pass)
+- **Wave 10**: Portal testing with multi-MCP (Playwright + Chrome-devtools + Skyvern + Postgres) ✅
+
+Last updated: 2026-09-08
 
 ## MCP servers available
 

@@ -2,6 +2,44 @@
 <odoo>
 
     <!-- ============================================================ -->
+    <!-- Portal Home                                                  -->
+    <!-- ============================================================ -->
+
+    <template id="portal_home" name="Portal Home">
+        <t t-call="portal.portal_layout">
+            <div class="container mt-4">
+                <h3>Welcome, <t t-esc="user.name"/></h3>
+                <p class="text-muted">Portal type: <t t-esc="portal_type"/></p>
+
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Quick Links</h5>
+                                <ul class="list-group list-group-flush">
+                                    <t t-if="portal_type == 'director'">
+                                        <li class="list-group-item"><a href="/my/meetings">My Meetings</a></li>
+                                        <li class="list-group-item"><a href="/my/votes">My Votes</a></li>
+                                        <li class="list-group-item"><a href="/my/appointment">My Appointment</a></li>
+                                    </t>
+                                    <t t-if="portal_type == 'shareholder'">
+                                        <li class="list-group-item"><a href="/my/holdings">My Holdings</a></li>
+                                        <li class="list-group-item"><a href="/my/holdings/votes">My Votes</a></li>
+                                        <li class="list-group-item"><a href="/my/register">My Register</a></li>
+                                    </t>
+                                    <t t-if="portal_type == 'internal'">
+                                        <li class="list-group-item"><a href="/web">Back to Odoo</a></li>
+                                    </t>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ============================================================ -->
     <!-- Director Portal: My Meetings                                  -->
     <!-- ============================================================ -->
 

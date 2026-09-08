@@ -14,7 +14,7 @@ class ShareholderPortal(CustomerPortal):
     # My Holdings
     # ------------------------------------------------------------
 
-    @http.route('/my/holdings', type='http', auth='user', website=True)
+    @http.route('/my/holdings', type='http', auth='user')
     def portal_my_holdings(self, page=1, **kw):
         values = self._prepare_portal_layout_values()
         partner = request.env.user.partner_id
@@ -47,7 +47,7 @@ class ShareholderPortal(CustomerPortal):
     # My Votes (Shareholder)
     # ------------------------------------------------------------
 
-    @http.route('/my/holdings/votes', type='http', auth='user', website=True)
+    @http.route('/my/holdings/votes', type='http', auth='user')
     def portal_my_shareholder_votes(self, page=1, **kw):
         values = self._prepare_portal_layout_values()
         partner = request.env.user.partner_id
@@ -86,7 +86,7 @@ class ShareholderPortal(CustomerPortal):
         return request.render('govoo_portal.portal_my_shareholder_votes', values)
 
     @http.route('/my/holdings/votes/<int:resolution_id>/cast', type='http',
-                auth='user', website=True, methods=['GET', 'POST'])
+                auth='user', methods=['GET', 'POST'])
     def portal_cast_vote_shareholder(self, resolution_id, access_token=None,
                                      vote_choice=None, conflict_declared=None, **kw):
         try:

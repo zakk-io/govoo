@@ -17,7 +17,7 @@ class DirectorPortal(CustomerPortal):
     # My Meetings
     # ------------------------------------------------------------
 
-    @http.route('/my/meetings', type='http', auth='user', website=True)
+    @http.route('/my/meetings', type='http', auth='user')
     def portal_my_meetings(self, page=1, sortby=None, **kw):
         values = self._prepare_portal_layout_values()
         partner = request.env.user.partner_id
@@ -53,7 +53,7 @@ class DirectorPortal(CustomerPortal):
         })
         return request.render('govoo_portal.portal_my_meetings', values)
 
-    @http.route('/my/meetings/<int:meeting_id>', type='http', auth='user', website=True)
+    @http.route('/my/meetings/<int:meeting_id>', type='http', auth='user')
     def portal_my_meeting(self, meeting_id, access_token=None, **kw):
         try:
             meeting_sudo = self._document_check_access(
@@ -73,7 +73,7 @@ class DirectorPortal(CustomerPortal):
     # My Votes (Director)
     # ------------------------------------------------------------
 
-    @http.route('/my/votes', type='http', auth='user', website=True)
+    @http.route('/my/votes', type='http', auth='user')
     def portal_my_votes(self, page=1, **kw):
         values = self._prepare_portal_layout_values()
         partner = request.env.user.partner_id
@@ -85,14 +85,19 @@ class DirectorPortal(CustomerPortal):
             ('state', '=', 'active'),
         ]).mapped('committee_id')
 
-        # Get open resolutions for these committees where user hasn't voted
+        # Get open resolutions for meetings of these committees where user hasn't voted
         voted_resolution_ids = request.env['govoo.vote'].sudo().search([
             ('voter_id', '=', partner.id),
         ]).mapped('resolution_id').ids
 
+        # Get meetings for the committees
+        meetings = request.env['govoo.meeting'].sudo().search([
+            ('committee_id', 'in', committee_ids.ids),
+        ])
+
         domain = [
             ('state', '=', 'open'),
-            ('committee_id', 'in', committee_ids.ids),
+            ('meeting_id', 'in', meetings.ids),
             ('id', 'not in', voted_resolution_ids),
         ]
         resolution_count = request.env['govoo.resolution'].sudo().search_count(domain)
@@ -119,7 +124,7 @@ class DirectorPortal(CustomerPortal):
         return request.render('govoo_portal.portal_my_votes', values)
 
     @http.route('/my/votes/<int:resolution_id>/cast', type='http',
-                auth='user', website=True, methods=['GET', 'POST'])
+                auth='user', methods=['GET', 'POST'])
     def portal_cast_vote_director(self, resolution_id, access_token=None,
                                   vote_choice=None, conflict_declared=None, **kw):
         try:
@@ -159,7 +164,7 @@ class DirectorPortal(CustomerPortal):
                 'resolution_id': resolution_id,
                 'voter_id': partner.id,
                 'choice': vote_choice,
-                'conflict_declared': bool(conflict_declared),
+                'is_conflicted': bool(conflict_declared),
             })
             return request.redirect('/my/votes')
 
@@ -174,7 +179,7 @@ class DirectorPortal(CustomerPortal):
     # My Appointment
     # ------------------------------------------------------------
 
-    @http.route('/my/appointment', type='http', auth='user', website=True)
+    @http.route('/my/appointment', type='http', auth='user')
     def portal_my_appointment(self, **kw):
         partner = request.env.user.partner_id
         appointment = request.env['govoo.appointment'].sudo().search([
