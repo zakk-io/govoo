@@ -148,7 +148,7 @@ class ShareholderPortal(CustomerPortal):
     # My Register Entry
     # ------------------------------------------------------------
 
-    @http.route('/my/register', type='http', auth='user', website=True)
+    @http.route('/my/register', type='http', auth='user')
     def portal_my_register(self, **kw):
         partner = request.env.user.partner_id
         register_entry = request.env['govoo.register.member'].sudo().search([
