@@ -90,7 +90,26 @@ All verification waves passed:
 - **Waves 4-9**: Compliance lifecycle, statutory registers, board packs, minutes lifecycle, evaluation, share class/allotment ✅ (31/31 tests pass)
 - **Wave 10**: Portal testing with multi-MCP (Playwright + Chrome-devtools + Skyvern + Postgres) ✅
 
-Last updated: 2026-09-08
+Last updated: 2026-09-09
+
+## Deployment rules (critical)
+
+- **`docker restart` does NOT deploy XML changes.** It only reloads the server process; `ir.ui.view` records stay stale. Always use `-u`:
+  ```
+  docker exec odoo-app /opt/odoo/odoo-bin --config=/etc/odoo/odoo.conf \
+    --db_host=db --db_port=5432 --db_user=odoo --db_password=odoo \
+    -d odoo -u <module_list> --stop-after-init
+  ```
+- **DB host is `db`** (not `odoo-db`) — the Docker Compose service name.
+- **odoo-bin path:** `/opt/odoo/odoo-bin` (not on PATH).
+- **Verify DB records after upgrade** before restarting — query `ir.ui.view.arch` directly.
+- **Restart is only safe after DB is confirmed correct.**
+
+## Odoo 19 view conventions
+
+- **Chatter:** Use `<chatter/>` (self-closing). Do NOT use `<div class="oe_chatter">` with explicit `<field>` children — Odoo 19 OWL chatter widget fails to mount with that pattern.
+- Every model with chatter must inherit `mail.thread` (and optionally `mail.activity.mixin`).
+- Every form view with chatter must have `</sheet>` immediately followed by `<chatter/>` (no `<div>` wrapper).
 
 ## MCP servers available
 
