@@ -9,17 +9,14 @@
         <field name="arch" type="xml">
             <xpath expr="//group[@name='social_media']" position="before">
                 <group string="Governance"
-                       groups="govoo_base.group_govoo_user">
-                    <group>
-                        <field name="govoo_company_number"/>
-                        <field name="govoo_tin"/>
-                        <field name="govoo_incorporation_date"/>
-                    </group>
-                    <group>
-                        <field name="govoo_entity_type"/>
-                        <field name="govoo_registered_office_id"/>
-                        <field name="govoo_financial_year_end"/>
-                    </group>
+                       groups="govoo_base.group_govoo_user"
+                       col="2">
+                    <field name="govoo_company_number" placeholder="RBA-12345"/>
+                    <field name="govoo_entity_type"/>
+                    <field name="govoo_tin" placeholder="TIN-67890"/>
+                    <field name="govoo_registered_office_id"/>
+                    <field name="govoo_incorporation_date"/>
+                    <field name="govoo_financial_year_end"/>
                 </group>
             </xpath>
         </field>
