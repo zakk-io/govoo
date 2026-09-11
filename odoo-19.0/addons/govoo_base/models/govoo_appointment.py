@@ -9,6 +9,7 @@ class GovooAppointment(models.Model):
     _description = 'Appointment (role-over-time)'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'date_appointed desc'
+    _check_company_auto = True
 
     partner_id = fields.Many2one(
         comodel_name='res.partner',
@@ -42,6 +43,7 @@ class GovooAppointment(models.Model):
         string='Committee',
         tracking=True,
         ondelete='set null',
+        check_company=True,
     )
     date_appointed = fields.Date(
         string='Date Appointed',
