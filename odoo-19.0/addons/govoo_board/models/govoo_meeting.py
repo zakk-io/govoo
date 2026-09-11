@@ -47,8 +47,12 @@ class GovooMeeting(models.Model):
         tracking=True,
     )
     date = fields.Datetime(
-        string='Meeting Date',
+        string='Start Date',
         required=True,
+        tracking=True,
+    )
+    date_end = fields.Datetime(
+        string='End Date',
         tracking=True,
     )
     location = fields.Char(
@@ -135,10 +139,11 @@ class GovooMeeting(models.Model):
         self._validate_state_transition('scheduled')
         for rec in self:
             if not rec.calendar_event_id and rec.date:
+                stop = rec.date_end or rec.date
                 event = self.env['calendar.event'].create({
                     'name': rec.name,
                     'start': rec.date,
-                    'stop': rec.date,
+                    'stop': stop,
                     'partner_ids': [(6, 0, rec.attendee_ids.ids)],
                     'user_id': self.env.user.id,
                 })
