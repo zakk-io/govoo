@@ -54,9 +54,10 @@ Modules must be implemented in dependency order. Do not skip ahead:
 - **No hard-coded legal values.** Rates, dates, thresholds go in data records (`active=False` by default), never as Python literals. Mark `[CONFIRM]` in code comments.
 - **Enterprise feature flags.** Every Documents/Sign/Dashboards/Approvals call is guarded to degrade on Community. Test the fallback path.
 - **Multi-company isolation.** Every transactional model gets `company_id` with `check_company=True` plus a company-scoped record rule.
-- **Audit trail.** Every transactional model inherits `mail.thread`. `tracking=True` on all statutory fields.
+- **Audit trail.** Every transactional model inherits `mail.thread`. `tracking=True` on all statutory fields. EXCEPTION: computed/aggregate models (e.g. `govoo.evaluation.result`) may omit `mail.thread` if no individual record editing.
 - **Money fields.** Use Odoo `Monetary` + `currency_id`, never plain `Float`. RWF has 0 decimal places.
 - **Translations.** `_()` on all user-facing strings. Ship `.po` stubs for `fr` and `rw`.
+- **Github issue** create an issue in the repo when it needs and do not close it until I close it myself.
 
 ## Spec reading order (per module)
 
@@ -77,7 +78,7 @@ Full list: `docs/spec/decisions/open-decisions.md`.
 
 ## Testing
 
-- **Run tests:** `docker exec odoo-app /opt/odoo/odoo-bin -d odoo --test-enable -i <module_name> --stop-after-init`
+- **Run tests:** `docker exec govoo-app /opt/odoo/odoo-bin -d odoo --test-enable -i <module_name> --stop-after-init`
 - **Single test class:** Add `--test-tags /<class_name>` to the command above
 - **HTTP port for tests:** Use `--http-port=8099` to avoid conflicts with running Odoo on 8069
 - **Test database connection:** `--db_host=db --db_port=5432 --db_user=odoo --db_password=odoo`
@@ -96,7 +97,7 @@ Last updated: 2026-09-09
 
 - **`docker restart` does NOT deploy XML changes.** It only reloads the server process; `ir.ui.view` records stay stale. Always use `-u`:
   ```
-  docker exec odoo-app /opt/odoo/odoo-bin --config=/etc/odoo/odoo.conf \
+  docker exec govoo-app /opt/odoo/odoo-bin --config=/etc/odoo/odoo.conf \
     --db_host=db --db_port=5432 --db_user=odoo --db_password=odoo \
     -d odoo -u <module_list> --stop-after-init
   ```

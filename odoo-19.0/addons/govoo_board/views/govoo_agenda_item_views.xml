@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="govoo_agenda_item_view_form" model="ir.ui.view">
+        <field name="name">govoo.agenda.item.form</field>
+        <field name="model">govoo.agenda.item</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="meeting_id" readonly="1"/>
+                            <field name="sequence" widget="handle"/>
+                            <field name="title"/>
+                        </group>
+                        <group>
+                            <field name="presenter_id"/>
+                            <field name="item_type"/>
+                            <field name="is_confidential"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" placeholder="Agenda item description..."/>
+                    </group>
+                    <notebook>
+                        <page string="Documents" name="documents">
+                            <field name="document_ids"/>
+                        </page>
+                        <page string="Resolutions" name="resolutions">
+                            <field name="resolution_ids"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="govoo_agenda_item_view_list" model="ir.ui.view">
+        <field name="name">govoo.agenda.item.list</field>
+        <field name="model">govoo.agenda.item</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="title"/>
+                <field name="presenter_id"/>
+                <field name="item_type"/>
+                <field name="is_confidential"/>
+            </list>
+        </field>
+    </record>
+
+</odoo>

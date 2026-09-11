@@ -11,6 +11,10 @@ build/
 # Docker
 .env
 
+# MCP configs (contain secrets/tokens)
+opencode.json
+.mcp.json
+
 # IDE
 .vscode/
 .idea/

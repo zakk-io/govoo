@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:16
-    container_name: odoo-db
+    container_name: govoo-db
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-odoo}
       POSTGRES_USER: ${POSTGRES_USER:-odoo}
@@ -36,7 +36,7 @@ services:
     build:
       context: ./odoo-19.0
     image: odoo19-local
-    container_name: odoo-app
+    container_name: govoo-app
     depends_on:
       db:
         condition: service_healthy

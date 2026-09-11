@@ -6,7 +6,6 @@ from odoo import api, fields, models
 class GovooEvaluationResult(models.Model):
     _name = 'govoo.evaluation.result'
     _description = 'Evaluation Result (Aggregate)'
-    _inherit = ['mail.thread']
     _order = 'campaign_id, dimension_id'
 
     campaign_id = fields.Many2one(
