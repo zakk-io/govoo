@@ -11,12 +11,12 @@
                 <group string="Governance"
                        groups="govoo_base.group_govoo_user"
                        col="2">
-                    <field name="govoo_company_number" placeholder="RBA-12345"/>
-                    <field name="govoo_entity_type"/>
-                    <field name="govoo_tin" placeholder="TIN-67890"/>
-                    <field name="govoo_registered_office_id"/>
-                    <field name="govoo_incorporation_date"/>
-                    <field name="govoo_financial_year_end"/>
+                    <field name="govoo_company_number" placeholder="RBA-12345" readonly="0"/>
+                    <field name="govoo_entity_type" readonly="0"/>
+                    <field name="govoo_tin" placeholder="TIN-67890" readonly="0"/>
+                    <field name="govoo_registered_office_id" readonly="0"/>
+                    <field name="govoo_incorporation_date" readonly="0"/>
+                    <field name="govoo_financial_year_end" readonly="0"/>
                 </group>
             </xpath>
         </field>
