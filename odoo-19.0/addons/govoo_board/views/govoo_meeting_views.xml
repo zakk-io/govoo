@@ -135,6 +135,8 @@
             <calendar date_start="date" date_stop="date_end"
                       string="Meetings" event_open_popup="1">
                 <field name="name"/>
+                <field name="date"/>
+                <field name="date_end"/>
                 <field name="committee_id"/>
             </calendar>
         </field>
