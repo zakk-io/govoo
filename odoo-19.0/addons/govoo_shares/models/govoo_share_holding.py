@@ -164,11 +164,13 @@ class GovooShareHolding(models.Model):
         existing.unlink()
 
         # Recreate holdings for all pairs
+        final_holdings = self.browse()
         for partner_id, class_id in pairs:
-            self.create({
+            final_holdings |= self.create({
                 'partner_id': partner_id,
                 'share_class_id': class_id,
             })
+        final_holdings._update_member_register()
 
         # Validate percentage sums to 100% per share class
         if share_class_id:
