@@ -82,6 +82,7 @@
         <field name="name">Compliance Obligations</field>
         <field name="res_model">govoo.compliance.obligation</field>
         <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
     </record>
 
 </odoo>
