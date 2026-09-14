@@ -82,6 +82,27 @@ class GovooResolution(models.Model):
         string='Sign Request',
     )
 
+    @api.constrains('sign_request_id')
+    def _check_esignature_legally_confirmed(self):
+        """BR-BOARD-008: gate sign_request_id usage on confirmed legal
+        validity of e-signature under Rwandan law -- still an open
+        decision (docs/spec/decisions/open-decisions.md #3), so this
+        defaults to unconfirmed/blocked.
+        """
+        confirmed = self.env['ir.config_parameter'].sudo().get_param(
+            'govoo_board.e_signature_legally_confirmed', 'False',
+        ) in ('True', '1')
+        if confirmed:
+            return
+        for rec in self:
+            if rec.sign_request_id:
+                raise ValidationError(_(
+                    'E-signature is not yet confirmed as legally valid '
+                    'under Rwandan law (BR-BOARD-008); Sign Request cannot '
+                    'be used. Store the executed resolution document '
+                    'separately instead.'
+                ))
+
     def _compute_access_url(self):
         super()._compute_access_url()
         for rec in self:

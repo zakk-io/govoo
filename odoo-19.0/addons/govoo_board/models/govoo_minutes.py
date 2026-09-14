@@ -117,10 +117,33 @@ class GovooMinutes(models.Model):
         self._validate_state_transition('approved')
         self.write({'state': 'approved'})
 
+    @api.model
+    def _esignature_legally_confirmed(self):
+        """BR-BOARD-008: legal validity of e-signature under Rwandan law is
+        still an open decision (docs/spec/decisions/open-decisions.md #3) --
+        defaults to unconfirmed.
+        """
+        confirmed = self.env['ir.config_parameter'].sudo().get_param(
+            'govoo_board.e_signature_legally_confirmed', 'False',
+        )
+        return confirmed in ('True', '1')
+
     def action_sign(self):
         """Gated on [CONFIRM] legal validity of e-signature (BR-BOARD-008).
 
-        Feature-flagged: sign_request_id usage depends on sign module availability.
+        While unconfirmed, the e-sign integration path is closed and
+        'signed' is only reachable via the manual "signed copy uploaded"
+        fallback -- forced here by requiring signed_document_id to already
+        be set. Not a runtime error to work around by retrying; a
+        build-time/config gate (docs/spec/workflows/minutes.md).
         """
+        if not self._esignature_legally_confirmed():
+            for rec in self:
+                if not rec.signed_document_id:
+                    raise ValidationError(_(
+                        'E-signature is not yet confirmed as legally valid '
+                        'under Rwandan law (BR-BOARD-008). Upload the signed '
+                        'copy to "Signed Document" first, then sign.'
+                    ))
         self._validate_state_transition('signed')
         self.write({'state': 'signed'})
