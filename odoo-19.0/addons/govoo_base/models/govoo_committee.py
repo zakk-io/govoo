@@ -46,6 +46,50 @@ class GovooCommittee(models.Model):
              "here to see their own committee's meetings/minutes/"
              'resolutions, and a resigned appointee must drop out of it.',
     )
+    member_count = fields.Integer(
+        string='Members',
+        compute='_compute_member_count',
+    )
+    meeting_count = fields.Integer(
+        string='Meetings',
+        compute='_compute_meeting_count',
+    )
+
+    @api.depends('member_ids')
+    def _compute_member_count(self):
+        for rec in self:
+            rec.member_count = len(rec.member_ids)
+
+    def _compute_meeting_count(self):
+        Meeting = self.env['govoo.meeting']
+        for rec in self:
+            rec.meeting_count = Meeting.search_count([('committee_id', '=', rec.id)])
+
+    def action_view_members(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Members',
+            'res_model': 'govoo.appointment',
+            'view_mode': 'list,form',
+            'domain': [
+                ('committee_id', '=', self.id),
+                ('role', '!=', 'secretary'),
+                ('state', '=', 'active'),
+            ],
+            'context': {'default_committee_id': self.id},
+        }
+
+    def action_view_meetings(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Meetings',
+            'res_model': 'govoo.meeting',
+            'view_mode': 'list,form,kanban',
+            'domain': [('committee_id', '=', self.id)],
+            'context': {'default_committee_id': self.id},
+        }
     # Feature-flagged: ir.attachment (Community) / documents.document (Enterprise)
     terms_of_reference_id = fields.Many2one(
         comodel_name='ir.attachment',
