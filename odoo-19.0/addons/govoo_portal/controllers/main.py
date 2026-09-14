@@ -8,9 +8,12 @@ from odoo.addons.portal.controllers.portal import CustomerPortal
 
 class GovooPortalMain(CustomerPortal):
 
-    @http.route('/my', type='http', auth='user', website=True)
-    def portal_my_home(self, **kw):
-        """Override base CustomerPortal home route to avoid website dependency."""
+    @http.route(['/my', '/my/home'], type='http', auth='user', website=True)
+    def home(self, **kw):
+        """Override CustomerPortal.home() -- same method name is required for
+        Odoo's controller inheritance to actually replace the parent's route
+        (a differently-named method registers as a competing rule for the
+        same URLs instead of overriding it)."""
         partner = request.env.user.partner_id
         values = {
             'partner': partner,
@@ -18,10 +21,10 @@ class GovooPortalMain(CustomerPortal):
             'page_name': 'home',
         }
         # Determine which portal type this user is
-        user_group_names = [g.name for g in request.env.user.group_ids]
-        if 'govoo_director_portal' in user_group_names:
+        user = request.env.user
+        if user.has_group('govoo_base.group_govoo_director_portal'):
             values['portal_type'] = 'director'
-        elif 'govoo_shareholder_portal' in user_group_names:
+        elif user.has_group('govoo_base.group_govoo_shareholder_portal'):
             values['portal_type'] = 'shareholder'
         else:
             values['portal_type'] = 'internal'
