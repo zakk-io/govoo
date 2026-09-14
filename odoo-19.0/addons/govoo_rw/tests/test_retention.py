@@ -43,3 +43,48 @@ class TestRwRetention(TransactionCase):
         ])
         other_rules.write({'active': False})
         self.env['govoo.rw.retention']._cron_check_disposal()
+
+    def _make_expired_minutes(self, company):
+        committee = self.env['govoo.committee'].create({
+            'name': 'Committee %s' % company.name,
+            'company_id': company.id,
+        })
+        meeting = self.env['govoo.meeting'].create({
+            'name': 'Meeting %s' % company.name,
+            'committee_id': committee.id,
+            'meeting_type': 'committee',
+            'date': '2020-01-01 10:00:00',
+            'company_id': company.id,
+        })
+        minutes = self.env['govoo.minutes'].create({
+            'meeting_id': meeting.id,
+            'body': '<p>Minutes.</p>',
+        })
+        # Bypass the action/validation chain -- only the resulting state and
+        # an old create_date matter for this cron's domain, not how the
+        # record got there.
+        minutes.write({'state': 'approved'})
+        self.env.cr.execute(
+            "UPDATE govoo_minutes SET create_date = %s WHERE id = %s",
+            ('2020-01-01', minutes.id),
+        )
+        minutes.invalidate_recordset(['create_date'])
+        return minutes
+
+    def test_expired_records_scoped_to_rule_company(self):
+        """A Company A retention rule must never flag Company B's records."""
+        company_b = self.env['res.company'].create({'name': 'Other Company'})
+        minutes_a = self._make_expired_minutes(self.company)
+        minutes_b = self._make_expired_minutes(company_b)
+
+        rule_a = self.env['govoo.rw.retention'].create({
+            'name': 'Minutes Retention A',
+            'retention_category': 'minutes',
+            'basis': 'years',
+            'retention_years': 1,
+            'company_id': self.company.id,
+        })
+
+        expired = self.env['govoo.rw.retention']._get_expired_records(rule_a, date.today())
+        self.assertIn(minutes_a, expired)
+        self.assertNotIn(minutes_b, expired)
