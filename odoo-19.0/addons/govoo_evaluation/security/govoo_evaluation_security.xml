@@ -2,6 +2,21 @@
 <odoo>
 
     <!-- ============================================================ -->
+    <!-- Bridge to standard Survey app permissions                     -->
+    <!-- Secretary/Admin author evaluation surveys (govoo.evaluation   -->
+    <!-- .campaign.survey_id); govoo_base doesn't depend on 'survey',   -->
+    <!-- so this module (which depends on both) is the right place.    -->
+    <!-- ============================================================ -->
+
+    <record id="govoo_base.group_govoo_secretary" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('survey.group_survey_user'))]"/>
+    </record>
+
+    <record id="govoo_base.group_govoo_admin" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('survey.group_survey_user'))]"/>
+    </record>
+
+    <!-- ============================================================ -->
     <!-- Multi-company record rules                                     -->
     <!-- ============================================================ -->
 
