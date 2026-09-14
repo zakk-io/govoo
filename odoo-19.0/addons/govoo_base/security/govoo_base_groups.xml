@@ -39,6 +39,7 @@
         <field name="name">Director (Portal)</field>
         <field name="sequence">40</field>
         <field name="privilege_id" ref="res_groups_privilege_governance"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
         <field name="comment">External director self-service. Portal-only, no internal licence.</field>
     </record>
 
@@ -47,6 +48,7 @@
         <field name="name">Shareholder (Portal)</field>
         <field name="sequence">50</field>
         <field name="privilege_id" ref="res_groups_privilege_governance"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
         <field name="comment">External shareholder self-service. Portal-only, no internal licence.</field>
     </record>
 
