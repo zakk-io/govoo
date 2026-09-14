@@ -16,60 +16,60 @@ class GovooComplianceInstanceCron(models.AbstractModel):
     def _cron_generate_instances(self):
         """Daily: generate upcoming instances from active obligations.
 
-        For each active obligation and each company where it applies,
-        compute whether a new instance is due for the current period.
+        Each obligation belongs to exactly one company (its own
+        advisor-confirmed BR-COMP-001 activation) — only that company
+        gets an instance, never every company in the system.
         """
         obligations = self.env['govoo.compliance.obligation'].search([
             ('active', '=', True),
         ])
-        companies = self.env['res.company'].search([])
 
         for obligation in obligations:
-            for company in companies:
-                # Skip event-relative (triggered manually)
-                if obligation.basis == 'event_relative':
+            company = obligation.company_id
+
+            # Skip event-relative (triggered manually)
+            if obligation.basis == 'event_relative':
+                continue
+
+            # Check entity type filter
+            if obligation.applies_to_entity_type != 'all':
+                # [CONFIRM] exact matching logic for entity type hierarchy
+                if company.govoo_entity_type != obligation.applies_to_entity_type:
                     continue
 
-                # Check entity type filter
-                if obligation.applies_to_entity_type != 'all':
-                    # [CONFIRM] exact matching logic for entity type hierarchy
-                    company_type = company.govoo_entity_type
-                    if company_type != obligation.applies_to_entity_type:
-                        continue
+            # Compute next due date
+            due_date = obligation._get_next_due_date(company)
+            if not due_date:
+                _logger.warning(
+                    'Compliance: Cannot compute due date for obligation "%s" '
+                    'company "%s" — missing configuration (e.g. FYE). '
+                    'No instance generated.',
+                    obligation.name, company.name,
+                )
+                continue
 
-                # Compute next due date
-                due_date = obligation._get_next_due_date(company)
-                if not due_date:
-                    _logger.warning(
-                        'Compliance: Cannot compute due date for obligation "%s" '
-                        'company "%s" — missing configuration (e.g. FYE). '
-                        'No instance generated.',
-                        obligation.name, company.name,
-                    )
-                    continue
+            # Determine period string
+            period = self._compute_period(obligation, due_date)
 
-                # Determine period string
-                period = self._compute_period(obligation, due_date)
+            # Check if instance already exists
+            existing = self.env['govoo.compliance.instance'].search([
+                ('obligation_id', '=', obligation.id),
+                ('company_id', '=', company.id),
+                ('period', '=', period),
+            ], limit=1)
 
-                # Check if instance already exists
-                existing = self.env['govoo.compliance.instance'].search([
-                    ('obligation_id', '=', obligation.id),
-                    ('company_id', '=', company.id),
-                    ('period', '=', period),
-                ], limit=1)
-
-                if not existing:
-                    self.env['govoo.compliance.instance'].create({
-                        'obligation_id': obligation.id,
-                        'company_id': company.id,
-                        'period': period,
-                        'due_date': due_date,
-                    })
-                    _logger.info(
-                        'Compliance: Generated instance for "%s" [%s] '
-                        'company "%s", due %s.',
-                        obligation.name, period, company.name, due_date,
-                    )
+            if not existing:
+                self.env['govoo.compliance.instance'].create({
+                    'obligation_id': obligation.id,
+                    'company_id': company.id,
+                    'period': period,
+                    'due_date': due_date,
+                })
+                _logger.info(
+                    'Compliance: Generated instance for "%s" [%s] '
+                    'company "%s", due %s.',
+                    obligation.name, period, company.name, due_date,
+                )
 
     @api.model
     def _cron_send_reminders(self):
