@@ -1,5 +1,8 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
+from odoo.exceptions import AccessError
+from odoo.tests.common import new_test_user
+
 from .common import GovooEvaluationTestBase
 
 
@@ -122,3 +125,46 @@ class TestEvaluation(GovooEvaluationTestBase):
                 'participant_ids': [(6, 0, [outsider.id])],
                 'company_id': self.company.id,
             })
+
+    def test_005_result_access_restricted_to_secretary_admin_auditor(self):
+        """Governance User/Director Portal/Shareholder Portal must have no
+        raw access to govoo.evaluation.result (aggregate-only via UI)."""
+        campaign = self.env['govoo.evaluation.campaign'].create({
+            'name': 'Access Control Test',
+            'committee_id': self.committee.id,
+            'survey_id': self.survey.id,
+            'evaluation_type': 'board',
+            'participant_ids': [(6, 0, [self.partner_a.id, self.partner_b.id])],
+            'company_id': self.company.id,
+        })
+        result = self.env['govoo.evaluation.result'].create({
+            'campaign_id': campaign.id,
+            'dimension_id': self.page.id,
+            'dimension_name': self.page.title,
+            'aggregate_score': 8.0,
+            'participant_count': 2,
+            'company_id': self.company.id,
+        })
+
+        director_portal = new_test_user(
+            self.env, login='test_eval_director_portal',
+            groups='govoo_base.group_govoo_director_portal',
+            company_id=self.company.id,
+        )
+        shareholder_portal = new_test_user(
+            self.env, login='test_eval_shareholder_portal',
+            groups='govoo_base.group_govoo_shareholder_portal',
+            company_id=self.company.id,
+        )
+
+        for user in (self.user_participant, director_portal, shareholder_portal):
+            # No CSV access at all -- even an empty-domain search() raises,
+            # it doesn't just filter the record out.
+            with self.assertRaises(AccessError):
+                self.env['govoo.evaluation.result'].with_user(user).search([])
+            with self.assertRaises(AccessError):
+                result.with_user(user).check_access('read')
+
+        # Secretary, Admin, and Auditor retain read access
+        secretary_results = self.env['govoo.evaluation.result'].with_user(self.user_secretary).search([])
+        self.assertIn(result, secretary_results)
