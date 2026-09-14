@@ -87,11 +87,64 @@ class GovooResolution(models.Model):
         for rec in self:
             rec.access_url = '/my/votes/%s' % rec.id
 
-    @api.depends('vote_ids.choice', 'vote_ids.weight', 'vote_ids.is_conflicted')
-    def _compute_result(self):
-        """Compute result from vote tally.
+    def _quorum_met(self):
+        """BR-BOARD-005: quorum for meeting-linked resolutions reuses the
+        meeting's own (already-correct) quorum computation. Standalone/
+        written resolutions (meeting_id is null) have no quorum concept
+        defined anywhere in spec -- [CONFIRM]; treated as always-met here
+        rather than inventing an undefined eligible-voter-based threshold.
+        """
+        self.ensure_one()
+        if self.meeting_id:
+            return self.meeting_id.quorum_met
+        return True
 
-        Result is only set when state is 'passed' or 'failed'.
+    def _special_majority_threshold(self, raise_if_unset=False):
+        """Fraction (0-1) of for+against votes a 'special' resolution must
+        clear. Exact value is a genuinely open legal question
+        (open-decisions.md item 11, BR-BOARD-005) -- no default is set, per
+        the "no hard-coded legal values / defaults to disabled until
+        confirmed" rule (architecture/technology-standards.md rule 4).
+        """
+        self.ensure_one()
+        threshold = self.env['ir.config_parameter'].sudo().get_param(
+            'govoo_board.special_resolution_majority_threshold',
+        )
+        if not threshold:
+            if raise_if_unset:
+                raise ValidationError(_(
+                    'Special resolution majority threshold is not configured '
+                    '(BR-BOARD-005; see docs/spec/decisions/open-decisions.md '
+                    'item 11 -- exact percentage pending company articles / '
+                    'Rwandan law confirmation). Set the '
+                    '"govoo_board.special_resolution_majority_threshold" '
+                    'system parameter before tallying special resolutions.'
+                ))
+            return None
+        return float(threshold)
+
+    def _passes_majority(self, for_votes, against_votes, raise_if_unconfigured=False):
+        self.ensure_one()
+        if self.resolution_type != 'special':
+            return for_votes > against_votes
+        threshold = self._special_majority_threshold(raise_if_unset=raise_if_unconfigured)
+        if threshold is None:
+            return False
+        total = for_votes + against_votes
+        return total > 0 and for_votes >= threshold * total
+
+    @api.depends(
+        'vote_ids.choice', 'vote_ids.weight', 'vote_ids.is_conflicted',
+        'resolution_type', 'meeting_id.quorum_met',
+    )
+    def _compute_result(self):
+        """Compute result from vote tally (BR-BOARD-005: quorum + majority
+        threshold for resolution_type). Result is only set when state is
+        'passed' or 'failed'. Never raises here (unlike action_tally) --
+        this compute can be triggered by unrelated writes (e.g. a vote's
+        is_conflicted flag, which remains writable after immutability
+        locks in), so an unconfigured special-resolution threshold falls
+        back to `False` rather than blocking an unrelated write.
         """
         for rec in self:
             if rec.state not in ('passed', 'failed'):
@@ -100,9 +153,7 @@ class GovooResolution(models.Model):
             votes = rec.vote_ids.filtered(lambda v: not v.is_conflicted)
             for_votes = sum(votes.filtered(lambda v: v.choice == 'for').mapped('weight'))
             against_votes = sum(votes.filtered(lambda v: v.choice == 'against').mapped('weight'))
-            # Majority threshold: more for than against (ordinary);
-            # higher threshold for special — [CONFIRM exact percentage per articles]
-            if for_votes > against_votes:
+            if rec._quorum_met() and rec._passes_majority(for_votes, against_votes):
                 rec.result = 'passed'
             else:
                 rec.result = 'failed'
@@ -135,10 +186,10 @@ class GovooResolution(models.Model):
             )
 
     def action_tally(self):
-        """Tally votes and set result (BR-BOARD-005).
-
-        System-computed from vote rows; quorum + majority threshold
-        depends on resolution_type. [CONFIRM exact thresholds per articles].
+        """Tally votes and set result (BR-BOARD-005): quorum + majority
+        threshold for resolution_type. A 'special' resolution with no
+        configured majority threshold raises rather than silently applying
+        plain majority.
         """
         for rec in self:
             if rec.state != 'open':
@@ -148,7 +199,9 @@ class GovooResolution(models.Model):
                 raise ValidationError(_('No eligible votes to tally.'))
             for_votes = sum(eligible_votes.filtered(lambda v: v.choice == 'for').mapped('weight'))
             against_votes = sum(eligible_votes.filtered(lambda v: v.choice == 'against').mapped('weight'))
-            if for_votes > against_votes:
+            if rec._quorum_met() and rec._passes_majority(
+                for_votes, against_votes, raise_if_unconfigured=True,
+            ):
                 rec.state = 'passed'
                 rec.result = 'passed'
             else:
