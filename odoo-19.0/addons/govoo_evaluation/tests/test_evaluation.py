@@ -64,7 +64,10 @@ class TestEvaluation(GovooEvaluationTestBase):
         self.assertEqual(result.participant_count, 2)
 
     def test_002_confidentiality_enforced(self):
-        """TC-EVAL-002: Non-Secretary/Admin cannot read others' survey.user_input."""
+        """TC-EVAL-002: Non-Secretary/Admin cannot read others' survey.user_input,
+        AND Secretary/Admin can read all responses (both halves of BR-EVAL-001 --
+        bug #18 broke the second half while this test still only checked the
+        first, so both directions are asserted here)."""
         self.env['govoo.evaluation.campaign'].create({
             'name': 'Confidentiality Test',
             'committee_id': self.committee.id,
@@ -80,7 +83,7 @@ class TestEvaluation(GovooEvaluationTestBase):
             'partner_id': self.user_participant.partner_id.id,
             'state': 'done',
         })
-        self.env['survey.user_input'].sudo().create({
+        input_b = self.env['survey.user_input'].sudo().create({
             'survey_id': self.survey.id,
             'partner_id': self.partner_b.id,
             'state': 'done',
@@ -96,6 +99,14 @@ class TestEvaluation(GovooEvaluationTestBase):
 
         # Participant can read own input
         input_a.with_user(self.user_participant).read(['survey_id'])
+
+        # Secretary/Admin retain full access to ALL responses -- the other
+        # half of BR-EVAL-001 that bug #18 broke without this test noticing.
+        secretary_inputs = self.env['survey.user_input'].with_user(
+            self.user_secretary,
+        ).search([('survey_id', '=', self.survey.id)])
+        self.assertIn(input_a, secretary_inputs)
+        self.assertIn(input_b, secretary_inputs)
 
     def test_003_cannot_close_without_participants(self):
         """TC-EVAL-003: Campaign cannot be created with empty participants."""
@@ -122,3 +133,45 @@ class TestEvaluation(GovooEvaluationTestBase):
                 'participant_ids': [(6, 0, [outsider.id])],
                 'company_id': self.company.id,
             })
+
+    def test_005_aggregation_not_empty_when_closed_as_secretary(self):
+        """Regression for bug #18: a global (no-groups) ir.rule silently
+        ANDed against the Secretary/Admin full-access rule, so
+        _aggregate_results() (called from action_close, unsudo'd) saw zero
+        survey.user_input rows and silently produced an empty aggregation
+        -- no error, just missing results. Must be exercised as a real
+        Secretary user, not the superuser test default, to catch it."""
+        answer = self.env['survey.question.answer'].create({
+            'question_id': self.question.id,
+            'value': 'Effective',
+            'answer_score': 8.0,
+            'is_correct': True,
+        })
+        campaign = self.env['govoo.evaluation.campaign'].create({
+            'name': 'Secretary Close Test',
+            'committee_id': self.committee.id,
+            'survey_id': self.survey.id,
+            'evaluation_type': 'board',
+            'participant_ids': [(6, 0, [self.partner_a.id, self.partner_b.id])],
+            'company_id': self.company.id,
+        })
+        campaign.with_user(self.user_secretary).action_open()
+
+        for partner in (self.partner_a, self.partner_b):
+            user_input = self.env['survey.user_input'].sudo().create({
+                'survey_id': self.survey.id,
+                'partner_id': partner.id,
+                'state': 'done',
+            })
+            self.env['survey.user_input.line'].sudo().create({
+                'user_input_id': user_input.id,
+                'question_id': self.question.id,
+                'answer_type': 'suggestion',
+                'suggested_answer_id': answer.id,
+            })
+
+        campaign.with_user(self.user_secretary).action_close()
+        self.assertTrue(
+            campaign.result_ids,
+            'Aggregation must not be silently empty when closed as Secretary.',
+        )
