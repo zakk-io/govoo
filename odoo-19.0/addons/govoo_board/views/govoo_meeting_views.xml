@@ -70,7 +70,9 @@
                             <field name="pack_id"/>
                         </page>
                         <page string="Minutes" name="minutes">
-                            <field name="minutes_id"/>
+                            <field name="minutes_id"
+                                   context="{'default_meeting_id': id}"
+                                   domain="[('meeting_id', '=', id)]"/>
                         </page>
                     </notebook>
                 </sheet>

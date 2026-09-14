@@ -58,7 +58,15 @@
                     </group>
                     <notebook>
                         <page string="Votes" name="votes">
-                            <field name="vote_ids"/>
+                            <field name="vote_ids">
+                                <list editable="bottom">
+                                    <field name="voter_id"/>
+                                    <field name="choice"/>
+                                    <field name="weight"/>
+                                    <field name="is_conflicted"/>
+                                    <field name="timestamp"/>
+                                </list>
+                            </field>
                         </page>
                     </notebook>
                 </sheet>
