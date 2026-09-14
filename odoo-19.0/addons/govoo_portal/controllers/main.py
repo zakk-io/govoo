@@ -8,7 +8,7 @@ from odoo.addons.portal.controllers.portal import CustomerPortal
 
 class GovooPortalMain(CustomerPortal):
 
-    @http.route('/my', type='http', auth='user')
+    @http.route('/my', type='http', auth='user', website=True)
     def portal_my_home(self, **kw):
         """Override base CustomerPortal home route to avoid website dependency."""
         partner = request.env.user.partner_id

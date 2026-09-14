@@ -7,7 +7,7 @@ from odoo.exceptions import ValidationError
 class GovooResolution(models.Model):
     _name = 'govoo.resolution'
     _description = 'Resolution'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'portal.mixin']
     _order = 'create_date desc'
 
     meeting_id = fields.Many2one(

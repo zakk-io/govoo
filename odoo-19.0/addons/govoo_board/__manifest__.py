@@ -11,7 +11,7 @@ agenda, pack compilation, minutes, resolutions, and e-voting.
     'category': 'Governance',
     'version': '19.0.1.0.0',
     'license': 'LGPL-3',
-    'depends': ['govoo_base', 'govoo_shares', 'calendar'],
+    'depends': ['govoo_base', 'govoo_shares', 'calendar', 'portal'],
     'data': [
         'security/govoo_board_security.xml',
         'security/ir.model.access.csv',

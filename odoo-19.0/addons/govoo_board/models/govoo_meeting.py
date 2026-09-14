@@ -7,7 +7,7 @@ from odoo.exceptions import ValidationError, UserError
 class GovooMeeting(models.Model):
     _name = 'govoo.meeting'
     _description = 'Board / Committee Meeting'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'portal.mixin']
     _order = 'date desc'
 
     name = fields.Char(

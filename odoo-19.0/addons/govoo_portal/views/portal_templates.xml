@@ -62,8 +62,8 @@
                         <p class="card-text text-muted mb-1">
                             <strong>Committee:</strong> <t t-esc="meeting.committee_id.name"/>
                         </p>
-                        <p class="card-text text-muted mb-1" t-if="meeting.dateScheduled">
-                            <strong>Date:</strong> <t t-esc="meeting.dateScheduled"
+                        <p class="card-text text-muted mb-1" t-if="meeting.date">
+                            <strong>Date:</strong> <t t-esc="meeting.date"
                                                       t-options="{'widget': 'datetime'}"/>
                         </p>
                         <span class="badge"
@@ -92,14 +92,9 @@
                             <td><strong>Committee:</strong></td>
                             <td><t t-esc="meeting.committee_id.name"/></td>
                         </tr>
-                        <tr t-if="meeting.dateScheduled">
-                            <td><strong>Scheduled:</strong></td>
-                            <td><t t-esc="meeting.dateScheduled"
-                                   t-options="{'widget': 'datetime'}"/></td>
-                        </tr>
-                        <tr t-if="meeting.dateHeld">
-                            <td><strong>Held:</strong></td>
-                            <td><t t-esc="meeting.dateHeld"
+                        <tr t-if="meeting.date">
+                            <td><strong>Date:</strong></td>
+                            <td><t t-esc="meeting.date"
                                    t-options="{'widget': 'datetime'}"/></td>
                         </tr>
                         <tr>
@@ -113,7 +108,7 @@
                     </table>
 
                     <h4 class="mt-4">Agenda</h4>
-                    <t t-if="meeting.agenda_item_ids">
+                    <t t-if="meeting.agenda_ids">
                         <table class="table table-sm">
                             <thead>
                                 <tr>
@@ -123,10 +118,10 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="meeting.agenda_item_ids" t-as="item">
+                                <t t-foreach="meeting.agenda_ids" t-as="item">
                                     <tr>
                                         <td><t t-esc="item.sequence"/></td>
-                                        <td><t t-esc="item.name"/></td>
+                                        <td><t t-esc="item.title"/></td>
                                         <td>
                                             <t t-if="item.is_confidential">
                                                 <span class="badge bg-warning">Confidential</span>
@@ -144,10 +139,7 @@
                     <div class="mt-4" t-if="meeting.state in ('held', 'minuted', 'closed')">
                         <h4>Minutes</h4>
                         <t t-if="meeting.minutes_id">
-                            <a t-attf-href="/web/report/#{meeting.minutes_id.report_pdf_url}?report_type=pdf&amp;access_token=#{meeting.minutes_id._portal_ensure_token()}"
-                               class="btn btn-secondary" target="_blank">
-                                Download Minutes
-                            </a>
+                            <p>Minutes status: <t t-esc="meeting.minutes_id.state"/></p>
                         </t>
                         <t t-else="">
                             <p class="text-muted">Minutes not yet available.</p>
@@ -175,13 +167,13 @@
                 <div class="card mb-3">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <a t-esc="resolution.name"/>
+                            <a t-esc="resolution.title"/>
                         </h5>
                         <p class="card-text text-muted mb-1">
                             <strong>Type:</strong> <t t-esc="resolution.resolution_type"/>
                         </p>
-                        <p class="card-text text-muted mb-1" t-if="resolution.committee_id">
-                            <strong>Committee:</strong> <t t-esc="resolution.committee_id.name"/>
+                        <p class="card-text text-muted mb-1" t-if="resolution.meeting_id.committee_id">
+                            <strong>Committee:</strong> <t t-esc="resolution.meeting_id.committee_id.name"/>
                         </p>
                         <a t-attf-href="/my/votes/#{resolution.id}/cast?access_token=#{resolution._portal_ensure_token()}"
                            class="btn btn-primary btn-sm mt-2">
@@ -203,7 +195,7 @@
         <t t-call="portal.portal_layout">
             <div class="card">
                 <div class="card-body">
-                    <h3>Vote on: <t t-esc="resolution.name"/></h3>
+                    <h3>Vote on: <t t-esc="resolution.title"/></h3>
 
                     <t t-if="error">
                         <div class="alert alert-danger" t-esc="error"/>
@@ -275,9 +267,9 @@
                                 <td><t t-esc="appointment.date_appointed"
                                        t-options="{'widget': 'date'}"/></td>
                             </tr>
-                            <tr t-if="appointment.date_ceased">
-                                <td><strong>Date Ceased:</strong></td>
-                                <td><t t-esc="appointment.date_ceased"
+                            <tr t-if="appointment.date_resigned">
+                                <td><strong>Date Resigned:</strong></td>
+                                <td><t t-esc="appointment.date_resigned"
                                        t-options="{'widget': 'date'}"/></td>
                             </tr>
                             <tr>
@@ -351,7 +343,7 @@
                 <div class="card mb-3">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <t t-esc="resolution.name"/>
+                            <t t-esc="resolution.title"/>
                         </h5>
                         <p class="card-text text-muted mb-1">
                             <strong>Type:</strong> <t t-esc="resolution.resolution_type"/>
@@ -376,7 +368,7 @@
         <t t-call="portal.portal_layout">
             <div class="card">
                 <div class="card-body">
-                    <h3>Vote on: <t t-esc="resolution.name"/></h3>
+                    <h3>Vote on: <t t-esc="resolution.title"/></h3>
 
                     <t t-if="error">
                         <div class="alert alert-danger" t-esc="error"/>
@@ -440,22 +432,13 @@
                                 <td><t t-esc="register_entry.partner_id.name"/></td>
                             </tr>
                             <tr>
-                                <td><strong>Share Class:</strong></td>
-                                <td><t t-esc="register_entry.share_class_id.name"
-                                       t-if="register_entry.share_class_id"/></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Quantity:</strong></td>
-                                <td><t t-esc="register_entry.quantity"/></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Date From:</strong></td>
-                                <td><t t-esc="register_entry.date_from"
+                                <td><strong>Date Entered:</strong></td>
+                                <td><t t-esc="register_entry.date_entered"
                                        t-options="{'widget': 'date'}"/></td>
                             </tr>
-                            <tr t-if="register_entry.date_to">
-                                <td><strong>Date To:</strong></td>
-                                <td><t t-esc="register_entry.date_to"
+                            <tr t-if="register_entry.date_ceased">
+                                <td><strong>Date Ceased:</strong></td>
+                                <td><t t-esc="register_entry.date_ceased"
                                        t-options="{'widget': 'date'}"/></td>
                             </tr>
                         </table>

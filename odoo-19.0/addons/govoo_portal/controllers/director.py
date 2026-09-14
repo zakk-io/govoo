@@ -17,7 +17,7 @@ class DirectorPortal(CustomerPortal):
     # My Meetings
     # ------------------------------------------------------------
 
-    @http.route('/my/meetings', type='http', auth='user')
+    @http.route('/my/meetings', type='http', auth='user', website=True)
     def portal_my_meetings(self, page=1, sortby=None, **kw):
         values = self._prepare_portal_layout_values()
         partner = request.env.user.partner_id
@@ -41,7 +41,7 @@ class DirectorPortal(CustomerPortal):
         )
         meetings = request.env['govoo.meeting'].sudo().search(
             domain,
-            order='dateScheduled desc',
+            order='date desc',
             limit=15,
             offset=pager['offset'],
         )
@@ -53,7 +53,7 @@ class DirectorPortal(CustomerPortal):
         })
         return request.render('govoo_portal.portal_my_meetings', values)
 
-    @http.route('/my/meetings/<int:meeting_id>', type='http', auth='user')
+    @http.route('/my/meetings/<int:meeting_id>', type='http', auth='user', website=True)
     def portal_my_meeting(self, meeting_id, access_token=None, **kw):
         try:
             meeting_sudo = self._document_check_access(
@@ -73,7 +73,7 @@ class DirectorPortal(CustomerPortal):
     # My Votes (Director)
     # ------------------------------------------------------------
 
-    @http.route('/my/votes', type='http', auth='user')
+    @http.route('/my/votes', type='http', auth='user', website=True)
     def portal_my_votes(self, page=1, **kw):
         values = self._prepare_portal_layout_values()
         partner = request.env.user.partner_id
@@ -124,7 +124,7 @@ class DirectorPortal(CustomerPortal):
         return request.render('govoo_portal.portal_my_votes', values)
 
     @http.route('/my/votes/<int:resolution_id>/cast', type='http',
-                auth='user', methods=['GET', 'POST'])
+                auth='user', methods=['GET', 'POST'], website=True)
     def portal_cast_vote_director(self, resolution_id, access_token=None,
                                   vote_choice=None, conflict_declared=None, **kw):
         try:
@@ -179,7 +179,7 @@ class DirectorPortal(CustomerPortal):
     # My Appointment
     # ------------------------------------------------------------
 
-    @http.route('/my/appointment', type='http', auth='user')
+    @http.route('/my/appointment', type='http', auth='user', website=True)
     def portal_my_appointment(self, **kw):
         partner = request.env.user.partner_id
         appointment = request.env['govoo.appointment'].sudo().search([
