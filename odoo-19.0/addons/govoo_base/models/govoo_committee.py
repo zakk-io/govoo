@@ -38,12 +38,13 @@ class GovooCommittee(models.Model):
         comodel_name='govoo.appointment',
         inverse_name='committee_id',
         string='Members',
-        domain=[('role', '!=', 'secretary')],
+        domain=[('role', '!=', 'secretary'), ('state', '=', 'active')],
         help='Anyone with an active, committee-scoped governance role '
              '(member, chair, MD, director) — excludes the administrative '
-             'Secretary role. Portal record rules key off this field, so a '
-             'portal-only Chair must be included here to see their own '
-             "committee's meetings/minutes/resolutions.",
+             'Secretary role and resigned appointments. Portal record rules '
+             'key off this field, so a portal-only Chair must be included '
+             "here to see their own committee's meetings/minutes/"
+             'resolutions, and a resigned appointee must drop out of it.',
     )
     # Feature-flagged: ir.attachment (Community) / documents.document (Enterprise)
     terms_of_reference_id = fields.Many2one(

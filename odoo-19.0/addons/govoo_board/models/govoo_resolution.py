@@ -82,6 +82,11 @@ class GovooResolution(models.Model):
         string='Sign Request',
     )
 
+    def _compute_access_url(self):
+        super()._compute_access_url()
+        for rec in self:
+            rec.access_url = '/my/votes/%s' % rec.id
+
     @api.depends('vote_ids.choice', 'vote_ids.weight', 'vote_ids.is_conflicted')
     def _compute_result(self):
         """Compute result from vote tally.

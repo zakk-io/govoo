@@ -121,7 +121,14 @@
                                 <t t-foreach="meeting.agenda_ids" t-as="item">
                                     <tr>
                                         <td><t t-esc="item.sequence"/></td>
-                                        <td><t t-esc="item.title"/></td>
+                                        <td>
+                                            <t t-if="item.is_confidential">
+                                                <em class="text-muted">[Confidential — see board pack]</em>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-esc="item.title"/>
+                                            </t>
+                                        </td>
                                         <td>
                                             <t t-if="item.is_confidential">
                                                 <span class="badge bg-warning">Confidential</span>
@@ -135,6 +142,23 @@
                     <t t-else="">
                         <p class="text-muted">No agenda items.</p>
                     </t>
+
+                    <div class="mt-4" t-if="meeting.pack_id">
+                        <h4>Board Pack</h4>
+                        <p>Status: <t t-esc="meeting.pack_id.state"/></p>
+                        <t t-if="pack_recipient">
+                            <p class="text-success">
+                                Sent to you<t t-if="pack_recipient.sent_date">
+                                    on <t t-esc="pack_recipient.sent_date" t-options="{'widget': 'datetime'}"/></t>.
+                                <t t-if="pack_recipient.redacted_item_ids">
+                                    Some confidential agenda items were excluded from your copy.
+                                </t>
+                            </p>
+                        </t>
+                        <t t-else="">
+                            <p class="text-muted">Not yet distributed to you.</p>
+                        </t>
+                    </div>
 
                     <div class="mt-4" t-if="meeting.state in ('held', 'minuted', 'closed')">
                         <h4>Minutes</h4>

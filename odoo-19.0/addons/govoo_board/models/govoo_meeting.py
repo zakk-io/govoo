@@ -108,6 +108,11 @@ class GovooMeeting(models.Model):
         tracking=True,
     )
 
+    def _compute_access_url(self):
+        super()._compute_access_url()
+        for rec in self:
+            rec.access_url = '/my/meetings/%s' % rec.id
+
     @api.depends('attendee_ids', 'quorum_required')
     def _compute_quorum_met(self):
         for rec in self:

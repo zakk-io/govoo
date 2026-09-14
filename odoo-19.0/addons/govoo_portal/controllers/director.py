@@ -1,6 +1,6 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import _, http
+from odoo import SUPERUSER_ID, _, http
 from odoo.exceptions import AccessError, MissingError
 from odoo.http import request
 
@@ -12,6 +12,20 @@ class DirectorPortal(CustomerPortal):
 
     def _get_guide_portal_bootstrapped(self):
         return True
+
+    def _document_check_access(self, model_name, document_id, access_token=None):
+        """Record rule only -- no token-only fallback (BR-SEC-006).
+
+        Governance records are never share-link-shareable: an
+        authenticated portal user who isn't authorized for a record
+        must stay blocked even with a valid/leaked access token.
+        """
+        document = request.env[model_name].browse([document_id])
+        document_sudo = document.with_user(SUPERUSER_ID).exists()
+        if not document_sudo:
+            raise MissingError(_('This document does not exist.'))
+        document.check_access('read')
+        return document_sudo
 
     # ------------------------------------------------------------
     # My Meetings
@@ -62,8 +76,17 @@ class DirectorPortal(CustomerPortal):
         except (AccessError, MissingError):
             return request.redirect('/my')
 
+        partner = request.env.user.partner_id
+        pack_recipient_sudo = None
+        if meeting_sudo.pack_id:
+            pack_recipient_sudo = request.env['govoo.board.pack.recipient'].sudo().search([
+                ('pack_id', '=', meeting_sudo.pack_id.id),
+                ('partner_id', '=', partner.id),
+            ], limit=1)
+
         values = {
             'meeting': meeting_sudo,
+            'pack_recipient': pack_recipient_sudo,
             'page_name': 'meeting',
             'token': access_token,
         }

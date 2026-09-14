@@ -1,6 +1,6 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 
@@ -44,6 +44,14 @@ class GovooBoardPack(models.Model):
         required=True,
         tracking=True,
     )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for rec in records:
+            if rec.meeting_id and not rec.meeting_id.pack_id:
+                rec.meeting_id.pack_id = rec.id
+        return records
 
     def action_compile(self):
         """Compile agenda + linked documents into a distributable pack.

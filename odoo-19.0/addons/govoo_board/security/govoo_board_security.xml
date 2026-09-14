@@ -83,7 +83,7 @@
     <record id="govoo_resolution_shareholder_portal_rule" model="ir.rule">
         <field name="name">Resolution: Shareholder Portal eligible resolutions</field>
         <field name="model_id" ref="model_govoo_resolution"/>
-        <field name="domain_force">[('resolution_type', 'in', ['ordinary', 'special']), ('company_id', 'in', user.company_ids.ids)]</field>
+        <field name="domain_force">[('resolution_type', 'in', ['ordinary', 'special']), ('company_id', 'in', user.partner_id.shareholding_company_ids.ids)]</field>
         <field name="groups" eval="[(4, ref('govoo_base.group_govoo_shareholder_portal'))]"/>
     </record>
 
