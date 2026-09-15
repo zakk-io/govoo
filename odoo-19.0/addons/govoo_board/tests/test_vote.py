@@ -1,7 +1,8 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import tagged
+from odoo.tests.common import new_test_user
 
 from .common import GovooBoardTestBase
 
@@ -130,3 +131,22 @@ class GovooVoteTC(GovooBoardTestBase):
         })
         # weight should be sourced from holding: 30 shares * 2.0 votes = 60.0
         self.assertEqual(vote.weight, 60.0)
+
+    def test_board_admin_cannot_create_vote(self):
+        """TC-SEC-004: Board Administrator is denied at the access-rights
+        layer, regardless of configuration privileges (BR-SEC-004) --
+        even with no director/shareholder appointment at all."""
+        admin = new_test_user(
+            self.env, login='test_board_admin_vote',
+            groups='govoo_base.group_govoo_admin',
+            company_id=self.company.id,
+        )
+        meeting = self._make_meeting()
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+        with self.assertRaises(AccessError):
+            self.env['govoo.vote'].with_user(admin).create({
+                'resolution_id': resolution.id,
+                'voter_id': admin.partner_id.id,
+                'choice': 'for',
+            })

@@ -64,7 +64,8 @@ class TestEvaluation(GovooEvaluationTestBase):
         self.assertEqual(result.participant_count, 2)
 
     def test_002_confidentiality_enforced(self):
-        """TC-EVAL-002: Non-Secretary/Admin cannot read others' survey.user_input."""
+        """TC-EVAL-002 / TC-SEC-008: Non-Secretary/Admin cannot read others'
+        raw survey.user_input."""
         self.env['govoo.evaluation.campaign'].create({
             'name': 'Confidentiality Test',
             'committee_id': self.committee.id,

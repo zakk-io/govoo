@@ -1,3 +1,10 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
-from . import test_appointment, test_committee
+from . import (
+    test_appointment,
+    test_auditor_readonly,
+    test_committee,
+    test_groups,
+    test_multicompany_isolation,
+    test_res_partner_pii,
+)
