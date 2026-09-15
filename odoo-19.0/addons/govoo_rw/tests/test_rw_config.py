@@ -59,7 +59,12 @@ class TestRwConfig(TransactionCase):
             )
 
     def test_004_retention_categories_configured(self):
-        """TC-RW-004: All five retention categories are configured."""
+        """TC-RW-005: All five retention categories are configured.
+
+        Previously mislabeled TC-RW-004 -- that ID belongs to the CMA
+        governance checklist model (FR-RW-004, see #44/#64), which this
+        test has nothing to do with.
+        """
         expected_categories = ['minutes', 'resolutions', 'accounts', 'auditor_reports', 'board_reports']
         for category in expected_categories:
             rules = self.env['govoo.rw.retention'].search([
