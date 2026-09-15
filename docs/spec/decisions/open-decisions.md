@@ -7,9 +7,11 @@ repository or in the implementation until it is moved to `decisions/confirmed-de
 recorded confirmation.**
 
 ## From the source spec (§13, verbatim items)
-1. **Odoo version (17 vs 18) and edition (Enterprise vs Community + OCA).**
+1. **Edition (Enterprise vs Community + OCA).**
    Owner: technical sponsor. Affects: `architecture/technology-standards.md` §1,
    `architecture/module-architecture.md` §2 (every Enterprise-app dependency).
+   (The Odoo *version* half of this item is resolved — see
+   `decisions/confirmed-decisions.md` entry [1]: shipped as Odoo 19.)
 2. **In-Rwanda / NCSA-authorized hosting for real personal data.**
    Owner: client + counsel + NCSA. Affects: `devops/environments.md` §1,
    `security/privacy.md` §1.
