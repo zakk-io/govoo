@@ -252,3 +252,65 @@ class GovooVoteTC(GovooBoardTestBase):
         # is 50 for vs 200 against -> fails.
         self.assertEqual(resolution.state, 'failed')
         self.assertEqual(resolution.result, 'failed')
+
+    def test_written_shareholder_resolution_vote_weight_from_holding(self):
+        """Issue #85: a written resolution (no meeting_id at all) with
+        a shareholder-eligible resolution_type still sources vote
+        weight from the voter's holding, not the 1.0 default."""
+        share_class = self.env['govoo.share.class'].create({
+            'name': 'Ordinary Shares',
+            'nominal_value': 1000,
+            'votes_per_share': 1.0,
+            'total_authorised': 100,
+            'company_id': self.company.id,
+        })
+        self.env['govoo.share.allotment'].create({
+            'share_class_id': share_class.id,
+            'partner_id': self.partner_a.id,
+            'quantity': 40,
+            'date_allotted': '2026-01-01',
+        })
+
+        resolution = self.env['govoo.resolution'].create({
+            'title': 'Written Shareholder Resolution',
+            'resolution_type': 'ordinary',
+        })
+        self.assertFalse(resolution.meeting_id)
+        resolution.action_open()
+
+        vote = self.env['govoo.vote'].create({
+            'resolution_id': resolution.id,
+            'voter_id': self.partner_a.id,
+            'choice': 'for',
+        })
+        self.assertEqual(vote.weight, 40.0)
+
+    def test_board_resolution_shareholder_director_gets_plain_weight(self):
+        """Issue #85: a director who also happens to be a shareholder
+        must still get a plain 1.0 vote on a regular board-meeting
+        resolution -- resolution_type alone is not a sufficient signal
+        since 'ordinary' is also used for non-shareholder resolutions."""
+        share_class = self.env['govoo.share.class'].create({
+            'name': 'Ordinary Shares',
+            'nominal_value': 1000,
+            'votes_per_share': 1.0,
+            'total_authorised': 100,
+            'company_id': self.company.id,
+        })
+        self.env['govoo.share.allotment'].create({
+            'share_class_id': share_class.id,
+            'partner_id': self.partner_a.id,
+            'quantity': 40,
+            'date_allotted': '2026-01-01',
+        })
+
+        meeting = self._make_meeting()  # meeting_type='board'
+        resolution = self._make_resolution(meeting)  # resolution_type='ordinary'
+        resolution.action_open()
+
+        vote = self.env['govoo.vote'].create({
+            'resolution_id': resolution.id,
+            'voter_id': self.partner_a.id,
+            'choice': 'for',
+        })
+        self.assertEqual(vote.weight, 1.0)
