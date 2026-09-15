@@ -86,3 +86,29 @@ class GovooResolutionTC(GovooBoardTestBase):
         # Still in draft
         with self.assertRaises(ValidationError):
             resolution.action_tally()
+
+    def test_sign_request_blocked_without_legal_confirmation(self):
+        """BR-BOARD-008: sign_request_id cannot be set while e-signature
+        legal validity under Rwandan law is unconfirmed (the default)."""
+        meeting = self._make_meeting()
+        resolution = self._make_resolution(meeting)
+        attachment = self.env['ir.attachment'].create({
+            'name': 'sign_request.pdf',
+            'datas': b'ZmFrZSBwZGY=',
+        })
+        with self.assertRaises(ValidationError):
+            resolution.sign_request_id = attachment
+
+    def test_sign_request_allowed_when_legally_confirmed(self):
+        """Once confirmed, sign_request_id can be set."""
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.e_signature_legally_confirmed', 'True',
+        )
+        meeting = self._make_meeting()
+        resolution = self._make_resolution(meeting)
+        attachment = self.env['ir.attachment'].create({
+            'name': 'sign_request.pdf',
+            'datas': b'ZmFrZSBwZGY=',
+        })
+        resolution.sign_request_id = attachment
+        self.assertEqual(resolution.sign_request_id, attachment)
