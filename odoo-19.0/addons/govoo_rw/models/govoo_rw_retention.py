@@ -148,8 +148,10 @@ class GovooRwRetention(models.Model):
         if not Model.browse().has_access('read'):
             return Model.browse()
 
-        if rule.retention_category in ('minutes', 'resolutions'):
+        if rule.retention_category == 'minutes':
             domain = [('state', '=', 'approved')]
+        elif rule.retention_category == 'resolutions':
+            domain = [('state', 'in', ('passed', 'failed', 'withdrawn'))]
         else:
             domain = [('state', '=', 'posted')]
         domain.append(('company_id', '=', rule.company_id.id))
