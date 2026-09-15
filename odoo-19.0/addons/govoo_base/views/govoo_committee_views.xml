@@ -22,6 +22,18 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_members" type="object"
+                                class="oe_stat_button" icon="fa-users"
+                                invisible="not member_count">
+                            <field name="member_count" widget="statinfo" string="Members"/>
+                        </button>
+                        <button name="action_view_meetings" type="object"
+                                class="oe_stat_button" icon="fa-calendar"
+                                invisible="not meeting_count">
+                            <field name="meeting_count" widget="statinfo" string="Meetings"/>
+                        </button>
+                    </div>
                     <group>
                         <group>
                             <field name="name"/>

@@ -128,16 +128,19 @@ class GovooRwRetention(models.Model):
         Returns:
             recordset of expired records for the given rule
         """
+        # 'board_reports' has no backing document model yet (only ever
+        # mentioned as a retention-period category in spec, never as a
+        # distinct model) -- left unmapped so it safely no-ops below
+        # instead of approximating against unrelated mail.message data.
         model_map = {
             'minutes': 'govoo.minutes',
             'resolutions': 'govoo.resolution',
             'accounts': 'account.move',
             'auditor_reports': 'account.move',
-            'board_reports': 'mail.message',
         }
         model_name = model_map.get(rule.retention_category)
         if not model_name:
-            return self.env[model_name].browse()
+            return self.env['govoo.rw.retention'].browse()
 
         Model = self.env[model_name]
         if model_name not in self.env:
@@ -145,15 +148,10 @@ class GovooRwRetention(models.Model):
         if not Model._check_access_rights('read', raise_exception=False):
             return Model.browse()
 
-        # For minutes/resolutions, use create_date as reference
-        # For accounts/auditor_reports, use date/invoice_date
-        # For board_reports, use date
         if rule.retention_category in ('minutes', 'resolutions'):
             domain = [('state', '=', 'approved')]
-        elif rule.retention_category in ('accounts', 'auditor_reports'):
-            domain = [('state', '=', 'posted')]
         else:
-            domain = []
+            domain = [('state', '=', 'posted')]
 
         records = Model.search(domain)
         expired = Model.browse()
