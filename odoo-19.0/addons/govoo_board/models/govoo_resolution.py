@@ -63,6 +63,10 @@ class GovooResolution(models.Model):
         inverse_name='resolution_id',
         string='Votes',
     )
+    vote_count = fields.Integer(
+        string='Votes',
+        compute='_compute_vote_count',
+    )
     result = fields.Selection(
         selection=[
             ('passed', 'Passed'),
@@ -82,10 +86,47 @@ class GovooResolution(models.Model):
         string='Sign Request',
     )
 
+    @api.constrains('sign_request_id')
+    def _check_esignature_legally_confirmed(self):
+        """BR-BOARD-008: gate sign_request_id usage on confirmed legal
+        validity of e-signature under Rwandan law -- still an open
+        decision (docs/spec/decisions/open-decisions.md #3), so this
+        defaults to unconfirmed/blocked.
+        """
+        confirmed = self.env['ir.config_parameter'].sudo().get_param(
+            'govoo_board.e_signature_legally_confirmed', 'False',
+        ) in ('True', '1')
+        if confirmed:
+            return
+        for rec in self:
+            if rec.sign_request_id:
+                raise ValidationError(_(
+                    'E-signature is not yet confirmed as legally valid '
+                    'under Rwandan law (BR-BOARD-008); Sign Request cannot '
+                    'be used. Store the executed resolution document '
+                    'separately instead.'
+                ))
+
     def _compute_access_url(self):
         super()._compute_access_url()
         for rec in self:
             rec.access_url = '/my/votes/%s' % rec.id
+
+    @api.depends('vote_ids')
+    def _compute_vote_count(self):
+        for rec in self:
+            rec.vote_count = len(rec.vote_ids)
+
+    def action_view_votes(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Votes',
+            'res_model': 'govoo.vote',
+            'view_mode': 'list,form',
+            'domain': [('resolution_id', '=', self.id)],
+            'context': {'default_resolution_id': self.id},
+        }
 
     @api.depends('vote_ids.choice', 'vote_ids.weight', 'vote_ids.is_conflicted')
     def _compute_result(self):
