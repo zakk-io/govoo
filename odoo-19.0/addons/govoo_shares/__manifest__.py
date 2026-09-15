@@ -19,6 +19,7 @@ Feeds the Register of Members and shareholder vote weighting.
         'views/govoo_share_allotment_views.xml',
         'views/govoo_share_transfer_views.xml',
         'views/govoo_share_holding_views.xml',
+        'views/govoo_register_member_views.xml',
         'views/govoo_shares_menus.xml',
         'report/govoo_shares_reports.xml',
     ],

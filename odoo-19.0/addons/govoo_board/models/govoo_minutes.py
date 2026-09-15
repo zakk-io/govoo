@@ -1,7 +1,17 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
+import logging
+
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
+
+_logger = logging.getLogger(__name__)
+
+# Fallback only -- used when govoo_rw isn't installed or has no active
+# 'minutes' retention rule for the company. Never the primary source
+# (BR-BOARD-004): govoo_rw's govoo.rw.retention config is authoritative
+# when available.
+_DEFAULT_RETENTION_YEARS = 10
 
 
 class GovooMinutes(models.Model):
@@ -52,7 +62,10 @@ class GovooMinutes(models.Model):
         required=True,
         tracking=True,
     )
-    # Feature-flagged: ir.attachment (Community) / documents.document (Enterprise)
+    # Always ir.attachment (Many2one comodel is fixed at class-definition
+    # time); when a document is generated for this field, check
+    # self.env['govoo.feature.flags'].is_documents_app_installed() to
+    # additionally file a copy into the Documents workspace.
     signed_document_id = fields.Many2one(
         comodel_name='ir.attachment',
         string='Signed Document',
@@ -63,20 +76,43 @@ class GovooMinutes(models.Model):
         store=True,
     )
 
-    @api.depends('create_date')
+    @api.depends('create_date', 'company_id')
     def _compute_retention_until(self):
-        """10 years retention from create_date via govoo_rw config.
+        """Retention from create_date, sourced from govoo_rw config (BR-BOARD-004).
 
-        [CONFIRM] The literal source is govoo_rw retention config;
-        if not yet available, defaults to 10 years.
+        govoo_board does not depend on govoo_rw (govoo_rw already depends
+        on govoo_board -- a real dependency would be circular), so the
+        govoo.rw.retention model is looked up via a guarded ORM access
+        instead of a manifest dependency. Falls back to a 10-year default,
+        logged, only when govoo_rw isn't installed or has no active
+        'minutes' rule for the company.
         """
+        has_govoo_rw = 'govoo.rw.retention' in self.env
         for rec in self:
-            if rec.create_date:
-                rec.retention_until = rec.create_date.replace(
-                    year=rec.create_date.year + 10,
-                )
-            else:
+            if not rec.create_date:
                 rec.retention_until = False
+                continue
+
+            rule = None
+            if has_govoo_rw:
+                rule = self.env['govoo.rw.retention'].search([
+                    ('retention_category', '=', 'minutes'),
+                    ('active', '=', True),
+                    ('company_id', '=', rec.company_id.id),
+                ], limit=1)
+
+            if rule:
+                rec.retention_until = rule.get_retention_date(rec.create_date)
+            else:
+                _logger.warning(
+                    'No active govoo.rw.retention rule found for category '
+                    '"minutes" in company %s; falling back to the %s-year '
+                    'default for minutes id %s.',
+                    rec.company_id.id, _DEFAULT_RETENTION_YEARS, rec.id or 'new',
+                )
+                rec.retention_until = rec.create_date.replace(
+                    year=rec.create_date.year + _DEFAULT_RETENTION_YEARS,
+                )
 
     @api.constrains('state')
     def _check_state_no_delete_after_draft(self):
@@ -85,8 +121,8 @@ class GovooMinutes(models.Model):
 
     def unlink(self):
         for rec in self:
-            if rec.state != 'draft':
-                raise ValidationError(_('Cannot delete minutes once they leave draft status.'))
+            if rec.state in ('approved', 'signed'):
+                raise ValidationError(_('Cannot delete minutes once approved.'))
         return super().unlink()
 
     def _validate_state_transition(self, target_state):
@@ -117,10 +153,33 @@ class GovooMinutes(models.Model):
         self._validate_state_transition('approved')
         self.write({'state': 'approved'})
 
+    @api.model
+    def _esignature_legally_confirmed(self):
+        """BR-BOARD-008: legal validity of e-signature under Rwandan law is
+        still an open decision (docs/spec/decisions/open-decisions.md #3) --
+        defaults to unconfirmed.
+        """
+        confirmed = self.env['ir.config_parameter'].sudo().get_param(
+            'govoo_board.e_signature_legally_confirmed', 'False',
+        )
+        return confirmed in ('True', '1')
+
     def action_sign(self):
         """Gated on [CONFIRM] legal validity of e-signature (BR-BOARD-008).
 
-        Feature-flagged: sign_request_id usage depends on sign module availability.
+        While unconfirmed, the e-sign integration path is closed and
+        'signed' is only reachable via the manual "signed copy uploaded"
+        fallback -- forced here by requiring signed_document_id to already
+        be set. Not a runtime error to work around by retrying; a
+        build-time/config gate (docs/spec/workflows/minutes.md).
         """
+        if not self._esignature_legally_confirmed():
+            for rec in self:
+                if not rec.signed_document_id:
+                    raise ValidationError(_(
+                        'E-signature is not yet confirmed as legally valid '
+                        'under Rwandan law (BR-BOARD-008). Upload the signed '
+                        'copy to "Signed Document" first, then sign.'
+                    ))
         self._validate_state_transition('signed')
         self.write({'state': 'signed'})

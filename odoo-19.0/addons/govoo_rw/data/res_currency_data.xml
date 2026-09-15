@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Activate RWF with 2 decimal places for internal calculations -->
+    <!-- Activate RWF with 0 decimal places (legally required for RWF) -->
     <record id="base.RWF" model="res.currency">
         <field name="active" eval="True"/>
-        <field name="rounding">0.01</field>
+        <field name="rounding">1</field>
         <field name="symbol">FRw</field>
     </record>
 
