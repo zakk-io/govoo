@@ -11,7 +11,7 @@ access_govoo_agenda_item_auditor,govoo.agenda.item.auditor,model_govoo_agenda_it
 access_govoo_agenda_item_director_portal,govoo.agenda.item.director_portal,model_govoo_agenda_item,govoo_base.group_govoo_director_portal,1,0,0,0
 access_govoo_board_pack_user,govoo.board.pack.user,model_govoo_board_pack,govoo_base.group_govoo_user,1,0,0,0
 access_govoo_board_pack_secretary,govoo.board.pack.secretary,model_govoo_board_pack,govoo_base.group_govoo_secretary,1,1,1,1
-access_govoo_board_pack_admin,govoo.board.pack.admin,model_govoo_board_pack,govoo_base.group_govoo_admin,1,1,0,0
+access_govoo_board_pack_admin,govoo.board.pack.admin,model_govoo_board_pack,govoo_base.group_govoo_admin,1,0,0,0
 access_govoo_board_pack_auditor,govoo.board.pack.auditor,model_govoo_board_pack,govoo_base.group_govoo_auditor,1,0,0,0
 access_govoo_board_pack_director_portal,govoo.board.pack.director_portal,model_govoo_board_pack,govoo_base.group_govoo_director_portal,1,0,0,0
 access_govoo_board_pack_recipient_user,govoo.board.pack.recipient.user,model_govoo_board_pack_recipient,govoo_base.group_govoo_user,1,0,0,0
@@ -19,12 +19,12 @@ access_govoo_board_pack_recipient_secretary,govoo.board.pack.recipient.secretary
 access_govoo_board_pack_recipient_director_portal,govoo.board.pack.recipient.director_portal,model_govoo_board_pack_recipient,govoo_base.group_govoo_director_portal,1,0,0,0
 access_govoo_minutes_user,govoo.minutes.user,model_govoo_minutes,govoo_base.group_govoo_user,1,0,0,0
 access_govoo_minutes_secretary,govoo.minutes.secretary,model_govoo_minutes,govoo_base.group_govoo_secretary,1,1,1,1
-access_govoo_minutes_admin,govoo.minutes.admin,model_govoo_minutes,govoo_base.group_govoo_admin,1,1,0,0
+access_govoo_minutes_admin,govoo.minutes.admin,model_govoo_minutes,govoo_base.group_govoo_admin,1,0,0,0
 access_govoo_minutes_auditor,govoo.minutes.auditor,model_govoo_minutes,govoo_base.group_govoo_auditor,1,0,0,0
 access_govoo_minutes_director_portal,govoo.minutes.director_portal,model_govoo_minutes,govoo_base.group_govoo_director_portal,1,0,0,0
 access_govoo_resolution_user,govoo.resolution.user,model_govoo_resolution,govoo_base.group_govoo_user,1,0,0,0
 access_govoo_resolution_secretary,govoo.resolution.secretary,model_govoo_resolution,govoo_base.group_govoo_secretary,1,1,1,1
-access_govoo_resolution_admin,govoo.resolution.admin,model_govoo_resolution,govoo_base.group_govoo_admin,1,1,0,0
+access_govoo_resolution_admin,govoo.resolution.admin,model_govoo_resolution,govoo_base.group_govoo_admin,1,0,0,0
 access_govoo_resolution_auditor,govoo.resolution.auditor,model_govoo_resolution,govoo_base.group_govoo_auditor,1,0,0,0
 access_govoo_resolution_director_portal,govoo.resolution.director_portal,model_govoo_resolution,govoo_base.group_govoo_director_portal,1,0,0,0
 access_govoo_resolution_shareholder_portal,govoo.resolution.shareholder_portal,model_govoo_resolution,govoo_base.group_govoo_shareholder_portal,1,0,0,0

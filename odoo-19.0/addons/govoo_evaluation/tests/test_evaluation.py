@@ -224,3 +224,30 @@ class TestEvaluation(GovooEvaluationTestBase):
         # Secretary, Admin, and Auditor retain read access
         secretary_results = self.env['govoo.evaluation.result'].with_user(self.user_secretary).search([])
         self.assertIn(result, secretary_results)
+
+    def test_007_admin_cannot_create_campaign(self):
+        """access-control.md: Board Administrator gets RW on
+        evaluation.campaign, not create."""
+        admin = new_test_user(
+            self.env, login='test_eval_admin',
+            groups='govoo_base.group_govoo_admin',
+            company_id=self.company.id,
+        )
+        campaign = self.env['govoo.evaluation.campaign'].create({
+            'name': 'Admin Write Test',
+            'committee_id': self.committee.id,
+            'survey_id': self.survey.id,
+            'evaluation_type': 'board',
+            'participant_ids': [(6, 0, [self.partner_a.id, self.partner_b.id])],
+            'company_id': self.company.id,
+        })
+        campaign.with_user(admin).write({'name': 'Renamed by Admin'})
+        with self.assertRaises(AccessError):
+            self.env['govoo.evaluation.campaign'].with_user(admin).create({
+                'name': 'New Campaign',
+                'committee_id': self.committee.id,
+                'survey_id': self.survey.id,
+                'evaluation_type': 'board',
+                'participant_ids': [(6, 0, [self.partner_a.id, self.partner_b.id])],
+                'company_id': self.company.id,
+            })
