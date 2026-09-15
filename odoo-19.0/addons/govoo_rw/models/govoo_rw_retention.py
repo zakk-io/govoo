@@ -157,7 +157,11 @@ class GovooRwRetention(models.Model):
         records = Model.search(domain)
         expired = Model.browse()
         for rec in records:
-            retention_date = rule.get_retention_date(rec.create_date)
+            if rule.retention_category in ('accounts', 'auditor_reports'):
+                reference_date = rec.invoice_date or rec.date
+            else:
+                reference_date = rec.create_date
+            retention_date = rule.get_retention_date(reference_date)
             if retention_date <= today:
                 expired |= rec
         return expired
