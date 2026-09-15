@@ -52,7 +52,20 @@ class TestStatButtons(TransactionCase):
         self.assertEqual(self.committee.member_count, 1)
 
     def test_committee_meeting_count(self):
-        """Committee meeting_count computes correctly."""
+        """Committee meeting_count computes correctly.
+
+        govoo_base does not depend on govoo_board; govoo.meeting only
+        exists when govoo_board is also installed (always true in
+        production, but not guaranteed when this module's own test
+        suite runs in isolation -- issue #143). meeting_count itself
+        gracefully computes 0 without crashing either way (see
+        _compute_meeting_count); this test's own assertion needs a
+        real govoo.meeting to create, so it skips rather than errors
+        when that model isn't available.
+        """
+        if 'govoo.meeting' not in self.env:
+            self.assertEqual(self.committee.meeting_count, 0)
+            self.skipTest('govoo_board not installed; govoo.meeting unavailable.')
         self.assertEqual(self.committee.meeting_count, 0)
         self.env['govoo.meeting'].create({
             'name': 'Test Meeting',

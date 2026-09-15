@@ -61,6 +61,13 @@ class GovooCommittee(models.Model):
             rec.member_count = len(rec.member_ids)
 
     def _compute_meeting_count(self):
+        # govoo_base does not depend on govoo_board; govoo.meeting only
+        # exists when govoo_board is also installed (always true in
+        # production, but not guaranteed when this module's own test
+        # suite runs in isolation -- issue #143).
+        if 'govoo.meeting' not in self.env:
+            self.meeting_count = 0
+            return
         Meeting = self.env['govoo.meeting']
         for rec in self:
             rec.meeting_count = Meeting.search_count([('committee_id', '=', rec.id)])
