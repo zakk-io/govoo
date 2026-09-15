@@ -11,15 +11,16 @@ class ResPartner(models.Model):
         string='Companies with a Shareholding',
         compute='_compute_shareholding_company_ids',
         help='Companies where this partner holds a nonzero quantity of '
-             'shares in any class. Used to scope Shareholder Portal '
-             'visibility to resolutions of companies they actually hold '
-             'shares in (record-rules.md §4).',
+             'shares in a voting share class. Used to scope Shareholder '
+             'Portal visibility to resolutions of companies they actually '
+             'hold voting shares in (record-rules.md §4).',
     )
 
     def _compute_shareholding_company_ids(self):
         holdings = self.env['govoo.share.holding'].sudo().search([
             ('partner_id', 'in', self.ids),
             ('quantity', '>', 0),
+            ('share_class_id.votes_per_share', '>', 0),
         ])
         by_partner = {}
         for holding in holdings:

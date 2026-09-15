@@ -1,8 +1,8 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import tagged
-from odoo.tests.common import TransactionCase
+from odoo.tests.common import TransactionCase, new_test_user
 
 
 @tagged('post_install', '-at_install')
@@ -48,7 +48,7 @@ class TestGovooCommittee(TransactionCase):
             committee.write({'parent_committee_id': committee.id})
 
     def test_committee_cycle_detection(self):
-        """TC-BASE-004: Cycle in committee hierarchy is rejected."""
+        """TC-BASE-004b: Cycle in committee hierarchy is rejected."""
         committee_a = self.env['govoo.committee'].create({
             'name': 'Committee A',
             'company_id': self.company.id,
@@ -77,3 +77,23 @@ class TestGovooCommittee(TransactionCase):
         })
         self.assertEqual(len(committee.member_ids), 1)
         self.assertEqual(committee.member_ids.partner_id, partner)
+
+    def test_admin_cannot_create_or_delete_committee(self):
+        """access-control.md: Board Administrator gets RW on committee, not C/D."""
+        admin = new_test_user(
+            self.env, login='test_committee_admin',
+            groups='govoo_base.group_govoo_admin',
+            company_id=self.company.id,
+        )
+        committee = self.env['govoo.committee'].create({
+            'name': 'Existing Committee',
+            'company_id': self.company.id,
+        })
+        committee.with_user(admin).write({'name': 'Renamed by Admin'})
+        with self.assertRaises(AccessError):
+            self.env['govoo.committee'].with_user(admin).create({
+                'name': 'New Committee',
+                'company_id': self.company.id,
+            })
+        with self.assertRaises(AccessError):
+            committee.with_user(admin).unlink()

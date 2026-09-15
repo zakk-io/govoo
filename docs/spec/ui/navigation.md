@@ -4,54 +4,66 @@ Derived from the module/model set in §7 of the source spec and the role set in 
 not prescribe an exact menu tree — this is `[ENGINEERING DETAIL]`, derived from the workflows to
 give an AI coding agent an unambiguous starting menu structure. Do not invent unrelated menu items.
 
-## Top-level app menu: "Govoo"
+## Top-level app menu (as implemented)
+`[ENGINEERING DETAIL — reconciled]` the tree below is what was actually built
+(`govoo_base.govoo_menu_root`, named "Governance" rather than "Govoo", with a flat set of
+top-level categories rather than nesting Appointments/Committees/Meetings under one "Governance"
+sub-category and renaming "Shares & Cap Table" to "Ownership"). Since this file itself carries no
+prescriptive weight from the source spec, and the flatter structure is functionally equivalent
+(every model is reachable, drill-downs still work) with no spec basis to prefer one arrangement
+over the other, this doc was updated to match the implementation rather than the other way around
+(issue #52) — reorganizing six modules' menu XML and renaming the app for a purely cosmetic
+difference wasn't judged worth the churn.
 ```
-Govoo
-|-- Governance
-|   |-- Directors & Officers        (govoo.appointment, govoo.register.director)
-|   |-- Committees                  (govoo.committee)
-|   |-- Meetings                    (govoo.meeting)
-|   |-- Board Packs                 (govoo.board.pack)
-|   |-- Minutes                     (govoo.minutes)
-|   `-- Resolutions & Voting        (govoo.resolution, govoo.vote)
-|
-|-- Ownership
-|   |-- Share Classes               (govoo.share.class)
-|   |-- Allotments                  (govoo.share.allotment)
-|   |-- Transfers                   (govoo.share.transfer)
-|   |-- Cap Table                   (govoo.share.holding, read-mostly dashboard view)
-|   `-- Register of Members         (govoo.register.member)
-|
+Governance                              (app root, govoo_base.govoo_menu_root)
+|-- Appointments                        (govoo.appointment)
+|-- Committees                          (govoo.committee)
 |-- Statutory Registers
-|   |-- Register of Directors       (govoo.register.director)
-|   |-- Register of Members         (link to Ownership > Register of Members)
-|   |-- Beneficial Ownership        (govoo.register.beneficial.owner)
-|   `-- Charges                     (govoo.register.charge)
+|   |-- Register of Directors           (govoo.register.director)
+|   |-- Register of Members             (govoo.register.member)
+|   |-- Register of Beneficial Owners   (govoo.register.beneficial.owner)
+|   |-- Register of Charges             (govoo.register.charge)
+|   `-- Audit Ledger                    (govoo.register.entry)
+|
+|-- Shares & Cap Table
+|   |-- Share Classes                   (govoo.share.class)
+|   |-- Allotments                      (govoo.share.allotment)
+|   |-- Transfers                       (govoo.share.transfer)
+|   `-- Cap Table                       (govoo.share.holding, read-mostly dashboard view)
+|
+|-- Board & Meetings
+|   |-- Meetings                        (govoo.meeting)
+|   |-- Board Packs                     (govoo.board.pack)
+|   |-- Minutes                         (govoo.minutes)
+|   |-- Resolutions                     (govoo.resolution)
+|   `-- Votes                           (govoo.vote)
 |
 |-- Compliance
-|   |-- Obligation Catalogue        (govoo.compliance.obligation)  -- Secretary/Admin only
-|   |-- Compliance Calendar         (govoo.compliance.instance, calendar + Kanban view)
-|   `-- Filings                     (govoo.compliance.instance, list view filtered to filed/late)
+|   |-- Obligations                     (govoo.compliance.obligation)  -- Secretary/Admin only
+|   `-- Instances                       (govoo.compliance.instance)
 |
 |-- Evaluations
-|   |-- Campaigns                   (govoo.evaluation.campaign)
-|   `-- Results                     (govoo.evaluation.result, aggregate dashboard)
+|   |-- Campaigns                       (govoo.evaluation.campaign)
+|   `-- Results                         (govoo.evaluation.result, aggregate dashboard)
 |
-`-- Configuration                    -- Board Administrator only
-    |-- Companies                   (res.company govoo_* fields)
-    |-- Security Groups & Users
-    |-- Compliance Obligation Templates (govoo_rw seed data, activation control)
-    `-- Settings                    (currency/locale, feature flags)
+|-- Rwanda
+|   `-- Retention Rules                 (govoo.rw.retention)
+|
+`-- Configuration                        -- Board Administrator only
+    `-- Companies                       (res.company govoo_* fields)
 ```
 
 ## Menu visibility by group
 | Menu | Governance User | Secretary | Admin | Auditor |
 | --- | --- | --- | --- | --- |
-| Governance | Read | Full | Config | Read |
-| Ownership | Read | Full | Read | Read |
+| Appointments | Read | Full | Read | Read |
+| Committees | Read | Full | Read/Write | Read |
 | Statutory Registers | Read (except Beneficial Ownership) | Full | Read | Read |
+| Shares & Cap Table | Read | Full | Read | Read |
+| Board & Meetings | Read | Full | Read | Read |
 | Compliance | Read (instances only) | Full | Full (catalogue) | Read |
 | Evaluations | — | Full | Config | — |
+| Rwanda | — | Read | Full | — |
 | Configuration | — | — | Full | — |
 
 Portal users (Director, Shareholder) do not see this backend menu at all — they use the portal
