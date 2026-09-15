@@ -94,6 +94,22 @@ class GovooMeeting(models.Model):
         inverse_name='meeting_id',
         string='Resolutions',
     )
+    agenda_count = fields.Integer(
+        string='Agenda Items',
+        compute='_compute_agenda_count',
+    )
+    pack_count = fields.Integer(
+        string='Pack',
+        compute='_compute_pack_count',
+    )
+    minutes_count = fields.Integer(
+        string='Minutes',
+        compute='_compute_minutes_count',
+    )
+    resolution_count = fields.Integer(
+        string='Resolutions',
+        compute='_compute_resolution_count',
+    )
     state = fields.Selection(
         selection=[
             ('draft', 'Draft'),
@@ -112,6 +128,72 @@ class GovooMeeting(models.Model):
         super()._compute_access_url()
         for rec in self:
             rec.access_url = '/my/meetings/%s' % rec.id
+
+    @api.depends('agenda_ids')
+    def _compute_agenda_count(self):
+        for rec in self:
+            rec.agenda_count = len(rec.agenda_ids)
+
+    @api.depends('pack_id')
+    def _compute_pack_count(self):
+        for rec in self:
+            rec.pack_count = 1 if rec.pack_id else 0
+
+    @api.depends('minutes_id')
+    def _compute_minutes_count(self):
+        for rec in self:
+            rec.minutes_count = 1 if rec.minutes_id else 0
+
+    @api.depends('resolution_ids')
+    def _compute_resolution_count(self):
+        for rec in self:
+            rec.resolution_count = len(rec.resolution_ids)
+
+    def action_view_agenda(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Agenda Items',
+            'res_model': 'govoo.agenda.item',
+            'view_mode': 'list,form',
+            'domain': [('meeting_id', '=', self.id)],
+            'context': {'default_meeting_id': self.id},
+        }
+
+    def action_view_pack(self):
+        self.ensure_one()
+        if not self.pack_id:
+            return False
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Board Pack',
+            'res_model': 'govoo.board.pack',
+            'view_mode': 'form',
+            'res_id': self.pack_id.id,
+        }
+
+    def action_view_minutes(self):
+        self.ensure_one()
+        if not self.minutes_id:
+            return False
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Minutes',
+            'res_model': 'govoo.minutes',
+            'view_mode': 'form',
+            'res_id': self.minutes_id.id,
+        }
+
+    def action_view_resolutions(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Resolutions',
+            'res_model': 'govoo.resolution',
+            'view_mode': 'list,form,kanban',
+            'domain': [('meeting_id', '=', self.id)],
+            'context': {'default_meeting_id': self.id},
+        }
 
     @api.depends('attendee_ids', 'quorum_required')
     def _compute_quorum_met(self):
@@ -156,12 +238,17 @@ class GovooMeeting(models.Model):
         self.write({'state': 'scheduled'})
 
     def action_hold(self):
+        """Whether a Secretary override should be able to bypass this
+        block is an open decision [CONFIRM] (state-machines.md,
+        open-decisions.md #9) -- until confirmed, this transition is
+        hard-blocked with no override path.
+        """
         self._validate_state_transition('held')
         for rec in self:
             if not rec.quorum_met:
                 raise UserError(
-                    _('Warning: Quorum not met (%d of %d required). '
-                      'Proceed anyway?')
+                    _('Cannot mark meeting as held: quorum not met '
+                      '(%d of %d required).')
                     % (len(rec.attendee_ids), rec.quorum_required)
                 )
         self.write({'state': 'held'})
