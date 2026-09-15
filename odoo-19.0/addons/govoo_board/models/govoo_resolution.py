@@ -80,7 +80,10 @@ class GovooResolution(models.Model):
         string='Effective Date',
         tracking=True,
     )
-    # Feature-flagged: ir.attachment (Community) / sign.request (Enterprise)
+    # Always ir.attachment (Many2one comodel is fixed at class-definition
+    # time); when a signing document is generated for this field, check
+    # self.env['govoo.feature.flags'].is_sign_app_installed() to use
+    # sign.request instead, falling back to ir.attachment on Community.
     sign_request_id = fields.Many2one(
         comodel_name='ir.attachment',
         string='Sign Request',
