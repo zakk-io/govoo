@@ -1,5 +1,8 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
+from odoo.exceptions import AccessError
+from odoo.tests.common import new_test_user
+
 from .common import GovooEvaluationTestBase
 
 
@@ -120,5 +123,32 @@ class TestEvaluation(GovooEvaluationTestBase):
                 'survey_id': self.survey.id,
                 'evaluation_type': 'board',
                 'participant_ids': [(6, 0, [outsider.id])],
+                'company_id': self.company.id,
+            })
+
+    def test_005_admin_cannot_create_campaign(self):
+        """access-control.md: Board Administrator gets RW on
+        evaluation.campaign, not create."""
+        admin = new_test_user(
+            self.env, login='test_eval_admin',
+            groups='govoo_base.group_govoo_admin',
+            company_id=self.company.id,
+        )
+        campaign = self.env['govoo.evaluation.campaign'].create({
+            'name': 'Admin Write Test',
+            'committee_id': self.committee.id,
+            'survey_id': self.survey.id,
+            'evaluation_type': 'board',
+            'participant_ids': [(6, 0, [self.partner_a.id, self.partner_b.id])],
+            'company_id': self.company.id,
+        })
+        campaign.with_user(admin).write({'name': 'Renamed by Admin'})
+        with self.assertRaises(AccessError):
+            self.env['govoo.evaluation.campaign'].with_user(admin).create({
+                'name': 'New Campaign',
+                'committee_id': self.committee.id,
+                'survey_id': self.survey.id,
+                'evaluation_type': 'board',
+                'participant_ids': [(6, 0, [self.partner_a.id, self.partner_b.id])],
                 'company_id': self.company.id,
             })

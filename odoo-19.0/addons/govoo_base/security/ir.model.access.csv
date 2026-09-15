@@ -5,7 +5,7 @@ access_govoo_appointment_auditor,govoo.appointment.auditor,model_govoo_appointme
 access_govoo_appointment_director_portal,govoo.appointment.director_portal,model_govoo_appointment,group_govoo_director_portal,1,0,0,0
 access_govoo_committee_user,govoo.committee.user,model_govoo_committee,group_govoo_user,1,0,0,0
 access_govoo_committee_secretary,govoo.committee.secretary,model_govoo_committee,group_govoo_secretary,1,1,1,1
-access_govoo_committee_admin,govoo.committee.admin,model_govoo_committee,group_govoo_admin,1,1,1,1
+access_govoo_committee_admin,govoo.committee.admin,model_govoo_committee,group_govoo_admin,1,1,0,0
 access_govoo_committee_auditor,govoo.committee.auditor,model_govoo_committee,group_govoo_auditor,1,0,0,0
 access_govoo_committee_director_portal,govoo.committee.director_portal,model_govoo_committee,group_govoo_director_portal,1,0,0,0
 access_res_company_govoo_admin,res.company.govoo_admin,base.model_res_company,group_govoo_admin,1,1,0,0
