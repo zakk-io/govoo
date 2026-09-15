@@ -70,3 +70,125 @@ class GovooMeetingTC(GovooBoardTestBase):
 
         with self.assertRaises(ValidationError):
             meeting.action_close()
+
+    def test_full_lifecycle_end_to_end(self):
+        """TC-ACC-001: board-meeting-to-minutes end-to-end.
+
+        Quorum computed correctly; resolution passes per tally; minutes
+        reach signed; retention set.
+        """
+        meeting = self._make_meeting(quorum=3)
+        self.assertTrue(meeting.quorum_met)
+        meeting.action_schedule()
+        meeting.action_hold()
+
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+        self.env['govoo.vote'].create({
+            'resolution_id': resolution.id,
+            'voter_id': self.partner_a.id,
+            'choice': 'for',
+        })
+        self.env['govoo.vote'].create({
+            'resolution_id': resolution.id,
+            'voter_id': self.partner_b.id,
+            'choice': 'for',
+        })
+        self.env['govoo.vote'].create({
+            'resolution_id': resolution.id,
+            'voter_id': self.partner_c.id,
+            'choice': 'against',
+        })
+        resolution.action_tally()
+        self.assertEqual(resolution.state, 'passed')
+        self.assertEqual(resolution.result, 'passed')
+
+        minutes = self.env['govoo.minutes'].create({
+            'meeting_id': meeting.id,
+            'body': '<p>Minutes content.</p>',
+        })
+        minutes.action_submit_for_approval()
+        minutes.action_approve()
+        # BR-BOARD-008: signing is blocked unless e-signature legal validity
+        # is confirmed (or a signed document is manually uploaded) -- not
+        # this end-to-end test's concern, so confirm it to reach 'signed'.
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.e_signature_legally_confirmed', 'True',
+        )
+        minutes.action_sign()
+        self.assertEqual(minutes.state, 'signed')
+        self.assertTrue(minutes.retention_until, 'Retention date should be set on minutes.')
+
+        meeting.minutes_id = minutes
+        meeting.action_minute()
+        meeting.action_close()
+        self.assertEqual(meeting.state, 'closed')
+
+    def test_agenda_items_resolve_in_sequence_order(self):
+        """TC-BOARD-002: agenda items resolve in sequence order,
+        regardless of creation order."""
+        meeting = self._make_meeting()
+        third = self.env['govoo.agenda.item'].create({
+            'meeting_id': meeting.id,
+            'title': 'Third',
+            'item_type': 'noting',
+            'sequence': 30,
+        })
+        first = self.env['govoo.agenda.item'].create({
+            'meeting_id': meeting.id,
+            'title': 'First',
+            'item_type': 'noting',
+            'sequence': 10,
+        })
+        second = self.env['govoo.agenda.item'].create({
+            'meeting_id': meeting.id,
+            'title': 'Second',
+            'item_type': 'noting',
+            'sequence': 20,
+        })
+        self.assertEqual(list(meeting.agenda_ids.sorted('sequence')), [first, second, third])
+
+    def test_full_lifecycle_with_terminal_resolution_reaches_closed(self):
+        """TC-WF-BOARD-001: draft -> scheduled -> held -> minuted -> closed,
+        with agenda items and a linked resolution throughout; meeting only
+        reaches closed once the resolution is terminal."""
+        meeting = self._make_meeting()
+        self.assertEqual(meeting.state, 'draft')
+
+        self.env['govoo.agenda.item'].create({
+            'meeting_id': meeting.id,
+            'title': 'Approve Q1 Budget',
+            'item_type': 'decision',
+            'sequence': 1,
+        })
+
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+        for partner in [self.partner_a, self.partner_b]:
+            self.env['govoo.vote'].create({
+                'resolution_id': resolution.id,
+                'voter_id': partner.id,
+                'choice': 'for',
+            })
+
+        meeting.action_schedule()
+        self.assertEqual(meeting.state, 'scheduled')
+        meeting.action_hold()
+        self.assertEqual(meeting.state, 'held')
+
+        minutes = self.env['govoo.minutes'].create({
+            'meeting_id': meeting.id,
+            'body': '<p>Minutes content.</p>',
+        })
+        minutes.action_submit_for_approval()
+        minutes.action_approve()
+        meeting.minutes_id = minutes
+        meeting.action_minute()
+        self.assertEqual(meeting.state, 'minuted')
+
+        # Resolution must reach a terminal state before close succeeds
+        resolution.action_tally()
+        self.assertEqual(resolution.state, 'passed')
+
+        meeting.action_close()
+        self.assertEqual(meeting.state, 'closed')

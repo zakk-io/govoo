@@ -3,12 +3,14 @@ access_govoo_appointment_user,govoo.appointment.user,model_govoo_appointment,gro
 access_govoo_appointment_secretary,govoo.appointment.secretary,model_govoo_appointment,group_govoo_secretary,1,1,1,1
 access_govoo_appointment_auditor,govoo.appointment.auditor,model_govoo_appointment,group_govoo_auditor,1,0,0,0
 access_govoo_appointment_director_portal,govoo.appointment.director_portal,model_govoo_appointment,group_govoo_director_portal,1,0,0,0
+access_govoo_appointment_admin,govoo.appointment.admin,model_govoo_appointment,group_govoo_admin,1,0,0,0
 access_govoo_committee_user,govoo.committee.user,model_govoo_committee,group_govoo_user,1,0,0,0
 access_govoo_committee_secretary,govoo.committee.secretary,model_govoo_committee,group_govoo_secretary,1,1,1,1
-access_govoo_committee_admin,govoo.committee.admin,model_govoo_committee,group_govoo_admin,1,1,1,1
+access_govoo_committee_admin,govoo.committee.admin,model_govoo_committee,group_govoo_admin,1,1,0,0
 access_govoo_committee_auditor,govoo.committee.auditor,model_govoo_committee,group_govoo_auditor,1,0,0,0
 access_govoo_committee_director_portal,govoo.committee.director_portal,model_govoo_committee,group_govoo_director_portal,1,0,0,0
-access_res_company_govoo_admin,res.company.govoo_admin,base.model_res_company,group_govoo_admin,1,1,0,0
+access_res_company_govoo_admin,res.company.govoo_admin,base.model_res_company,group_govoo_admin,1,1,1,1
+access_res_company_govoo_secretary,res.company.govoo_secretary,base.model_res_company,group_govoo_secretary,1,1,0,0
 access_res_partner_govoo_secretary,res.partner.govoo_secretary,base.model_res_partner,group_govoo_secretary,1,1,1,1
 access_res_partner_govoo_admin,res.partner.govoo_admin,base.model_res_partner,group_govoo_admin,1,1,1,0
 access_res_partner_govoo_user,res.partner.govoo_user,base.model_res_partner,group_govoo_user,1,0,0,0
