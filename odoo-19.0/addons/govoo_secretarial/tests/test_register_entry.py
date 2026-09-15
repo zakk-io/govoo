@@ -57,6 +57,26 @@ class TestRegisterEntry(TransactionCase):
         with self.assertRaises(UserError):
             entry.unlink()
 
+    def test_entry_write_rejected_even_for_admin(self):
+        """TC-SEC-006: write()/unlink() are rejected for ANY user, including
+        Board Administrator -- not just the default test superuser."""
+        admin = new_test_user(
+            self.env, login='test_register_entry_admin',
+            groups='govoo_base.group_govoo_admin',
+            company_id=self.company.id,
+        )
+        entry = self.env['govoo.register.entry'].create({
+            'register_model': 'test.model',
+            'res_id': 1,
+            'change_type': 'create',
+            'effective_date': '2024-01-01',
+            'company_id': self.company.id,
+        })
+        with self.assertRaises(UserError):
+            entry.with_user(admin).write({'notes': 'tamper attempt'})
+        with self.assertRaises(UserError):
+            entry.with_user(admin).unlink()
+
     def test_governance_user_cannot_read_register_entry(self):
         """access-control.md: Governance User has NO access to the
         statutory audit ledger, not even read."""
