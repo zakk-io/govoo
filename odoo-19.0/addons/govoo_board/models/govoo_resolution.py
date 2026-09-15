@@ -82,6 +82,25 @@ class GovooResolution(models.Model):
         string='Sign Request',
     )
 
+    @api.onchange('agenda_item_id')
+    def _onchange_agenda_item_id(self):
+        for rec in self:
+            if rec.agenda_item_id and not rec.meeting_id:
+                rec.meeting_id = rec.agenda_item_id.meeting_id
+
+    @api.constrains('meeting_id', 'agenda_item_id')
+    def _check_meeting_agenda_consistency(self):
+        """A resolution linked via agenda_item_id must have a matching
+        meeting_id, so it's visible via meeting.resolution_ids -- and
+        therefore included in action_close's terminal-state check
+        (BR-BOARD-002)."""
+        for rec in self:
+            if rec.agenda_item_id and rec.meeting_id != rec.agenda_item_id.meeting_id:
+                raise ValidationError(
+                    _('This resolution\'s meeting must match its agenda item\'s '
+                      'meeting (%s).') % rec.agenda_item_id.meeting_id.name
+                )
+
     def _compute_access_url(self):
         super()._compute_access_url()
         for rec in self:
