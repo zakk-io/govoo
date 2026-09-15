@@ -85,8 +85,8 @@ class GovooMinutes(models.Model):
 
     def unlink(self):
         for rec in self:
-            if rec.state != 'draft':
-                raise ValidationError(_('Cannot delete minutes once they leave draft status.'))
+            if rec.state in ('approved', 'signed'):
+                raise ValidationError(_('Cannot delete minutes once approved.'))
         return super().unlink()
 
     def _validate_state_transition(self, target_state):
