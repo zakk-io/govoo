@@ -1,5 +1,7 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
+from odoo.tests.common import new_test_user
+
 from .common import GovooEvaluationTestBase
 
 
@@ -64,8 +66,15 @@ class TestEvaluation(GovooEvaluationTestBase):
         self.assertEqual(result.participant_count, 2)
 
     def test_002_confidentiality_enforced(self):
-        """TC-EVAL-002: Non-Secretary/Admin cannot read others' survey.user_input."""
-        self.env['govoo.evaluation.campaign'].create({
+        """TC-EVAL-002 / TC-ACC-010: Non-Secretary/Admin cannot read
+        others' survey.user_input; aggregated results remain visible."""
+        answer = self.env['survey.question.answer'].create({
+            'question_id': self.question.id,
+            'value': 'Effective',
+            'answer_score': 8.0,
+            'is_correct': True,
+        })
+        campaign = self.env['govoo.evaluation.campaign'].create({
             'name': 'Confidentiality Test',
             'committee_id': self.committee.id,
             'survey_id': self.survey.id,
@@ -73,6 +82,7 @@ class TestEvaluation(GovooEvaluationTestBase):
             'participant_ids': [(6, 0, [self.partner_a.id, self.partner_b.id])],
             'company_id': self.company.id,
         })
+        campaign.action_open()
 
         # Create completed user inputs (using sudo for creation)
         input_a = self.env['survey.user_input'].sudo().create({
@@ -80,11 +90,18 @@ class TestEvaluation(GovooEvaluationTestBase):
             'partner_id': self.user_participant.partner_id.id,
             'state': 'done',
         })
-        self.env['survey.user_input'].sudo().create({
+        input_b = self.env['survey.user_input'].sudo().create({
             'survey_id': self.survey.id,
             'partner_id': self.partner_b.id,
             'state': 'done',
         })
+        for user_input in (input_a, input_b):
+            self.env['survey.user_input.line'].sudo().create({
+                'user_input_id': user_input.id,
+                'question_id': self.question.id,
+                'answer_type': 'suggestion',
+                'suggested_answer_id': answer.id,
+            })
 
         # Verify confidentiality record rule exists
         self.assertTrue(
@@ -96,6 +113,31 @@ class TestEvaluation(GovooEvaluationTestBase):
 
         # Participant can read own input
         input_a.with_user(self.user_participant).read(['survey_id'])
+
+        # TC-ACC-010: non-authorized participant cannot read someone else's
+        # individual response. Uses a Director Portal user rather than
+        # self.user_participant (internal user + survey.group_survey_user)
+        # for this assertion: base survey's own ir.rule for
+        # group_survey_user ("officer: unrestricted survey or in
+        # restricted users") is nearly unrestricted and ORs with — and so
+        # defeats — the Govoo confidentiality rule for any user who also
+        # holds group_survey_user. That combination is only used here to
+        # let an internal test user submit a response at all (Director/
+        # Shareholder Portal is the real access path for evaluation
+        # participants) — tracked as a real confidentiality gap in #110.
+        outsider_user = new_test_user(
+            self.env, login='test_eval_outsider',
+            groups='govoo_base.group_govoo_director_portal',
+            company_id=self.company.id,
+        )
+        with self.assertRaises(Exception):
+            input_b.with_user(outsider_user).read(['survey_id'])
+
+        # TC-ACC-010: aggregate results remain visible to the same
+        # non-authorized participant once the campaign is closed
+        campaign.action_close()
+        self.assertTrue(campaign.result_ids)
+        campaign.result_ids.with_user(outsider_user).read(['participant_count'])
 
     def test_003_cannot_close_without_participants(self):
         """TC-EVAL-003: Campaign cannot be created with empty participants."""

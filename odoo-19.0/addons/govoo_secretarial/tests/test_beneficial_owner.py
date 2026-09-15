@@ -26,7 +26,9 @@ class TestBeneficialOwner(TransactionCase):
         self.assertTrue(bo.is_provisional)
 
     def test_beneficial_owner_provisional_flag(self):
-        """TC-SEC-STAT-003: Record flagged provisional for unconfirmed categories."""
+        """TC-SEC-STAT-003 / TC-ACC-003: Record flagged provisional for
+        unconfirmed categories; no specific percentage/category is
+        presented as authoritative before confirmation."""
         for category in ['shares_25', 'voting_25', 'board_appoint', 'significant']:
             bo = self.env['govoo.register.beneficial.owner'].create({
                 'partner_id': self.partner.id,

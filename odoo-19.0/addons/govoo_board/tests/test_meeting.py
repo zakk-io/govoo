@@ -70,3 +70,50 @@ class GovooMeetingTC(GovooBoardTestBase):
 
         with self.assertRaises(ValidationError):
             meeting.action_close()
+
+    def test_full_lifecycle_end_to_end(self):
+        """TC-ACC-001: board-meeting-to-minutes end-to-end.
+
+        Quorum computed correctly; resolution passes per tally; minutes
+        reach signed; retention set.
+        """
+        meeting = self._make_meeting(quorum=3)
+        self.assertTrue(meeting.quorum_met)
+        meeting.action_schedule()
+        meeting.action_hold()
+
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+        self.env['govoo.vote'].create({
+            'resolution_id': resolution.id,
+            'voter_id': self.partner_a.id,
+            'choice': 'for',
+        })
+        self.env['govoo.vote'].create({
+            'resolution_id': resolution.id,
+            'voter_id': self.partner_b.id,
+            'choice': 'for',
+        })
+        self.env['govoo.vote'].create({
+            'resolution_id': resolution.id,
+            'voter_id': self.partner_c.id,
+            'choice': 'against',
+        })
+        resolution.action_tally()
+        self.assertEqual(resolution.state, 'passed')
+        self.assertEqual(resolution.result, 'passed')
+
+        minutes = self.env['govoo.minutes'].create({
+            'meeting_id': meeting.id,
+            'body': '<p>Minutes content.</p>',
+        })
+        minutes.action_submit_for_approval()
+        minutes.action_approve()
+        minutes.action_sign()
+        self.assertEqual(minutes.state, 'signed')
+        self.assertTrue(minutes.retention_until, 'Retention date should be set on minutes.')
+
+        meeting.minutes_id = minutes
+        meeting.action_minute()
+        meeting.action_close()
+        self.assertEqual(meeting.state, 'closed')

@@ -1,7 +1,8 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import tagged
+from odoo.tests.common import new_test_user
 
 from .common import GovooBoardTestBase
 
@@ -130,3 +131,22 @@ class GovooVoteTC(GovooBoardTestBase):
         })
         # weight should be sourced from holding: 30 shares * 2.0 votes = 60.0
         self.assertEqual(vote.weight, 60.0)
+
+    def test_admin_cannot_cast_vote(self):
+        """TC-ACC-006: separation of duties — Board Administrator cannot
+        cast a vote under any configuration (BR-SEC-004)."""
+        admin = new_test_user(
+            self.env, login='test_vote_admin',
+            groups='govoo_base.group_govoo_admin',
+            company_id=self.company.id,
+        )
+        meeting = self._make_meeting()
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+
+        with self.assertRaises(AccessError):
+            self.env['govoo.vote'].with_user(admin).create({
+                'resolution_id': resolution.id,
+                'voter_id': self.partner_a.id,
+                'choice': 'for',
+            })
