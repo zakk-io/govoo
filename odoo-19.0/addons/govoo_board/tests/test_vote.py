@@ -1,7 +1,8 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import tagged
+from odoo.tests.common import new_test_user
 
 from .common import GovooBoardTestBase
 
@@ -130,6 +131,25 @@ class GovooVoteTC(GovooBoardTestBase):
         })
         # weight should be sourced from holding: 30 shares * 2.0 votes = 60.0
         self.assertEqual(vote.weight, 60.0)
+
+    def test_admin_cannot_create_vote(self):
+        """TC-BOARD-006b: Board Administrator create-vote is rejected
+        (separation of duties, BR-SEC-004)."""
+        admin = new_test_user(
+            self.env, login='test_board_admin',
+            groups='govoo_base.group_govoo_admin',
+            company_id=self.company.id,
+        )
+        meeting = self._make_meeting()
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+
+        with self.assertRaises(AccessError):
+            self.env['govoo.vote'].with_user(admin).create({
+                'resolution_id': resolution.id,
+                'voter_id': self.partner_a.id,
+                'choice': 'for',
+            })
 
     def test_shareholder_resolution_conflicted_vote_excluded_from_weighted_tally(self):
         """TC-WF-BOARD-005: shareholder resolution, votes weighted by
