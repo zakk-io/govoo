@@ -67,10 +67,6 @@ class GovooComplianceInstance(models.Model):
         comodel_name='ir.attachment',
         string='Filing Document',
     )
-    attachment_id = fields.Many2one(
-        comodel_name='ir.attachment',
-        string='Filing Attachment',
-    )
     name = fields.Char(
         string='Name',
         compute='_compute_name',
@@ -193,7 +189,7 @@ class GovooComplianceInstance(models.Model):
             'res_model': self._name,
             'res_id': self.id,
         })
-        self.attachment_id = attachment
+        self.filing_document_id = attachment
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'ir.attachment',
