@@ -34,3 +34,18 @@ node_modules/
 
 # Git
 .git/
+
+# Vendor Odoo installation (not part of this repo's source; only the
+# custom govoo_* addons are tracked)
+/odoo-19.0/*
+!/odoo-19.0/addons/
+/odoo-19.0/addons/*
+!/odoo-19.0/addons/govoo_*/
+# vendor's own .gitignore re-includes these three via its own negation rules
+/odoo-19.0/.github/
+/odoo-19.0/.gitignore
+/odoo-19.0/.weblate.json
+
+# Agent/tool scratch files
+/.kilo/
+/session-ses_*.md

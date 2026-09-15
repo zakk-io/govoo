@@ -19,6 +19,10 @@
                             <field name="is_confidential"/>
                         </group>
                     </group>
+                    <group string="Confidentiality" invisible="not is_confidential">
+                        <field name="authorized_partner_ids" widget="many2many_tags"
+                               help="Partners authorized to see this item despite it being confidential, in addition to the presenter."/>
+                    </group>
                     <group string="Description">
                         <field name="description" placeholder="Agenda item description..."/>
                     </group>

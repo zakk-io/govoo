@@ -2,7 +2,7 @@
 
 from odoo.exceptions import ValidationError
 from odoo.tests import tagged
-from odoo.tests.common import TransactionCase
+from odoo.tests.common import TransactionCase, new_test_user
 
 
 @tagged('post_install', '-at_install')
@@ -58,3 +58,24 @@ class TestGovooAppointment(TransactionCase):
                 'date_appointed': '2024-01-01',
             })
             self.assertEqual(appointment.role, role)
+
+    def test_admin_has_read_only_access(self):
+        """Admin group has read access to govoo.appointment, but not
+        write/create/unlink (access-control.md §2: Admin: R)."""
+        admin = new_test_user(
+            self.env, login='test_appt_admin',
+            groups='govoo_base.group_govoo_admin',
+            company_id=self.company.id,
+        )
+        appointment = self.env['govoo.appointment'].create({
+            'partner_id': self.partner.id,
+            'company_id': self.company.id,
+            'role': 'director',
+            'date_appointed': '2024-01-01',
+        })
+        appointment.with_user(admin).check_access('read')
+        with self.assertRaises(Exception):
+            self.env['govoo.appointment'].with_user(admin).check_access('create')
+        for operation in ('write', 'unlink'):
+            with self.assertRaises(Exception):
+                appointment.with_user(admin).check_access(operation)
