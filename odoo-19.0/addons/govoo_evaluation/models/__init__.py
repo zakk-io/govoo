@@ -3,4 +3,5 @@
 from . import (
     govoo_evaluation_campaign,
     govoo_evaluation_result,
+    survey_survey,
 )

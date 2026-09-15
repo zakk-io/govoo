@@ -97,4 +97,34 @@
         ]"/>
     </record>
 
+    <!-- ============================================================ -->
+    <!-- Issue #110: close the group_survey_user OR-bypass             -->
+    <!-- survey.group_survey_user (implied by Secretary/Admin above,   -->
+    <!-- needed so they can author evaluation surveys) carries the     -->
+    <!-- base module's own near-unrestricted                           -->
+    <!-- survey_user_input_rule_survey_user rule. Since ir.rules across -->
+    <!-- a user's held groups OR together, that rule silently defeats  -->
+    <!-- the confidentiality rule above for anyone who holds both       -->
+    <!-- group_survey_user and a Govoo group (e.g. an internal user     -->
+    <!-- who's also a Survey app user for unrelated purposes). These    -->
+    <!-- two rules are deliberately GLOBAL (no <groups>, so they AND    -->
+    <!-- against every other rule regardless of held group) but only    -->
+    <!-- restrict Govoo-evaluation-linked surveys, and explicitly no-op -->
+    <!-- for Secretary/Admin (checked via user.has_group(), a normal    -->
+    <!-- method call on the live recordset ir.rule binds as `user`) so  -->
+    <!-- their full-access rule above is unaffected. -->
+    <!-- ============================================================ -->
+
+    <record id="survey_user_input_rule_govoo_close_bypass" model="ir.rule">
+        <field name="name">Survey user input: close group_survey_user bypass for Govoo evaluation surveys (BR-EVAL-001, #110)</field>
+        <field name="model_id" ref="survey.model_survey_user_input"/>
+        <field name="domain_force">[(1, '=', 1)] if (user.has_group('govoo_base.group_govoo_secretary') or user.has_group('govoo_base.group_govoo_admin')) else ['|', ('survey_id.govoo_evaluation_campaign_ids', '=', False), '|', ('partner_id', '=', user.partner_id.id), ('partner_id', '=', False)]</field>
+    </record>
+
+    <record id="survey_user_input_line_rule_govoo_close_bypass" model="ir.rule">
+        <field name="name">Survey user input line: close group_survey_user bypass for Govoo evaluation surveys (BR-EVAL-001, #110)</field>
+        <field name="model_id" ref="survey.model_survey_user_input_line"/>
+        <field name="domain_force">[(1, '=', 1)] if (user.has_group('govoo_base.group_govoo_secretary') or user.has_group('govoo_base.group_govoo_admin')) else ['|', ('survey_id.govoo_evaluation_campaign_ids', '=', False), '|', ('user_input_id.partner_id', '=', user.partner_id.id), ('user_input_id.partner_id', '=', False)]</field>
+    </record>
+
 </odoo>
