@@ -52,13 +52,15 @@
         <field name="comment">External shareholder self-service. Portal-only, no internal licence.</field>
     </record>
 
-    <!-- Auditor: global read, no write -->
+    <!-- Auditor: read-only, scoped to assigned companies like every other
+         internal group. Implying group_govoo_user is what makes the
+         multi-company *_comp_rule records (scoped via that group) apply. -->
     <record id="group_govoo_auditor" model="res.groups">
         <field name="name">Auditor (Read-only)</field>
         <field name="sequence">60</field>
         <field name="privilege_id" ref="res_groups_privilege_governance"/>
-        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
-        <field name="comment">Global read-only access, no write permissions.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('group_govoo_user'))]"/>
+        <field name="comment">Read-only access within assigned companies, no write permissions.</field>
     </record>
 
 </odoo>

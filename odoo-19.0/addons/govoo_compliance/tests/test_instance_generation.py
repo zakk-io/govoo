@@ -79,6 +79,36 @@ class GovooComplianceInstanceGenerationTC(GovooComplianceTestBase):
         self.assertEqual(instance.due_date.month, 12)
         self.assertEqual(instance.due_date.day, 30)
 
+    def test_inactive_obligation_generates_no_instance(self):
+        """TC-ACC-004: no instance is generated from an unconfirmed
+        (active=False) obligation; correct generation once activated."""
+        obligation = self.env['govoo.compliance.obligation'].create({
+            'name': 'Draft Obligation',
+            'authority': 'RDB',
+            'frequency': 'annual',
+            'basis': 'fixed_date',
+            'fixed_day': 31,
+            'fixed_month': 3,
+            'active': False,
+            'company_id': self.company.id,
+        })
+
+        self.env['govoo.compliance.cron']._cron_generate_instances()
+
+        instances = self.env['govoo.compliance.instance'].search([
+            ('obligation_id', '=', obligation.id),
+            ('company_id', '=', self.company.id),
+        ])
+        self.assertFalse(instances, 'No instance should be generated from an inactive obligation.')
+
+        obligation.active = True
+        self.env['govoo.compliance.cron']._cron_generate_instances()
+        instances = self.env['govoo.compliance.instance'].search([
+            ('obligation_id', '=', obligation.id),
+            ('company_id', '=', self.company.id),
+        ])
+        self.assertTrue(instances, 'Instance should be generated once obligation is activated.')
+
     def test_no_duplicate_instance(self):
         """Cron does not create duplicate instances for same period."""
         obligation = self.env['govoo.compliance.obligation'].create({
