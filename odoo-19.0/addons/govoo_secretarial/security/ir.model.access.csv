@@ -2,6 +2,7 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_govoo_register_director_user,govoo.register.director.user,model_govoo_register_director,govoo_base.group_govoo_user,1,0,0,0
 access_govoo_register_director_secretary,govoo.register.director.secretary,model_govoo_register_director,govoo_base.group_govoo_secretary,1,1,1,1
 access_govoo_register_director_auditor,govoo.register.director.auditor,model_govoo_register_director,govoo_base.group_govoo_auditor,1,0,0,0
+access_govoo_register_director_portal,govoo.register.director.portal,model_govoo_register_director,govoo_base.group_govoo_director_portal,1,0,0,0
 access_govoo_register_director_admin,govoo.register.director.admin,model_govoo_register_director,govoo_base.group_govoo_admin,1,0,0,0
 access_govoo_register_member_user,govoo.register.member.user,model_govoo_register_member,govoo_base.group_govoo_user,1,0,0,0
 access_govoo_register_member_secretary,govoo.register.member.secretary,model_govoo_register_member,govoo_base.group_govoo_secretary,1,1,1,1
