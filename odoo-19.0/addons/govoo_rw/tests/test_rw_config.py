@@ -121,3 +121,21 @@ class TestRwConfig(TransactionCase):
                 rules,
                 f'No active retention rule found for category: {category}',
             )
+
+    def test_default_date_format_applies_to_res_lang(self):
+        """Issue #43: saving govoo_default_date_format updates the
+        selected language's res.lang.date_format, since that's the
+        only mechanism Odoo uses to actually render dates."""
+        en_lang = self.env['res.lang'].search([('code', '=', 'en_US')], limit=1)
+        self.assertTrue(en_lang, 'en_US should be installed in a fresh instance.')
+        original_format = en_lang.date_format
+        try:
+            settings = self.env['res.config.settings'].create({
+                'govoo_default_language': 'en_US',
+                'govoo_default_date_format': 'YYYY-MM-DD',
+            })
+            settings.execute()
+            en_lang.invalidate_recordset(['date_format'])
+            self.assertEqual(en_lang.date_format, '%Y-%m-%d')
+        finally:
+            en_lang.date_format = original_format
