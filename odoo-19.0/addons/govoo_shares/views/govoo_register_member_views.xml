@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Extends govoo_secretarial's govoo.register.member form with the
+         member's current holdings, added here since holding_ids
+         (govoo_shares/models/govoo_register_member.py) also lives here. -->
+    <record id="govoo_register_member_view_form_inherit_shares" model="ir.ui.view">
+        <field name="name">govoo.register.member.form.inherit.shares</field>
+        <field name="model">govoo.register.member</field>
+        <field name="inherit_id" ref="govoo_secretarial.govoo_register_member_view_form"/>
+        <field name="arch" type="xml">
+            <sheet position="inside">
+                <notebook>
+                    <page string="Holdings" name="holdings">
+                        <field name="holding_ids" readonly="1">
+                            <list>
+                                <field name="share_class_id"/>
+                                <field name="quantity"/>
+                                <field name="percentage"/>
+                                <field name="voting_power"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </sheet>
+        </field>
+    </record>
+
+</odoo>
