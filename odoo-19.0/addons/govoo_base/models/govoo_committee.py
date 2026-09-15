@@ -46,7 +46,10 @@ class GovooCommittee(models.Model):
              "here to see their own committee's meetings/minutes/"
              'resolutions, and a resigned appointee must drop out of it.',
     )
-    # Feature-flagged: ir.attachment (Community) / documents.document (Enterprise)
+    # Always ir.attachment (Many2one comodel is fixed at class-definition
+    # time); when a document is generated for this field, check
+    # self.env['govoo.feature.flags'].is_documents_app_installed() to
+    # additionally file a copy into the Documents workspace.
     terms_of_reference_id = fields.Many2one(
         comodel_name='ir.attachment',
         string='Terms of Reference',

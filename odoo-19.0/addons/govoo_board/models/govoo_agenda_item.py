@@ -45,7 +45,10 @@ class GovooAgendaItem(models.Model):
         default=False,
         help='Confidential items are redacted from board packs for unauthorized recipients.',
     )
-    # Feature-flagged: ir.attachment (Community) / documents.document (Enterprise)
+    # Always ir.attachment (Many2one comodel is fixed at class-definition
+    # time); when a document is generated for this field, check
+    # self.env['govoo.feature.flags'].is_documents_app_installed() to
+    # additionally file a copy into the Documents workspace.
     document_ids = fields.Many2many(
         comodel_name='ir.attachment',
         string='Attached Documents',

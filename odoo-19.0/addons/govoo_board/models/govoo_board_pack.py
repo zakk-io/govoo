@@ -23,7 +23,10 @@ class GovooBoardPack(models.Model):
         store=True,
         readonly=True,
     )
-    # Feature-flagged: ir.attachment (Community) / documents.document (Enterprise)
+    # Always ir.attachment (Many2one comodel is fixed at class-definition
+    # time); when a document is generated for this field, check
+    # self.env['govoo.feature.flags'].is_documents_app_installed() to
+    # additionally file a copy into the Documents workspace.
     document_id = fields.Many2one(
         comodel_name='ir.attachment',
         string='Pack Document',
@@ -58,7 +61,11 @@ class GovooBoardPack(models.Model):
 
         Per-recipient redaction: confidential items are excluded for
         unauthorized recipients BEFORE generating their copy (BR-BOARD-003).
-        Feature-flagged: degrades to ir.attachment on Community.
+        No pack document is actually generated here yet (only
+        distribution/redaction records); when that's built, check
+        self.env['govoo.feature.flags'].is_documents_app_installed()
+        before using documents.document, falling back to document_id
+        (ir.attachment) on Community.
         """
         for rec in self:
             agenda_items = rec.meeting_id.agenda_ids.sorted('sequence')

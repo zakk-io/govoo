@@ -52,7 +52,10 @@ class GovooMinutes(models.Model):
         required=True,
         tracking=True,
     )
-    # Feature-flagged: ir.attachment (Community) / documents.document (Enterprise)
+    # Always ir.attachment (Many2one comodel is fixed at class-definition
+    # time); when a document is generated for this field, check
+    # self.env['govoo.feature.flags'].is_documents_app_installed() to
+    # additionally file a copy into the Documents workspace.
     signed_document_id = fields.Many2one(
         comodel_name='ir.attachment',
         string='Signed Document',
@@ -120,7 +123,11 @@ class GovooMinutes(models.Model):
     def action_sign(self):
         """Gated on [CONFIRM] legal validity of e-signature (BR-BOARD-008).
 
-        Feature-flagged: sign_request_id usage depends on sign module availability.
+        No e-signature document is generated here yet (state transition
+        only); when that's built, check
+        self.env['govoo.feature.flags'].is_sign_app_installed() before
+        using sign.request, falling back to signed_document_id
+        (ir.attachment) on Community.
         """
         self._validate_state_transition('signed')
         self.write({'state': 'signed'})

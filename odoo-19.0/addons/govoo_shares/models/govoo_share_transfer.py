@@ -64,7 +64,10 @@ class GovooShareTransfer(models.Model):
         currency_field='currency_id',
         tracking=True,
     )
-    # Feature-flagged: ir.attachment (Community) / documents.document (Enterprise)
+    # Always ir.attachment (Many2one comodel is fixed at class-definition
+    # time); when a document is generated for this field, check
+    # self.env['govoo.feature.flags'].is_documents_app_installed() to
+    # additionally file a copy into the Documents workspace.
     transfer_instrument_id = fields.Many2one(
         comodel_name='ir.attachment',
         string='Transfer Instrument',
