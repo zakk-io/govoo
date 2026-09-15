@@ -238,12 +238,17 @@ class GovooMeeting(models.Model):
         self.write({'state': 'scheduled'})
 
     def action_hold(self):
+        """Whether a Secretary override should be able to bypass this
+        block is an open decision [CONFIRM] (state-machines.md,
+        open-decisions.md #9) -- until confirmed, this transition is
+        hard-blocked with no override path.
+        """
         self._validate_state_transition('held')
         for rec in self:
             if not rec.quorum_met:
                 raise UserError(
-                    _('Warning: Quorum not met (%d of %d required). '
-                      'Proceed anyway?')
+                    _('Cannot mark meeting as held: quorum not met '
+                      '(%d of %d required).')
                     % (len(rec.attendee_ids), rec.quorum_required)
                 )
         self.write({'state': 'held'})

@@ -1,6 +1,6 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
 
 from .common import GovooBoardTestBase
@@ -38,6 +38,18 @@ class GovooMeetingTC(GovooBoardTestBase):
         self.assertEqual(meeting.state, 'draft')
         with self.assertRaises(ValidationError):
             meeting.action_hold()
+
+    def test_quorum_not_met_blocks_hold_with_accurate_message(self):
+        """Issue #83: action_hold's quorum block is unconditional (no
+        override path exists), and its error message must not imply
+        one does."""
+        meeting = self._make_meeting(quorum=5)
+        meeting.action_schedule()
+        self.assertFalse(meeting.quorum_met)
+        with self.assertRaises(UserError) as cm:
+            meeting.action_hold()
+        self.assertNotIn('Proceed anyway', str(cm.exception))
+        self.assertEqual(meeting.state, 'scheduled')
 
     def test_state_transition_sequential(self):
         """State advances draft → scheduled → held correctly."""
