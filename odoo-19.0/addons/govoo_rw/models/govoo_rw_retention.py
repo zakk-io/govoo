@@ -128,37 +128,42 @@ class GovooRwRetention(models.Model):
         Returns:
             recordset of expired records for the given rule
         """
+        # 'board_reports' has no backing document model yet (only ever
+        # mentioned as a retention-period category in spec, never as a
+        # distinct model) -- left unmapped so it safely no-ops below
+        # instead of approximating against unrelated mail.message data.
         model_map = {
             'minutes': 'govoo.minutes',
             'resolutions': 'govoo.resolution',
             'accounts': 'account.move',
             'auditor_reports': 'account.move',
-            'board_reports': 'mail.message',
         }
         model_name = model_map.get(rule.retention_category)
         if not model_name:
-            return self.env[model_name].browse()
+            return self.env['govoo.rw.retention'].browse()
 
         Model = self.env[model_name]
         if model_name not in self.env:
             return Model.browse()
-        if not Model._check_access_rights('read', raise_exception=False):
+        if not Model.browse().has_access('read'):
             return Model.browse()
 
-        # For minutes/resolutions, use create_date as reference
-        # For accounts/auditor_reports, use date/invoice_date
-        # For board_reports, use date
-        if rule.retention_category in ('minutes', 'resolutions'):
+        if rule.retention_category == 'minutes':
             domain = [('state', '=', 'approved')]
-        elif rule.retention_category in ('accounts', 'auditor_reports'):
-            domain = [('state', '=', 'posted')]
+        elif rule.retention_category == 'resolutions':
+            domain = [('state', 'in', ('passed', 'failed', 'withdrawn'))]
         else:
-            domain = []
+            domain = [('state', '=', 'posted')]
+        domain.append(('company_id', '=', rule.company_id.id))
 
         records = Model.search(domain)
         expired = Model.browse()
         for rec in records:
-            retention_date = rule.get_retention_date(rec.create_date)
+            if rule.retention_category in ('accounts', 'auditor_reports'):
+                reference_date = rec.invoice_date or rec.date
+            else:
+                reference_date = rec.create_date
+            retention_date = rule.get_retention_date(reference_date)
             if retention_date <= today:
                 expired |= rec
         return expired
