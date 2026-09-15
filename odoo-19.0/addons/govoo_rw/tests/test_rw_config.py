@@ -2,6 +2,8 @@
 
 from datetime import date
 
+from dateutil.relativedelta import relativedelta
+
 from odoo.tests import TransactionCase, tagged
 
 
@@ -57,6 +59,50 @@ class TestRwConfig(TransactionCase):
                 f'Obligation template {xml_id} should be active=False '
                 'until advisor confirmation (BR-COMP-001).',
             )
+
+    def test_005_accounts_retention_uses_accounting_date_not_create_date(self):
+        """Issue #42: accounts/auditor_reports retention must use
+        date/invoice_date as the reference, not create_date (when the DB
+        row was inserted, which can lag the accounting date by months
+        during month-end close)."""
+        if 'account.move' not in self.env:
+            self.skipTest('account module not installed.')
+
+        journal = self.env['account.journal'].search([
+            ('company_id', '=', self.company.id),
+            ('type', '=', 'general'),
+        ], limit=1)
+        accounts = self.env['account.account'].search([
+            ('company_ids', 'in', self.company.id),
+        ], limit=2)
+        if not journal or len(accounts) < 2:
+            self.skipTest('No general journal/accounts available to create a test account.move.')
+
+        rule = self.env.ref('govoo_rw.retention_accounts', raise_if_not_found=False)
+        if not rule:
+            self.skipTest('No seeded accounts retention rule found.')
+
+        # create_date is "now" (recent); the accounting date is well past
+        # the 10-accounting-period (~10 month) retention window, so only
+        # the correct reference date should mark it expired.
+        old_accounting_date = date.today() - relativedelta(years=2)
+        move = self.env['account.move'].create({
+            'journal_id': journal.id,
+            'date': old_accounting_date,
+            'move_type': 'entry',
+            'line_ids': [
+                (0, 0, {'account_id': accounts[0].id, 'debit': 100.0, 'credit': 0.0}),
+                (0, 0, {'account_id': accounts[1].id, 'debit': 0.0, 'credit': 100.0}),
+            ],
+        })
+        move.action_post()
+
+        expired = self.env['govoo.rw.retention']._get_expired_records(rule, date.today())
+        self.assertIn(
+            move, expired,
+            'A posted move with an old accounting date should be expired '
+            'even though its create_date is today.',
+        )
 
     def test_004_retention_categories_configured(self):
         """TC-RW-005: All five retention categories are configured.
