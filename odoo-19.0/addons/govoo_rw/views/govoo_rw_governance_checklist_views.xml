@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="govoo_rw_governance_checklist_item_action" model="ir.actions.act_window">
+        <field name="name">CMA Governance Checklist</field>
+        <field name="res_model">govoo.rw.governance.checklist.item</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="govoo_rw_governance_checklist_item_list" model="ir.ui.view">
+        <field name="name">govoo.rw.governance.checklist.item.list</field>
+        <field name="model">govoo.rw.governance.checklist.item</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="provision_ref"/>
+                <field name="instance_id"/>
+                <field name="status"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="govoo_rw_governance_checklist_item_form" model="ir.ui.view">
+        <field name="name">govoo.rw.governance.checklist.item.form</field>
+        <field name="model">govoo.rw.governance.checklist.item</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="provision_ref" placeholder="Provision Reference"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="instance_id"/>
+                            <field name="status"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description"/>
+                        <field name="explanation" invisible="status != 'explain'" required="status == 'explain'"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+</odoo>
