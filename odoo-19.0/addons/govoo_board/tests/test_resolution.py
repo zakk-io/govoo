@@ -33,7 +33,8 @@ class GovooResolutionTC(GovooBoardTestBase):
         self.assertEqual(resolution.state, 'withdrawn')
 
     def test_tally_passes_with_majority(self):
-        """TC-BOARD-005: Resolution open, quorum met, majority achieved → passed."""
+        """TC-BOARD-005 / TC-WF-BOARD-004: Resolution open, quorum met,
+        majority achieved → passed."""
         meeting = self._make_meeting()
         resolution = self._make_resolution(meeting)
         resolution.action_open()
