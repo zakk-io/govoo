@@ -47,6 +47,26 @@ class ResPartner(models.Model):
         inverse_name='partner_id',
         string='Appointments',
     )
+    appointment_count = fields.Integer(
+        string='Appointments',
+        compute='_compute_appointment_count',
+    )
+
+    @api.depends('govoo_appointment_ids')
+    def _compute_appointment_count(self):
+        for rec in self:
+            rec.appointment_count = len(rec.govoo_appointment_ids)
+
+    def action_view_appointments(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Appointments',
+            'res_model': 'govoo.appointment',
+            'view_mode': 'list,form',
+            'domain': [('partner_id', '=', self.id)],
+            'context': {'default_partner_id': self.id},
+        }
 
     @api.constrains('govoo_date_of_birth')
     def _check_govoo_date_of_birth(self):
