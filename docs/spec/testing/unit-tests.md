@@ -67,3 +67,5 @@ source §18 instruction.
 | --- | --- | --- |
 | TC-EVAL-001 | Campaign closed with N responses | `govoo.evaluation.result` aggregates computed correctly |
 | TC-EVAL-002 | Non-Secretary/Admin participant reads another participant's `survey.user_input` | Access denied |
+| TC-EVAL-003 | Campaign created with empty `participant_ids` | Rejected |
+| TC-EVAL-004 | Campaign created with a participant who isn't a committee member (board/committee/peer evaluation types) | Rejected |
