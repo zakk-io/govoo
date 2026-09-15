@@ -5,7 +5,7 @@ Source: §4, §9 of the source spec.
 ## 1. Stack (source §4)
 | Layer | Choice | Status |
 | --- | --- | --- |
-| Framework | Odoo 17 or 18 | `[CONFIRM]` — pick one and pin it before build starts (source §13 item 1) |
+| Framework | Odoo 19 | Confirmed — see `decisions/confirmed-decisions.md` entry [1] (diverges from the originally-considered 17/18 options) |
 | Language | Python 3.11+ (server), OWL/JS + XML (views), QWeb (reports) | Confirmed by source |
 | Database | PostgreSQL 14+ | Confirmed by source |
 | Version control | Git — feature branches, PR review | Confirmed by source |
@@ -14,9 +14,8 @@ Source: §4, §9 of the source spec.
 | Environments | dev → staging → production | See `devops/environments.md` |
 | CI | Lint (`flake8` / `pylint-odoo`) + run tests on every PR | See `devops/ci-cd.md` |
 
-`[ENGINEERING DETAIL]` Whichever Odoo version is confirmed, pin the exact point release
-(e.g. `17.0` branch) in `requirements.txt`/`__manifest__.py` `version` keys, and pin OCA module
-commits/tags rather than tracking `main`.
+`[ENGINEERING DETAIL]` Pin the exact point release (`19.0`) in `requirements.txt`/
+`__manifest__.py` `version` keys, and pin OCA module commits/tags rather than tracking `main`.
 
 ## 2. Module & naming conventions (source §9, MUST follow)
 - **Module naming:** `govoo_*` (e.g. `govoo_base`, `govoo_shares`).
