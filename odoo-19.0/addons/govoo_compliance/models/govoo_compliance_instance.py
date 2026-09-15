@@ -62,7 +62,10 @@ class GovooComplianceInstance(models.Model):
     reference_no = fields.Char(
         string='Filing Reference',
     )
-    # Feature-flagged: ir.attachment (Community) / documents.document (Enterprise)
+    # Always ir.attachment (Many2one comodel is fixed at class-definition
+    # time); when a document is generated for this field, check
+    # self.env['govoo.feature.flags'].is_documents_app_installed() to
+    # additionally file a copy into the Documents workspace.
     filing_document_id = fields.Many2one(
         comodel_name='ir.attachment',
         string='Filing Document',
@@ -190,6 +193,14 @@ class GovooComplianceInstance(models.Model):
             'res_id': self.id,
         })
         self.filing_document_id = attachment
+        if self.env['govoo.feature.flags'].is_documents_app_installed():
+            # ir.attachment (self.filing_document_id) remains the source of
+            # truth either way; this additionally files a copy into the
+            # Documents workspace for clients with that app.
+            self.env['documents.document'].sudo().create({
+                'name': attachment.name,
+                'attachment_id': attachment.id,
+            })
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'ir.attachment',

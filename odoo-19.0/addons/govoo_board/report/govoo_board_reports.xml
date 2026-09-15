@@ -23,6 +23,17 @@
         <field name="binding_type">report</field>
     </record>
 
+    <record id="action_report_board_pack" model="ir.actions.report">
+        <field name="name">Board Pack</field>
+        <field name="model">govoo.board.pack</field>
+        <field name="model_id" ref="model_govoo_board_pack"/>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">govoo_board.report_board_pack</field>
+        <field name="report_file">govoo_board.report_board_pack</field>
+        <field name="binding_model_id" ref="model_govoo_board_pack"/>
+        <field name="binding_type">report</field>
+    </record>
+
     <!-- Minutes document template -->
     <template id="report_minutes">
         <t t-call="web.html_container">
@@ -163,6 +174,51 @@
                                 </tr>
                             </tfoot>
                         </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- Board Pack: merged agenda + linked documents (master copy;
+         per-recipient redaction is applied at portal render time via
+         govoo.board.pack.recipient.redacted_item_ids, not here) -->
+    <template id="report_board_pack">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="pack">
+                <t t-call="web.external_layout">
+                    <t t-set="o" t-value="pack"/>
+                    <div class="page">
+                        <h2>Board Pack</h2>
+                        <p>
+                            <strong>Meeting:</strong>
+                            <t t-esc="pack.meeting_id.name"/>
+                        </p>
+                        <p>
+                            <strong>Date:</strong>
+                            <t t-esc="pack.meeting_id.date"/>
+                        </p>
+
+                        <h3>Agenda</h3>
+                        <t t-foreach="pack.meeting_id.agenda_ids.sorted('sequence')" t-as="item">
+                            <div class="mb-3">
+                                <h4>
+                                    <t t-esc="item.title"/>
+                                    <span t-if="item.is_confidential"
+                                          class="badge text-bg-warning">Confidential</span>
+                                </h4>
+                                <p t-if="item.presenter_id">
+                                    <strong>Presenter:</strong>
+                                    <t t-esc="item.presenter_id.name"/>
+                                </p>
+                                <div t-field="item.description"/>
+                                <ul t-if="item.document_ids">
+                                    <li t-foreach="item.document_ids" t-as="doc">
+                                        <t t-esc="doc.name"/>
+                                    </li>
+                                </ul>
+                            </div>
+                        </t>
                     </div>
                 </t>
             </t>
