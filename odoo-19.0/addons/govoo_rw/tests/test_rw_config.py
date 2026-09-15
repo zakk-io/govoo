@@ -17,11 +17,11 @@ class TestRwConfig(TransactionCase):
         cls.company = cls.env.company
 
     def test_001_currency_rwf_active(self):
-        """TC-RW-001: RWF currency is active with 2 decimal places after install."""
+        """TC-RW-001: RWF currency is active with 0 decimal places after install."""
         rwf = self.env.ref('base.RWF')
         self.assertTrue(rwf.active, 'RWF currency should be active after govoo_rw install.')
-        self.assertEqual(rwf.decimal_places, 2, 'RWF should have 2 decimal places.')
-        self.assertEqual(rwf.rounding, 0.01, 'RWF rounding should be 0.01.')
+        self.assertEqual(rwf.decimal_places, 0, 'RWF should have 0 decimal places.')
+        self.assertEqual(rwf.rounding, 1, 'RWF rounding should be 1.')
 
     def test_002_retention_config_minutes(self):
         """TC-RW-002: Retention config for minutes returns correct retention date."""
