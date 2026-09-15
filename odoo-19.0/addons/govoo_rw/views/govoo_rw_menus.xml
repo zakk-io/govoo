@@ -12,4 +12,10 @@
               action="govoo_rw_retention_action"
               sequence="10"/>
 
+    <menuitem id="govoo_menu_rw_governance_checklist"
+              name="CMA Governance Checklist"
+              parent="govoo_menu_rw"
+              action="govoo_rw_governance_checklist_item_action"
+              sequence="20"/>
+
 </odoo>

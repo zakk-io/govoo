@@ -6,4 +6,5 @@ from . import (
     test_share_lifecycle,
     test_statutory_register_workflow,
     test_transfer,
+    test_stat_buttons,
 )
