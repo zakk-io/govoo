@@ -20,6 +20,8 @@ class TestGovernanceChecklistItem(TransactionCase):
         })
 
     def test_checklist_item_creation(self):
+        """TC-RW-004: checklist item created against a CMA governance
+        self-assessment instance persists correctly."""
         item = self.env['govoo.rw.governance.checklist.item'].create({
             'instance_id': self.instance.id,
             'provision_ref': 'Principle 1',
