@@ -41,6 +41,28 @@
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_agenda" type="object"
+                                class="oe_stat_button" icon="fa-list"
+                                invisible="not agenda_count">
+                            <field name="agenda_count" widget="statinfo" string="Agenda"/>
+                        </button>
+                        <button name="action_view_pack" type="object"
+                                class="oe_stat_button" icon="fa-archive"
+                                invisible="not pack_count">
+                            <field name="pack_count" widget="statinfo" string="Pack"/>
+                        </button>
+                        <button name="action_view_minutes" type="object"
+                                class="oe_stat_button" icon="fa-file-text-o"
+                                invisible="not minutes_count">
+                            <field name="minutes_count" widget="statinfo" string="Minutes"/>
+                        </button>
+                        <button name="action_view_resolutions" type="object"
+                                class="oe_stat_button" icon="fa-balance-scale"
+                                invisible="not resolution_count">
+                            <field name="resolution_count" widget="statinfo" string="Resolutions"/>
+                        </button>
+                    </div>
                     <group>
                         <group>
                             <field name="name"/>
