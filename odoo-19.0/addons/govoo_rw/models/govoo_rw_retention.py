@@ -145,13 +145,14 @@ class GovooRwRetention(models.Model):
         Model = self.env[model_name]
         if model_name not in self.env:
             return Model.browse()
-        if not Model._check_access_rights('read', raise_exception=False):
+        if not Model.browse().has_access('read'):
             return Model.browse()
 
         if rule.retention_category in ('minutes', 'resolutions'):
             domain = [('state', '=', 'approved')]
         else:
             domain = [('state', '=', 'posted')]
+        domain.append(('company_id', '=', rule.company_id.id))
 
         records = Model.search(domain)
         expired = Model.browse()
