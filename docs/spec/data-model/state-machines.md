@@ -125,6 +125,26 @@ upcoming --> in_progress --> filed
 - **Side effects:** `late` triggers escalation (FR-COMP-003).
 - **Audit:** `tracking=True` on `state`.
 
+## `govoo.board.pack.state`
+`[undocumented-extra]` not mentioned anywhere else in this file — added here for completeness
+since the model does define a real state machine, per issue #87.
+```
+draft --> compiled --> distributed
+```
+- **States:** `draft`, `compiled`, `distributed`.
+- **Allowed transitions:** strictly forward, one step at a time.
+- **Who can trigger:** Company Secretary (`action_compile`, `action_distribute`).
+- **Required conditions:**
+  - `draft → compiled`: merges the meeting's agenda + linked documents into one distributable PDF
+    (`document_id`); computes each recipient's per-recipient redaction
+    (`govoo.board.pack.recipient.redacted_item_ids`) based on their own authorization for
+    confidential agenda items (BR-BOARD-003).
+  - `compiled → distributed`: notifies each recipient (`mail.thread` message) and records
+    `sent_date` on their `govoo.board.pack.recipient` row.
+- **Forbidden transitions:** any backward transition; skipping a state.
+- **Side effects:** `distributed` posts a portal notification message to each recipient.
+- **Audit:** `tracking=True` on `state`.
+
 ## `govoo.evaluation.campaign.state`
 ```
 draft --> open --> closed

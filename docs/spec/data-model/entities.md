@@ -13,6 +13,7 @@ file is the single-page domain overview.
 | Meeting | `govoo.meeting` | custom (links `calendar.event`) | `govoo_board` |
 | Agenda item | `govoo.agenda.item` | custom | `govoo_board` |
 | Board pack | `govoo.board.pack` | custom | `govoo_board` |
+| Board pack distribution record (per-recipient) | `govoo.board.pack.recipient` | custom | `govoo_board` |
 | Minutes | `govoo.minutes` | custom | `govoo_board` |
 | Resolution | `govoo.resolution` | custom | `govoo_board` |
 | Vote | `govoo.vote` | custom | `govoo_board` |
