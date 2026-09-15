@@ -3,3 +3,7 @@ access_govoo_rw_retention_user,govoo.rw.retention.user,model_govoo_rw_retention,
 access_govoo_rw_retention_secretary,govoo.rw.retention.secretary,model_govoo_rw_retention,govoo_base.group_govoo_secretary,1,0,0,0
 access_govoo_rw_retention_admin,govoo.rw.retention.admin,model_govoo_rw_retention,govoo_base.group_govoo_admin,1,1,1,1
 access_govoo_rw_retention_auditor,govoo.rw.retention.auditor,model_govoo_rw_retention,govoo_base.group_govoo_auditor,1,0,0,0
+access_govoo_rw_governance_checklist_item_user,govoo.rw.governance.checklist.item.user,model_govoo_rw_governance_checklist_item,govoo_base.group_govoo_user,1,0,0,0
+access_govoo_rw_governance_checklist_item_secretary,govoo.rw.governance.checklist.item.secretary,model_govoo_rw_governance_checklist_item,govoo_base.group_govoo_secretary,1,1,1,0
+access_govoo_rw_governance_checklist_item_admin,govoo.rw.governance.checklist.item.admin,model_govoo_rw_governance_checklist_item,govoo_base.group_govoo_admin,1,1,1,1
+access_govoo_rw_governance_checklist_item_auditor,govoo.rw.governance.checklist.item.auditor,model_govoo_rw_governance_checklist_item,govoo_base.group_govoo_auditor,1,0,0,0

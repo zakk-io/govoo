@@ -24,6 +24,23 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_allotments" type="object"
+                                class="oe_stat_button" icon="fa-share"
+                                invisible="not allotment_count">
+                            <field name="allotment_count" widget="statinfo" string="Allotments"/>
+                        </button>
+                        <button name="action_view_transfers" type="object"
+                                class="oe_stat_button" icon="fa-exchange"
+                                invisible="not transfer_count">
+                            <field name="transfer_count" widget="statinfo" string="Transfers"/>
+                        </button>
+                        <button name="action_view_holders" type="object"
+                                class="oe_stat_button" icon="fa-address-book-o"
+                                invisible="not holding_count">
+                            <field name="holding_count" widget="statinfo" string="Holders"/>
+                        </button>
+                    </div>
                     <group>
                         <group>
                             <field name="name"/>

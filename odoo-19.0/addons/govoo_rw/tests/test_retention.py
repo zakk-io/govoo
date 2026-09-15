@@ -88,3 +88,44 @@ class TestRwRetention(TransactionCase):
         expired = self.env['govoo.rw.retention']._get_expired_records(rule_a, date.today())
         self.assertIn(minutes_a, expired)
         self.assertNotIn(minutes_b, expired)
+
+    def _make_expired_resolution(self, state):
+        committee = self.env['govoo.committee'].create({
+            'name': 'Resolution Test Committee',
+            'company_id': self.company.id,
+        })
+        meeting = self.env['govoo.meeting'].create({
+            'name': 'Resolution Test Meeting',
+            'committee_id': committee.id,
+            'meeting_type': 'committee',
+            'date': '2020-01-01 10:00:00',
+            'company_id': self.company.id,
+        })
+        resolution = self.env['govoo.resolution'].create({
+            'title': 'Old Resolution',
+            'resolution_type': 'ordinary',
+            'meeting_id': meeting.id,
+        })
+        # Bypass the action/validation chain -- only the resulting state and
+        # an old create_date matter for this cron's domain.
+        resolution.write({'state': state})
+        self.env.cr.execute(
+            "UPDATE govoo_resolution SET create_date = %s WHERE id = %s",
+            ('2020-01-01', resolution.id),
+        )
+        resolution.invalidate_recordset(['create_date'])
+        return resolution
+
+    def test_resolutions_use_terminal_state_not_approved(self):
+        """govoo.resolution has no 'approved' state; the disposal check
+        must filter on an actual terminal state (passed/failed/withdrawn)."""
+        resolution = self._make_expired_resolution('passed')
+        rule = self.env['govoo.rw.retention'].create({
+            'name': 'Resolutions Retention',
+            'retention_category': 'resolutions',
+            'basis': 'years',
+            'retention_years': 1,
+            'company_id': self.company.id,
+        })
+        expired = self.env['govoo.rw.retention']._get_expired_records(rule, date.today())
+        self.assertIn(resolution, expired)
