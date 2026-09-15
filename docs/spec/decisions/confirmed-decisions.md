@@ -9,7 +9,7 @@ were updated as a result.
 open items)
 | # | Decision | Source |
 | --- | --- | --- |
-| 1 | Govoo is built on Odoo (17 or 18 — version itself is open, see `open-decisions.md` item 1) as a modular monolith, not microservices | §1, §3.1 |
+| 1 | Govoo is built on Odoo (version confirmed as 19 — see the "Resolved from open-decisions.md" entry below) as a modular monolith, not microservices | §1, §3.1 |
 | 2 | Person = `res.partner`, Company = `res.company` — no parallel models | §3.1 |
 | 3 | Six security groups: Governance User, Company Secretary, Board Administrator, Director (Portal), Shareholder (Portal), Auditor | §6.1 |
 | 4 | Board Administrator cannot cast board votes, despite configuration privileges | §6.1, §6.2 |
@@ -35,6 +35,24 @@ open items)
   and confirm they were switched to `active=True` deliberately, not by a blanket migration>
 ```
 
-No entries yet exist below this line — this repository ships with **zero** resolved `[CONFIRM]`
-items beyond the source-confirmed facts listed above. Every implementer inherits the obligation to
-populate this section only via genuine stakeholder confirmation, never by assumption.
+### [1] Odoo version (17 vs 18)
+- **Resolved value:** Odoo 19. Not one of the two options the open question originally considered
+  (17 or 18) — the implementation shipped on 19 without a recorded sponsor sign-off at the time.
+  This entry documents the as-built state rather than asserting that sign-off happened; if a
+  genuine technical-sponsor confirmation exists elsewhere, replace the line below with its
+  provenance.
+- **Confirmed by:** not verified against a named technical-sponsor sign-off — recorded here as the
+  factual, already-implemented state (every module manifest and the vendored core are Odoo 19).
+- **Date:** 2026-09-14
+- **Spec files updated:** `decisions/open-decisions.md` item 1 (version half removed, edition
+  half remains open), `architecture/technology-standards.md` §1.
+- **Activation note:** N/A — no previously-inactive (`active=False`) configuration data is
+  unlocked by this entry.
+
+The edition question (Enterprise vs Community + OCA) from the same original open-decisions.md
+item 1 remains genuinely open — confirming the version in code doesn't resolve it.
+
+No further entries exist below this line beyond the one above — this repository otherwise ships
+with **zero** resolved `[CONFIRM]` items beyond the source-confirmed facts listed above. Every
+implementer inherits the obligation to populate this section only via genuine stakeholder
+confirmation, never by assumption.
