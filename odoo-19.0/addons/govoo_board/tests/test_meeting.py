@@ -70,3 +70,27 @@ class GovooMeetingTC(GovooBoardTestBase):
 
         with self.assertRaises(ValidationError):
             meeting.action_close()
+
+    def test_agenda_items_resolve_in_sequence_order(self):
+        """TC-BOARD-002: agenda items resolve in sequence order,
+        regardless of creation order."""
+        meeting = self._make_meeting()
+        third = self.env['govoo.agenda.item'].create({
+            'meeting_id': meeting.id,
+            'title': 'Third',
+            'item_type': 'noting',
+            'sequence': 30,
+        })
+        first = self.env['govoo.agenda.item'].create({
+            'meeting_id': meeting.id,
+            'title': 'First',
+            'item_type': 'noting',
+            'sequence': 10,
+        })
+        second = self.env['govoo.agenda.item'].create({
+            'meeting_id': meeting.id,
+            'title': 'Second',
+            'item_type': 'noting',
+            'sequence': 20,
+        })
+        self.assertEqual(list(meeting.agenda_ids.sorted('sequence')), [first, second, third])
