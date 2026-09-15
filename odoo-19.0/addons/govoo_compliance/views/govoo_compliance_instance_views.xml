@@ -62,7 +62,7 @@
                                    invisible="state not in ('in_progress', 'late', 'filed')"/>
                             <field name="filed_date"
                                    invisible="state not in ('in_progress', 'late', 'filed')"/>
-                            <field name="attachment_id"/>
+                            <field name="filing_document_id"/>
                         </group>
                     </group>
                 </sheet>

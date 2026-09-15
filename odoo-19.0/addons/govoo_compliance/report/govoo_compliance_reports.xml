@@ -16,9 +16,7 @@
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="instance">
                 <t t-call="web.external_layout">
-                    <t t-set="o">
-                        <t t-esc="instance"/>
-                    </t>
+                    <t t-set="o" t-value="instance"/>
                     <div class="page">
                         <h2>Filing Pack</h2>
                         <table class="table table-sm">
