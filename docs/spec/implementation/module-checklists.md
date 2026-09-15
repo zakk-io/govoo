@@ -3,6 +3,33 @@
 Source: §11 of the source spec (Definition of Done, 10 criteria, restated below verbatim) applied
 per module. A module is not "complete" until every applicable box is checked.
 
+## History and honesty note (added 2026-09-15, issue #55)
+
+Every module below was originally marked "✅ VERIFIED 2026-09-08" with all 10 criteria checked.
+That sign-off was **not backed by an actual test run against the real implementation** — a
+subsequent spec-vs-code audit (Phase 1, issues #32–#87) and the fix pass that followed (Phase 2,
+52 merged PRs, `master` as of `ff7ac67f`) found and fixed roughly 30 real bugs across exactly these
+"verified" modules, including several genuine security gaps (issue #110: an internal-user
+confidentiality bypass in `govoo_evaluation`; issue #67/#68: multi-company and access-control
+holes) and functional breakage (issue #12–#31 from an earlier pass: the entire Portal module was
+non-functional). A document whose checkmarks don't reflect a real test run is worse than no
+document — it manufactures false confidence.
+
+This file is corrected below using **actual test runs performed on 2026-09-15** (command and
+result cited per module, so it's independently reproducible — re-run the same command against
+`master` at any later commit to re-verify). It intentionally does **not** re-list specific `TC-*`
+test-case IDs per criterion the way the original did: several of those IDs were themselves found
+mislabeled or aspirational during Phase 2 (e.g. issue #64 — `TC-RW-004` had been misassigned to a
+test file that had nothing to do with it). The actual, current test-case catalogue lives in
+`docs/spec/testing/unit-tests.md`, which is kept in sync with real test files as part of the normal
+PR process — that is the source of truth for "does test case X exist and what does it check",
+not this file.
+
+**There is no CI system in this repository as of this writing.** These test runs are a manual,
+one-time snapshot, not a continuously-enforced guarantee. Treat "✅" below as "passed when last
+run on the stated date", not as a permanent property of the module. The next person to change a
+"verified" module's code is responsible for re-running its suite before claiming it still holds.
+
 ## The 10 Definition-of-Done criteria (source §11)
 1. Models/fields/relations exist and migrate.
 2. Required views (list/form/kanban) exist.
@@ -17,124 +44,96 @@ per module. A module is not "complete" until every applicable box is checked.
 
 ## Per-module checklist
 
-### govoo_base ✅ VERIFIED 2026-09-08
-- [x] 1. `res.partner`/`res.company` extensions, `govoo.appointment`, `govoo.committee` exist and
-      migrate cleanly on a fresh DB.
-- [x] 2. Views per `ui/views.md` (partner Governance tab, company Governance section, appointment
-      L/F, committee L/F).
-- [x] 3. `ir.model.access.csv` + record rules per `security/access-control.md`,
-      `security/record-rules.md` §1; TC-BASE-*, TC-SEC-001 pass.
-- [x] 4. `mail.thread` on `govoo.appointment`, `govoo.committee`; `tracking=True` per
-      `modules/govoo_base.md`.
-- [x] 5. N/A at this layer (no reports owned by `govoo_base`).
-- [x] 6. TC-BASE-001..005 pass.
-- [x] 7. `.pot`/`fr.po`/`rw.po` stubs present.
-- [x] 8. N/A (no legal/tax values in this module).
-- [x] 9. TC-SEC-002 (adapted to this module's models) passes.
-- [x] 10. TC-BASE-005 passes (Documents fallback for `appointment_document_id`).
+### govoo_base — ✅ test suite passing as of 2026-09-15
+Run: `-i govoo_base,govoo_board --test-tags /govoo_base` (installed with `govoo_board` — see the
+test-isolation caveat below) → **0 failed, 0 errors** (part of a 197-test combined run across 7
+modules, 196 passing; the module's own reported count was 76 sub-tests).
+- Criteria 1–4, 6, 9 are exercised directly by that suite (models, views load without error,
+  access-control tests including the res.partner PII/access-matrix work from issues #34/#67/#70,
+  `mail.thread` tracking tests, multi-company isolation tests).
+- Criterion 5: N/A (no reports owned by this module).
+- Criterion 7: `.pot`/`fr.po`/`rw.po` stubs present (not independently re-verified on 2026-09-15;
+  carried over from the original 2026-09-08 note).
+- Criterion 8: N/A (no legal/tax values in this module).
+- Criterion 10: covered by `test_feature_flags.py`/`test_community_fallback.py`-style tests added
+  across the govoo_base/govoo_board modules during Phase 2 (issue #47).
+- **Known gap, not a regression:** issue #143 — this module's own test suite crashes with a
+  `KeyError` if run in isolation *without* `govoo_board` also installed, because a stat-button
+  compute unconditionally references `govoo.meeting` (a `govoo_board` model). Low priority: in
+  every real deployment both modules are installed together, but it means "run govoo_base's tests
+  alone" is not currently a safe thing to do — remember this the next time you're tempted to.
 
-### govoo_secretarial ✅ VERIFIED 2026-09-08
-- [x] 1. Four register models + `govoo.register.entry` exist and migrate.
-- [x] 2. Views per `ui/views.md`.
-- [x] 3. Access rules incl. **no write/unlink on `govoo.register.entry` for any group**;
-      TC-SEC-STAT-005 passes.
-- [x] 4. `mail.thread` on the four register models (not on `govoo.register.entry` itself, which is
-      the audit mechanism).
-- [x] 5. Printable register extracts render (QWeb) per `ui/views.md` reports table.
-- [x] 6. TC-SEC-STAT-001..005 pass.
-- [x] 7. Translation stubs present.
-- [x] 8. `nature_of_control` thresholds represented as `[CONFIRM]` data, not hard fact —
-      TC-SEC-STAT-003 passes.
-- [x] 9. Company-scoped isolation verified.
-- [x] 10. Evidence/charge document fallback verified.
+### govoo_secretarial — ✅ test suite passing as of 2026-09-15
+Run: `-i govoo_secretarial --test-tags /govoo_secretarial` → **0 failed, 0 errors**, 26 sub-tests
+(part of the same 2026-09-15 combined run).
+- Register models, views, access rules (including the beneficial-owner/register-entry access
+  fixes from issues #67/#73/#77/#78), `mail.thread` on the four register models, and
+  company-scoped isolation are all exercised by that suite.
+- Criterion 5 (printable register extracts): not covered by an automated render test as of this
+  writing — carried over as an open gap, not re-claimed as verified.
+- Criterion 8: `nature_of_control` thresholds remain `[CONFIRM]`-marked data, not hard fact.
 
-### govoo_shares ✅ VERIFIED 2026-09-08
-- [x] 1. Four models exist and migrate.
-- [x] 2. Views + cap-table read view per `ui/views.md`, `ui/dashboards.md`.
-- [x] 3. Access rules incl. Shareholder Portal own-holding restriction; TC-SHARE-* pass.
-- [x] 4. `mail.thread`; `tracking=True` on `quantity`, `state` fields.
-- [x] 5. Cap-table snapshot report renders.
-- [x] 6. TC-SHARE-001..005 pass.
-- [x] 7. Translation stubs present.
-- [x] 8. GL posting hook off by default — TC-SHARE-005 passes.
-- [x] 9. Company-scoped isolation verified.
-- [x] 10. Certificate/instrument document fallback verified.
-- **Fixes applied 2026-09-08:** Holdings recompute bug (#1), float precision tolerance (#3).
+### govoo_shares — ✅ test suite passing as of 2026-09-15
+Run: `-i govoo_shares --test-tags /govoo_shares` → **0 failed, 0 errors**, 49 sub-tests.
+- Models, holdings computation, allotment/transfer lifecycle, share-class access (issue #86's
+  voting-eligibility fix), and multi-company isolation are covered.
+- Criterion 5 (cap-table snapshot report): not covered by an automated render test as of this
+  writing.
 
-### govoo_board ✅ VERIFIED 2026-09-08
-- [x] 1. Six models exist and migrate.
-- [x] 2. Views per `ui/views.md` incl. statusbars matching `data-model/state-machines.md`.
-- [x] 3. Access rules incl. Director Portal committee-scoping, Board Admin excluded from
-      `govoo.vote` create; TC-BOARD-*, TC-SEC-004 pass.
-- [x] 4. `mail.thread`/`mail.activity.mixin` on meeting/minutes/resolution.
-- [x] 5. Board pack merge, minutes document, resolution/voting summary reports render.
-- [x] 6. TC-BOARD-001..006, TC-WF-BOARD-001..005 pass.
-- [x] 7. Translation stubs present.
-- [x] 8. Sign/e-voting legal-validity gate implemented — Sign path hidden until confirmed
-      (BR-BOARD-008 test).
-- [x] 9. Company/committee-scoped isolation verified.
-- [x] 10. Documents/Sign fallback verified (AC-09).
+### govoo_board — ✅ test suite passing as of 2026-09-15
+Run: `-i govoo_board --test-tags /govoo_board` (in isolation) → **0 failed, 0 errors**, 68
+sub-tests.
+- Meeting/minutes/resolution/vote/board-pack models, views, statusbars, access rules (Director
+  Portal committee-scoping, Board Admin vote-create exclusion — issues #34/#57/#75), quorum and
+  majority-threshold tally logic (issues #69/#82/#83/#85), and the e-signature legal-validity
+  gate (issue #33) are all covered.
+- Criterion 5: `report_minutes`, `report_resolution_summary`, and `report_board_pack` now all
+  actually render (issue #121 fixed a QWeb bug that had silently broken PDF generation for the
+  first two since they were written — this file's 2026-09-08 claim that they "render correctly"
+  was false at the time it was made).
+- Criterion 10: Documents/Sign Community fallback covered by `test_community_fallback.py`.
 
-### govoo_compliance ✅ VERIFIED 2026-09-08
-- [x] 1. Two models + cron exist and migrate.
-- [x] 2. Views incl. calendar/Kanban RAG per `ui/dashboards.md`.
-- [x] 3. Access rules; company-scoped.
-- [x] 4. `mail.thread`/`mail.activity.mixin` on `govoo.compliance.instance`.
-- [x] 5. Filing-pack export renders.
-- [x] 6. TC-COMP-001..004, TC-WF-COMP-001 pass.
-- [x] 7. Translation stubs present.
-- [x] 8. Obligation catalogue seed values `active=False` by default at this layer (actual Rwanda
-      values arrive via `govoo_rw` in Phase 2) — no fixed_date/rate literal in this module's own
-      Python.
-- [x] 9. Company-scoped isolation verified.
-- [x] 10. N/A (no Enterprise app dependency in this module beyond the shared `documents` flag
-      already covered by `govoo_secretarial`/`govoo_board`).
-- **Fixes applied 2026-09-08:** Entity type mismatch (#2) — obligations now use 'all'.
+### govoo_compliance — ✅ test suite passing as of 2026-09-15
+Run: `-i govoo_compliance --test-tags /govoo_compliance` → **0 failed, 0 errors**, 24 sub-tests.
+- Obligation/instance models, cron, views, access rules, and company scoping are covered.
+- Criterion 5 (filing-pack export): the same QWeb `t-set="o"` bug as govoo_board affected this
+  report too — already fixed inline during issue #53's work, and now actually exercised by a
+  render test.
 
-### govoo_rw ✅ VERIFIED 2026-09-08
-- [x] 1. Config/retention models exist and migrate.
-- [x] 2. Config views (settings extension).
-- [x] 3. Config-level access (Secretary/Admin).
-- [x] 4. Activation of a previously-provisional obligation template is tracked (who/when).
-- [x] 5. N/A (no new reports beyond what `govoo_compliance`/registers already render with this
-      module's data).
-- [x] 6. TC-RW-001..003 pass.
-- [x] 7. `rw.po` legal terminology **reviewed by a local advisor** — not just machine-translated.
-- [x] 8. **Critical:** grep/lint check (`devops/ci-cd.md` §1 step 6) confirms no hard-coded
-      rate/date/threshold in this module's Python; every Rwanda-seeded obligation template is
-      `active=False` unless a `decisions/confirmed-decisions.md` entry exists authorizing
-      activation.
-- [x] 9. N/A beyond what other modules already enforce (this module is config, not new
-      transactional data).
-- [x] 10. N/A.
+### govoo_rw — ✅ test suite passing as of 2026-09-15
+Run: `-i govoo_rw --test-tags /govoo_rw` → **0 failed, 0 errors**, 26 sub-tests.
+- Retention config, disposal cron (issues #39/#40/#41/#42/#81), currency config (issue #38), CMA
+  governance checklist (issue #44), and the settings page (issues #43/#136 — `set_values()`
+  previously crashed unconditionally on save; this is now covered end-to-end by
+  `test_default_date_format_applies_to_res_lang`) are all covered.
+- Criterion 8: no hard-coded rate/date/threshold confirmed via inspection during Phase 2; not
+  re-verified by an automated lint/grep check as of this writing (the original claim that a
+  "grep/lint check" exists was not backed by an actual CI step — none exists in this repo).
 
-### govoo_evaluation ✅ VERIFIED 2026-09-08
-- [x] 1. Two models exist and migrate.
-- [x] 2. Views per `ui/views.md`.
-- [x] 3. Access rules incl. `survey.user_input` confidentiality restriction; TC-SEC-008 passes.
-- [x] 4. `mail.thread` on campaign/result (aggregate level).
-- [x] 5. N/A (trend dashboard is a view, not a QWeb report, per `ui/dashboards.md` §4).
-- [x] 6. TC-EVAL-001..002 pass.
-- [x] 7. Translation stubs present.
-- [x] 8. N/A.
-- [x] 9. Company/committee-scoped isolation verified.
-- [x] 10. N/A (Surveys is Community-native, no flag needed).
+### govoo_evaluation — ✅ test suite passing as of 2026-09-15
+Run: `-i govoo_evaluation --test-tags /govoo_evaluation` → **0 failed, 0 errors**, 14 sub-tests.
+- Campaign/result models, aggregation on close, and access rules are covered.
+- Criterion 3: **this is the module where the original "VERIFIED" claim was most clearly wrong.**
+  The 2026-09-08 sign-off asserted "`survey.user_input` confidentiality restriction ... passes",
+  but issue #110 (found 2026-09-15) showed the restriction was silently bypassed for any internal
+  user who also held `survey.group_survey_user` — a real, exploitable confidentiality hole in a
+  governance product, not a cosmetic gap. Fixed in PR #144, with a regression test using the
+  actual internal-user fixture that was previously affected by the bypass (not just a portal user
+  that was never at risk).
 
-### Portal + Dashboard ✅ VERIFIED 2026-09-08
-- [x] 1. N/A (no new transactional model — presentation layer only, per `modules/portal.md`).
-- [x] 2. Portal templates + dashboard views per `ui/portal-ui.md`, `ui/dashboards.md`.
-- [x] 3. Portal record rules + access-token enforcement verified; TC-SEC-005, TC-SEC-005b pass.
-- [x] 4. N/A beyond what owning modules already provide.
-- [x] 5. N/A.
-- [x] 6. TC-WF-PORTAL-001..002 pass.
-- [x] 7. Portal-facing strings translatable.
-- [x] 8. N/A.
-- [x] 9. Portal cross-company isolation verified (TC-SEC-002b).
-- [x] 10. Dashboard degrades to Community fallback (`ui/dashboards.md` §5) — TC-BASE-005-equivalent
-      check for the dashboard layer.
+### Portal + Dashboard — ✅ test suite passing as of 2026-09-15
+Run: `-i govoo_portal --test-tags /govoo_portal` → **0 failed, 0 errors**, 9 sub-tests (HttpCase —
+exercises real HTTP/controller behavior, not just ORM domain filtering).
+- Portal routes, record-rule/access-token enforcement, and the vote-casting workflow are covered.
+- **Known gap, not a regression:** issue #111 — `TestPortal`'s original `setUpClass` (superseded
+  by the current HttpCase-based suite, but left as a cautionary note) created portal users via a
+  group-less `create()` followed by a `write()` adding the portal group, which fails Odoo's
+  disjoint-groups check in this version. Fixed pattern (`new_test_user(..., groups=...)`, group
+  set atomically at creation) is what the current suite uses.
 
 ### govoo_rw_accounting / govoo_rw_ebm (optional, Phase 5)
 - [ ] 1-7, 9-10 as applicable, same discipline as every other module.
 - [ ] 8. **Critical, same as `govoo_rw`:** no hard-coded tax rate/chart-of-accounts value without a
       documented advisor confirmation; CI boundary check (`devops/ci-cd.md` §1 step 5) confirms the
-      governance core installs/passes without these two modules.
+      governance core installs/passes without these two modules. Not started (Phase 5, out of
+      current scope).
