@@ -63,6 +63,10 @@ class GovooResolution(models.Model):
         inverse_name='resolution_id',
         string='Votes',
     )
+    vote_count = fields.Integer(
+        string='Votes',
+        compute='_compute_vote_count',
+    )
     result = fields.Selection(
         selection=[
             ('passed', 'Passed'),
@@ -107,6 +111,22 @@ class GovooResolution(models.Model):
         super()._compute_access_url()
         for rec in self:
             rec.access_url = '/my/votes/%s' % rec.id
+
+    @api.depends('vote_ids')
+    def _compute_vote_count(self):
+        for rec in self:
+            rec.vote_count = len(rec.vote_ids)
+
+    def action_view_votes(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Votes',
+            'res_model': 'govoo.vote',
+            'view_mode': 'list,form',
+            'domain': [('resolution_id', '=', self.id)],
+            'context': {'default_resolution_id': self.id},
+        }
 
     @api.depends('vote_ids.choice', 'vote_ids.weight', 'vote_ids.is_conflicted')
     def _compute_result(self):
