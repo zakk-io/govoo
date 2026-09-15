@@ -57,15 +57,38 @@ class GovooVote(models.Model):
         for vals in vals_list:
             if not vals.get('timestamp'):
                 vals['timestamp'] = fields.Datetime.now()
-            # Auto-set weight from holdings for shareholder resolutions
+            # Auto-set weight from holdings for shareholder resolutions.
+            # 'ordinary'/'special' resolution_type is also used for
+            # regular board-meeting resolutions (not just shareholder
+            # ones), so resolution_type alone isn't a sufficient
+            # signal: a director who happens to also be a shareholder
+            # must still get a plain 1.0 vote on a board resolution,
+            # not their shareholder voting_power. Source from holdings
+            # when either the meeting is genuinely shareholder-type
+            # (agm/egm) or there's no meeting at all (a written
+            # resolution, meeting_id is nullable per relationships.md
+            # §1) -- the latter is the gap this fixes. 'ordinary'/
+            # 'special' as the shareholder-eligible resolution_type set
+            # matches the same [CONFIRM] mapping already adopted by
+            # govoo_resolution_shareholder_portal_rule (record-rules.md §4).
             if vals.get('resolution_id') and vals.get('voter_id'):
                 resolution = self.env['govoo.resolution'].browse(vals['resolution_id'])
                 voter = self.env['res.partner'].browse(vals['voter_id'])
-                if resolution.meeting_id and resolution.meeting_id.meeting_type in ('agm', 'egm'):
-                    # Shareholder resolution — source weight from holdings
+                is_shareholder_eligible_type = resolution.resolution_type in ('ordinary', 'special')
+                is_shareholder_meeting_context = (
+                    not resolution.meeting_id
+                    or resolution.meeting_id.meeting_type in ('agm', 'egm')
+                )
+                if is_shareholder_eligible_type and is_shareholder_meeting_context:
+                    # Shareholder resolution — source weight from holdings.
+                    # resolution.company_id is related='meeting_id.company_id'
+                    # and therefore False for a written (meeting-less)
+                    # resolution -- fall back to the current company so
+                    # the holding lookup still works for that case.
+                    company_id = resolution.company_id.id or self.env.company.id
                     holding = self.env['govoo.share.holding'].search([
                         ('partner_id', '=', voter.id),
-                        ('company_id', '=', resolution.company_id.id),
+                        ('company_id', '=', company_id),
                     ], limit=1)
                     if holding:
                         vals['weight'] = holding.voting_power

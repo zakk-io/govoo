@@ -61,6 +61,8 @@ source §18 instruction.
 | TC-RW-001 | Fresh `govoo_rw` install | Currency configured RWF, 0 decimals |
 | TC-RW-002 | Retention config read for `govoo.minutes` | `retention_until` computed as `create_date` + 10 years |
 | TC-RW-003 | Fresh `govoo_rw` install, obligation catalogue inspected | Every Rwanda-seeded template has `active == False` |
+| TC-RW-004 | `govoo.rw.governance.checklist.item` created against a CMA governance self-assessment instance | Item persists; status `explain` without an `explanation` is rejected (apply-and-explain, FR-RW-004) |
+| TC-RW-005 | Fresh `govoo_rw` install, all five retention categories inspected | Each category (`minutes`, `resolutions`, `accounts`, `auditor_reports`, `board_reports`) has at least one active retention rule |
 
 ## govoo_evaluation
 | Test ID | Scenario | Expected result |

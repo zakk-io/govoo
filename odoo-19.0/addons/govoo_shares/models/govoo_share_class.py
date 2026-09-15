@@ -68,6 +68,66 @@ class GovooShareClass(models.Model):
         compute='_compute_total_allotted',
         store=True,
     )
+    allotment_count = fields.Integer(
+        string='Allotments',
+        compute='_compute_allotment_count',
+    )
+    transfer_count = fields.Integer(
+        string='Transfers',
+        compute='_compute_transfer_count',
+    )
+    holding_count = fields.Integer(
+        string='Holders',
+        compute='_compute_holding_count',
+    )
+
+    @api.depends('allotment_ids')
+    def _compute_allotment_count(self):
+        for rec in self:
+            rec.allotment_count = len(rec.allotment_ids)
+
+    @api.depends('transfer_ids')
+    def _compute_transfer_count(self):
+        for rec in self:
+            rec.transfer_count = len(rec.transfer_ids)
+
+    @api.depends('holding_ids')
+    def _compute_holding_count(self):
+        for rec in self:
+            rec.holding_count = len(rec.holding_ids)
+
+    def action_view_allotments(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Allotments',
+            'res_model': 'govoo.share.allotment',
+            'view_mode': 'list,form',
+            'domain': [('share_class_id', '=', self.id)],
+            'context': {'default_share_class_id': self.id},
+        }
+
+    def action_view_transfers(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Transfers',
+            'res_model': 'govoo.share.transfer',
+            'view_mode': 'list,form',
+            'domain': [('share_class_id', '=', self.id)],
+            'context': {'default_share_class_id': self.id},
+        }
+
+    def action_view_holders(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Holders',
+            'res_model': 'govoo.share.holding',
+            'view_mode': 'list,form',
+            'domain': [('share_class_id', '=', self.id)],
+            'context': {'default_share_class_id': self.id},
+        }
 
     @api.depends('allotment_ids.quantity')
     def _compute_total_allotted(self):

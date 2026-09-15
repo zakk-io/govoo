@@ -7,9 +7,11 @@ repository or in the implementation until it is moved to `decisions/confirmed-de
 recorded confirmation.**
 
 ## From the source spec (§13, verbatim items)
-1. **Odoo version (17 vs 18) and edition (Enterprise vs Community + OCA).**
+1. **Edition (Enterprise vs Community + OCA).**
    Owner: technical sponsor. Affects: `architecture/technology-standards.md` §1,
    `architecture/module-architecture.md` §2 (every Enterprise-app dependency).
+   (The Odoo *version* half of this item is resolved — see
+   `decisions/confirmed-decisions.md` entry [1]: shipped as Odoo 19.)
 2. **In-Rwanda / NCSA-authorized hosting for real personal data.**
    Owner: client + counsel + NCSA. Affects: `devops/environments.md` §1,
    `security/privacy.md` §1.
@@ -48,6 +50,7 @@ recorded confirmation.**
 | 20 | Exact applicability rule for the CMA Corporate Governance Code checklist (which entity types are in scope) | `modules/govoo_rw.md` §5, FR-RW-004 | Client / CMA guidance |
 | 21 | Whether an event-relative compliance obligation's trigger is automated (cascades from another record) or manually created | `modules/govoo_compliance.md` FR-COMP-002 | Product owner |
 | 22 | Exact per-recipient board-pack redaction data model (dedicated child model vs. dynamic rendering) | `modules/govoo_board.md` FR-BOARD-003 | Engineering decision, document once made |
+| 23 | Actual CMA Corporate Governance Code 2024 provision text/numbering to populate `govoo.rw.governance.checklist.item` records against | `modules/govoo_rw.md` §5, FR-RW-004 | Legal advisor (gazetted code text) |
 
 ## How to use this file
 - Never mark an item here as resolved by editing this file alone — resolution requires adding the
