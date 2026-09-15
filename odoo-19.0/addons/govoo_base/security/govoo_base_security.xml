@@ -33,4 +33,16 @@
         <field name="groups" eval="[(4, ref('group_govoo_director_portal'))]"/>
     </record>
 
+    <!-- Director/Shareholder Portal: own res.partner record only
+         (access-control.md §2: DP: R (own), SP: R (own)) -->
+    <record id="govoo_partner_portal_rule" model="ir.rule">
+        <field name="name">Partner: Portal own record only</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="domain_force">[('id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[
+            (4, ref('group_govoo_director_portal')),
+            (4, ref('group_govoo_shareholder_portal')),
+        ]"/>
+    </record>
+
 </odoo>

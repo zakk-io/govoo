@@ -82,3 +82,14 @@ This maps directly to `ir.model.access.csv` for `govoo.vote`: `group_govoo_admin
 permission on that model, full stop — this is not achievable via a record rule alone (a record rule
 filters *which* rows, not *whether the model action is permitted at all*), so it must be enforced at
 the access-rights level.
+
+**Deliberate deviation — Governance User's `govoo.vote` access:** the table above lists Governance
+User as "R (aggregate only, not others' raw choice where conflicted)", but `ir.model.access.csv`
+grants `group_govoo_user` **no** access at all (`0,0,0,0`) to `govoo.vote`. This is intentional, not
+an oversight: the aggregate outcome the spec cares about (whether a resolution passed/failed) is
+already exposed via `govoo.resolution.result`/`.state`, which Governance User can already read.
+Building a genuine partial/aggregate view of the raw `govoo.vote` table (vote counts by choice,
+without exposing `voter_id` or individual `choice` values) would require a new computed aggregation
+model; blocking the raw table entirely is the simplest way to guarantee individual and conflicted
+choices are never exposed, and costs nothing since the aggregate result is already reachable through
+`govoo.resolution`.
