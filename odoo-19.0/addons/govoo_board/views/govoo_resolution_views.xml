@@ -39,6 +39,13 @@
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_votes" type="object"
+                                class="oe_stat_button" icon="fa-check-square-o"
+                                invisible="not vote_count">
+                            <field name="vote_count" widget="statinfo" string="Votes"/>
+                        </button>
+                    </div>
                     <group>
                         <group>
                             <field name="title"/>
