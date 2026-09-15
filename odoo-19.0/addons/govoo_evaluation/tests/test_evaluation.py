@@ -241,7 +241,12 @@ class TestEvaluation(GovooEvaluationTestBase):
             'participant_ids': [(6, 0, [self.partner_a.id, self.partner_b.id])],
             'company_id': self.company.id,
         })
-        result = self.env['govoo.evaluation.result'].create({
+        # aggregate_score/participant_count are guarded (issue #84) --
+        # only settable via the aggregation code path, not this test's
+        # concern (access-control, not the guard itself).
+        result = self.env['govoo.evaluation.result'].with_context(
+            govoo_aggregation=True,
+        ).create({
             'campaign_id': campaign.id,
             'dimension_id': self.page.id,
             'dimension_name': self.page.title,
