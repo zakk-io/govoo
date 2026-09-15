@@ -167,7 +167,7 @@ class GovooEvaluationCampaign(models.Model):
                     page_counts[page_id] += 1
 
         # Create or update result records
-        Result = self.env['govoo.evaluation.result']
+        Result = self.env['govoo.evaluation.result'].with_context(govoo_aggregation=True)
         existing_results = Result.search([
             ('campaign_id', '=', self.id),
         ])
