@@ -4,16 +4,20 @@ from odoo import fields, models
 
 
 class ResCompany(models.Model):
-    _inherit = 'res.company'
+    _name = 'res.company'
+    _inherit = ['res.company', 'mail.thread']
 
     govoo_company_number = fields.Char(
         string='Company Registration Number',
+        tracking=True,
     )
     govoo_tin = fields.Char(
         string='Tax Identification Number',
+        tracking=True,
     )
     govoo_incorporation_date = fields.Date(
         string='Incorporation Date',
+        tracking=True,
     )
     govoo_entity_type = fields.Selection(
         selection=[
@@ -28,6 +32,7 @@ class ResCompany(models.Model):
     govoo_registered_office_id = fields.Many2one(
         comodel_name='res.partner',
         string='Registered Office',
+        tracking=True,
         # [CONFIRM] exact validation that registered office must be in Rwanda
     )
     govoo_financial_year_end = fields.Selection(
