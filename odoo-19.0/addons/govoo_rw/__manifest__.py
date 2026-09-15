@@ -30,6 +30,7 @@ confirmation (BR-COMP-001, BR-RW-002).
         'data/ir_cron_data.xml',
         'views/res_config_settings_views.xml',
         'views/govoo_rw_retention_views.xml',
+        'views/govoo_rw_governance_checklist_views.xml',
         'views/govoo_rw_menus.xml',
         'report/govoo_rw_reports.xml',
     ],

@@ -12,7 +12,6 @@ access_govoo_register_beneficial_owner_auditor,govoo.register.beneficial.owner.a
 access_govoo_register_charge_user,govoo.register.charge.user,model_govoo_register_charge,govoo_base.group_govoo_user,1,0,0,0
 access_govoo_register_charge_secretary,govoo.register.charge.secretary,model_govoo_register_charge,govoo_base.group_govoo_secretary,1,1,1,0
 access_govoo_register_charge_auditor,govoo.register.charge.auditor,model_govoo_register_charge,govoo_base.group_govoo_auditor,1,0,0,0
-access_govoo_register_entry_user,govoo.register.entry.user,model_govoo_register_entry,govoo_base.group_govoo_user,1,0,0,0
 access_govoo_register_entry_secretary,govoo.register.entry.secretary,model_govoo_register_entry,govoo_base.group_govoo_secretary,1,0,1,0
 access_govoo_register_entry_admin,govoo.register.entry.admin,model_govoo_register_entry,govoo_base.group_govoo_admin,1,0,1,0
 access_govoo_register_entry_auditor,govoo.register.entry.auditor,model_govoo_register_entry,govoo_base.group_govoo_auditor,1,0,0,0
