@@ -81,12 +81,20 @@ class TestPortal(HttpCase):
             'total_authorised': 1000,
             'company_id': cls.company.id,
         })
-        cls.holding = cls.env['govoo.share.holding'].create({
-            'partner_id': cls.user_shareholder.partner_id.id,
+        # govoo.share.holding.quantity/company_id are computed/related --
+        # not directly settable. Allot shares so a real holding exists
+        # (a direct holding .create() with quantity= is silently ignored,
+        # computing back to 0 from the absence of any allotment).
+        cls.env['govoo.share.allotment'].create({
             'share_class_id': cls.share_class.id,
+            'partner_id': cls.user_shareholder.partner_id.id,
             'quantity': 100,
-            'company_id': cls.company.id,
+            'date_allotted': '2026-01-01',
         })
+        cls.holding = cls.env['govoo.share.holding'].search([
+            ('partner_id', '=', cls.user_shareholder.partner_id.id),
+            ('share_class_id', '=', cls.share_class.id),
+        ], limit=1)
 
     def _password(self, login):
         # matches odoo.tests.common.new_test_user's auto-generated password
@@ -151,3 +159,81 @@ class TestPortal(HttpCase):
         self.assertEqual(len(vote), 1)
         self.assertEqual(vote.choice, 'for')
         self.assertEqual(vote.weight, 1.0)
+
+    def test_006_shareholder_vote_weight_from_voting_power(self):
+        """TC-WF-PORTAL-002: Shareholder Portal user views holdings, casts
+        a vote on an eligible shareholder resolution; weight is sourced
+        from their voting_power."""
+        # A resolution's company_id is related to meeting_id.company_id
+        # (null/false for a truly standalone written resolution) -- the
+        # shareholder eligibility rule needs a real company_id to match,
+        # so this uses an AGM-type meeting the shareholder isn't a portal
+        # member of (shareholder eligibility is holdings-based, not
+        # committee-membership-based).
+        agm_meeting = self.env['govoo.meeting'].create({
+            'name': 'Annual General Meeting',
+            'committee_id': self.committee_a.id,
+            'meeting_type': 'agm',
+            'date': '2026-04-01 10:00:00',
+            'company_id': self.company.id,
+        })
+        resolution = self.env['govoo.resolution'].create({
+            'title': 'Shareholder Resolution',
+            'resolution_type': 'ordinary',
+            'meeting_id': agm_meeting.id,
+        })
+        resolution.action_open()
+
+        self.authenticate('test_shareholder', self._password('test_shareholder'))
+        cast_page = self.url_open('/my/holdings/votes/%s/cast' % resolution.id)
+        match = re.search(r'name="csrf_token" value="([^"]+)"', cast_page.text)
+        self.assertIsNotNone(
+            match,
+            'Cast-vote page did not render as expected. status=%s url=%s body[:500]=%r'
+            % (cast_page.status_code, cast_page.url, cast_page.text[:500]),
+        )
+        csrf_token = match.group(1)
+        self.url_open(
+            '/my/holdings/votes/%s/cast' % resolution.id,
+            data={'vote_choice': 'for', 'csrf_token': csrf_token},
+        )
+
+        vote = self.env['govoo.vote'].sudo().search([
+            ('resolution_id', '=', resolution.id),
+            ('voter_id', '=', self.user_shareholder.partner_id.id),
+        ])
+        self.assertEqual(len(vote), 1)
+        self.assertEqual(vote.choice, 'for')
+        self.assertEqual(vote.weight, self.holding.voting_power)
+
+    def test_007_confidential_agenda_item_hidden_in_portal_view(self):
+        """TC-WF-BOARD-002 (partial -- see issue #58 comment): the portal
+        agenda view hides confidential item titles from a recipient.
+
+        The literal "authorized vs unauthorized recipient" distinction
+        from workflow-tests.md isn't implementable yet -- action_compile()
+        has no per-recipient authorization concept at all (tracked
+        separately as #51). What's tested here is what's actually
+        implemented today: confidential items are never shown by title to
+        any portal viewer, non-confidential ones are.
+        """
+        confidential_item = self.env['govoo.agenda.item'].create({
+            'meeting_id': self.meeting_a.id,
+            'title': 'Confidential Merger Discussion',
+            'item_type': 'discussion',
+            'sequence': 1,
+            'is_confidential': True,
+        })
+        open_item = self.env['govoo.agenda.item'].create({
+            'meeting_id': self.meeting_a.id,
+            'title': 'Approve Meeting Minutes',
+            'item_type': 'decision',
+            'sequence': 2,
+            'is_confidential': False,
+        })
+
+        self.authenticate('test_director_a', self._password('test_director_a'))
+        response = self.url_open('/my/meetings/%s' % self.meeting_a.id)
+
+        self.assertNotIn(confidential_item.title, response.text)
+        self.assertIn(open_item.title, response.text)
