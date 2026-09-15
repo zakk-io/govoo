@@ -71,6 +71,18 @@ class GovooMeetingTC(GovooBoardTestBase):
         with self.assertRaises(ValidationError):
             meeting.action_close()
 
+    def test_calendar_view_included_and_renders(self):
+        """Issue #50: govoo.meeting's action includes a Calendar view
+        (driven by date_end), and it renders without error."""
+        action = self.env.ref('govoo_board.govoo_meeting_action')
+        self.assertIn('calendar', action.view_mode.split(','))
+
+        calendar_view = self.env.ref('govoo_board.govoo_meeting_view_calendar')
+        arch = self.env['govoo.meeting'].get_view(
+            view_id=calendar_view.id, view_type='calendar',
+        )['arch']
+        self.assertIn('date_stop="date_end"', arch)
+
     def test_full_lifecycle_end_to_end(self):
         """TC-ACC-001: board-meeting-to-minutes end-to-end.
 
