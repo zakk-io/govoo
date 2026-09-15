@@ -48,7 +48,7 @@ class TestGovooCommittee(TransactionCase):
             committee.write({'parent_committee_id': committee.id})
 
     def test_committee_cycle_detection(self):
-        """TC-BASE-004: Cycle in committee hierarchy is rejected."""
+        """TC-BASE-004b: Cycle in committee hierarchy is rejected."""
         committee_a = self.env['govoo.committee'].create({
             'name': 'Committee A',
             'company_id': self.company.id,
