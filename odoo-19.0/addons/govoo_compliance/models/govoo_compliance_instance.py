@@ -70,10 +70,6 @@ class GovooComplianceInstance(models.Model):
         comodel_name='ir.attachment',
         string='Filing Document',
     )
-    attachment_id = fields.Many2one(
-        comodel_name='ir.attachment',
-        string='Filing Attachment',
-    )
     name = fields.Char(
         string='Name',
         compute='_compute_name',
@@ -196,9 +192,9 @@ class GovooComplianceInstance(models.Model):
             'res_model': self._name,
             'res_id': self.id,
         })
-        self.attachment_id = attachment
+        self.filing_document_id = attachment
         if self.env['govoo.feature.flags'].is_documents_app_installed():
-            # ir.attachment (self.attachment_id) remains the source of
+            # ir.attachment (self.filing_document_id) remains the source of
             # truth either way; this additionally files a copy into the
             # Documents workspace for clients with that app.
             self.env['documents.document'].sudo().create({
