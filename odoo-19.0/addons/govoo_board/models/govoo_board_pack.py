@@ -58,7 +58,12 @@ class GovooBoardPack(models.Model):
 
         Per-recipient redaction: confidential items are excluded for
         unauthorized recipients BEFORE generating their copy (BR-BOARD-003).
-        Feature-flagged: degrades to ir.attachment on Community.
+        Generates the merged master PDF (agenda + linked documents) and
+        attaches it as document_id; redaction of confidential items for
+        a given recipient's copy is applied at render time (portal view,
+        recipient.redacted_item_ids), not by producing a separate PDF
+        per recipient. Feature-flagged: degrades to ir.attachment on
+        Community.
         """
         for rec in self:
             agenda_items = rec.meeting_id.agenda_ids.sorted('sequence')
@@ -68,16 +73,36 @@ class GovooBoardPack(models.Model):
                 lambda p: p not in existing_partners,
             )
             for partner in new_partners:
-                # Determine redacted items: confidential + partner not authorized
+                # Per-recipient authorization (BR-BOARD-003): each
+                # recipient's redacted set depends on THEIR OWN
+                # authorization for each confidential item, not a
+                # single blanket list applied to everyone.
                 redacted = agenda_items.filtered(
-                    lambda item: item.is_confidential,
+                    lambda item, p=partner: not item._is_authorized_for(p),
                 )
                 self.env['govoo.board.pack.recipient'].create({
                     'pack_id': rec.id,
                     'partner_id': partner.id,
                     'redacted_item_ids': [(6, 0, redacted.ids)],
                 })
+            rec._generate_document()
             rec.state = 'compiled'
+
+    def _generate_document(self):
+        """Generate the merged master board pack PDF and attach it."""
+        self.ensure_one()
+        report = self.env.ref('govoo_board.action_report_board_pack')
+        pdf_content, _ = self.env['ir.actions.report']._render_qweb_pdf(
+            report.id, self.ids,
+        )
+        attachment = self.env['ir.attachment'].create({
+            'name': 'Board Pack - %s.pdf' % (self.meeting_id.name,),
+            'type': 'binary',
+            'datas': pdf_content,
+            'res_model': self._name,
+            'res_id': self.id,
+        })
+        self.document_id = attachment
 
     def action_distribute(self):
         """Distribute compiled pack to recipients via portal notification."""
