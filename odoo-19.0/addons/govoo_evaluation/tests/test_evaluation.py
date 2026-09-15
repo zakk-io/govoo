@@ -122,17 +122,20 @@ class TestEvaluation(GovooEvaluationTestBase):
         # Participant can read own input
         input_a.with_user(self.user_participant).read(['survey_id'])
 
+        # Issue #110 (fixed): self.user_participant holds BOTH
+        # group_govoo_user AND survey.group_survey_user (the latter only
+        # to let an internal test user submit a response via ORM at all --
+        # Director/Shareholder Portal is the real access path in
+        # production). Before the fix, group_survey_user's own
+        # near-unrestricted base rule silently OR-bypassed Govoo's
+        # confidentiality rule for exactly this combination. Proving the
+        # bypass is closed with the same user, not just a portal user
+        # that was never affected by it.
+        with self.assertRaises(AccessError):
+            input_b.with_user(self.user_participant).read(['survey_id'])
+
         # TC-ACC-010: non-authorized participant cannot read someone else's
-        # individual response. Uses a Director Portal user rather than
-        # self.user_participant (internal user + survey.group_survey_user)
-        # for this assertion: base survey's own ir.rule for
-        # group_survey_user ("officer: unrestricted survey or in
-        # restricted users") is nearly unrestricted and ORs with — and so
-        # defeats — the Govoo confidentiality rule for any user who also
-        # holds group_survey_user. That combination is only used here to
-        # let an internal test user submit a response at all (Director/
-        # Shareholder Portal is the real access path for evaluation
-        # participants) — tracked as a real confidentiality gap in #110.
+        # individual response, via the real (portal) access path too.
         outsider_user = new_test_user(
             self.env, login='test_eval_outsider',
             groups='govoo_base.group_govoo_director_portal',
