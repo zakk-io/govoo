@@ -7,7 +7,10 @@ class TestEvaluation(GovooEvaluationTestBase):
     """TC-EVAL-001..004: Evaluation campaign and result tests."""
 
     def test_001_aggregate_results_on_close(self):
-        """TC-EVAL-001: Results aggregate correctly from survey inputs."""
+        """TC-EVAL-001 / TC-WF-EVAL-001: campaign opened -> responses
+        collected -> closed -> results aggregated correctly. Individual
+        responses' inaccessibility to non-authorized participants is
+        covered by test_002_confidentiality_enforced."""
         # Create a suggested answer with a score
         answer = self.env['survey.question.answer'].create({
             'question_id': self.question.id,

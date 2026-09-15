@@ -45,6 +45,20 @@ class GovooAgendaItem(models.Model):
         default=False,
         help='Confidential items are redacted from board packs for unauthorized recipients.',
     )
+    authorized_partner_ids = fields.Many2many(
+        comodel_name='res.partner',
+        string='Additionally Authorized',
+        help='Partners authorized to see this confidential item in their '
+             'board pack copy, in addition to the presenter (BR-BOARD-003).',
+    )
+
+    def _is_authorized_for(self, partner):
+        """Whether partner is authorized to see this item despite it
+        being confidential (BR-BOARD-003)."""
+        self.ensure_one()
+        if not self.is_confidential:
+            return True
+        return partner == self.presenter_id or partner in self.authorized_partner_ids
     # Feature-flagged: ir.attachment (Community) / documents.document (Enterprise)
     document_ids = fields.Many2many(
         comodel_name='ir.attachment',
