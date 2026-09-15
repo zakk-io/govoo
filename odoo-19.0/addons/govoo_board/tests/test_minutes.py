@@ -158,6 +158,13 @@ class GovooMinutesAcceptanceTC(GovooBoardTestBase):
         })
         self.assertFalse(minutes.signed_document_id)
 
+        # BR-BOARD-008: signing is blocked unless e-signature legal validity
+        # is confirmed (or a signed document is manually uploaded) -- not
+        # this test's concern (Enterprise/Community feature-flagging),
+        # so confirm it to isolate that path.
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.e_signature_legally_confirmed', 'True',
+        )
         minutes.action_submit_for_approval()
         minutes.action_approve()
         minutes.action_sign()

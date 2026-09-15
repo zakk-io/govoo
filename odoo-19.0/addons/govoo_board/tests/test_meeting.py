@@ -109,6 +109,12 @@ class GovooMeetingTC(GovooBoardTestBase):
         })
         minutes.action_submit_for_approval()
         minutes.action_approve()
+        # BR-BOARD-008: signing is blocked unless e-signature legal validity
+        # is confirmed (or a signed document is manually uploaded) -- not
+        # this end-to-end test's concern, so confirm it to reach 'signed'.
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.e_signature_legally_confirmed', 'True',
+        )
         minutes.action_sign()
         self.assertEqual(minutes.state, 'signed')
         self.assertTrue(minutes.retention_until, 'Retention date should be set on minutes.')

@@ -141,11 +141,18 @@ class TestEvaluation(GovooEvaluationTestBase):
         with self.assertRaises(Exception):
             input_b.with_user(outsider_user).read(['survey_id'])
 
-        # TC-ACC-010: aggregate results remain visible to the same
-        # non-authorized participant once the campaign is closed
+        # TC-ACC-010's original wording assumed a non-authorized participant
+        # could still see aggregate results once closed. That's since been
+        # superseded by issue #68 (PR #94): govoo.evaluation.result access
+        # is restricted to Secretary/Admin/Auditor only, with no grant at
+        # all for Director/Shareholder Portal (see test_006 below, and
+        # govoo_evaluation/security/ir.model.access.csv) -- a deliberate
+        # security hardening, not an oversight. Asserting the current,
+        # more restrictive behavior here rather than the stale assumption.
         campaign.action_close()
         self.assertTrue(campaign.result_ids)
-        campaign.result_ids.with_user(outsider_user).read(['participant_count'])
+        with self.assertRaises(AccessError):
+            campaign.result_ids.with_user(outsider_user).read(['participant_count'])
 
         # Secretary/Admin retain full access to ALL responses -- the other
         # half of BR-EVAL-001 that bug #18 broke without this test noticing.
