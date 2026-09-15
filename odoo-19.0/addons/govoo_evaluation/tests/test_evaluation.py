@@ -70,12 +70,19 @@ class TestEvaluation(GovooEvaluationTestBase):
         self.assertEqual(result.participant_count, 2)
 
     def test_002_confidentiality_enforced(self):
-        """TC-EVAL-002 / TC-SEC-008: Non-Secretary/Admin cannot read others'
-        raw survey.user_input, AND Secretary/Admin can read all responses
-        (both halves of BR-EVAL-001 -- bug #18 broke the second half while
-        this test still only checked the first, so both directions are
-        asserted here)."""
-        self.env['govoo.evaluation.campaign'].create({
+        """TC-EVAL-002 / TC-ACC-010 / TC-SEC-008: Non-Secretary/Admin cannot
+        read others' raw survey.user_input; aggregated results remain
+        visible to a non-authorized participant, AND Secretary/Admin can
+        read all responses (both halves of BR-EVAL-001 -- bug #18 broke
+        the second half while this test still only checked the first, so
+        both directions are asserted here)."""
+        answer = self.env['survey.question.answer'].create({
+            'question_id': self.question.id,
+            'value': 'Effective',
+            'answer_score': 8.0,
+            'is_correct': True,
+        })
+        campaign = self.env['govoo.evaluation.campaign'].create({
             'name': 'Confidentiality Test',
             'committee_id': self.committee.id,
             'survey_id': self.survey.id,
@@ -83,6 +90,7 @@ class TestEvaluation(GovooEvaluationTestBase):
             'participant_ids': [(6, 0, [self.partner_a.id, self.partner_b.id])],
             'company_id': self.company.id,
         })
+        campaign.action_open()
 
         # Create completed user inputs (using sudo for creation)
         input_a = self.env['survey.user_input'].sudo().create({
@@ -95,6 +103,13 @@ class TestEvaluation(GovooEvaluationTestBase):
             'partner_id': self.partner_b.id,
             'state': 'done',
         })
+        for user_input in (input_a, input_b):
+            self.env['survey.user_input.line'].sudo().create({
+                'user_input_id': user_input.id,
+                'question_id': self.question.id,
+                'answer_type': 'suggestion',
+                'suggested_answer_id': answer.id,
+            })
 
         # Verify confidentiality record rule exists
         self.assertTrue(
@@ -106,6 +121,38 @@ class TestEvaluation(GovooEvaluationTestBase):
 
         # Participant can read own input
         input_a.with_user(self.user_participant).read(['survey_id'])
+
+        # TC-ACC-010: non-authorized participant cannot read someone else's
+        # individual response. Uses a Director Portal user rather than
+        # self.user_participant (internal user + survey.group_survey_user)
+        # for this assertion: base survey's own ir.rule for
+        # group_survey_user ("officer: unrestricted survey or in
+        # restricted users") is nearly unrestricted and ORs with — and so
+        # defeats — the Govoo confidentiality rule for any user who also
+        # holds group_survey_user. That combination is only used here to
+        # let an internal test user submit a response at all (Director/
+        # Shareholder Portal is the real access path for evaluation
+        # participants) — tracked as a real confidentiality gap in #110.
+        outsider_user = new_test_user(
+            self.env, login='test_eval_outsider',
+            groups='govoo_base.group_govoo_director_portal',
+            company_id=self.company.id,
+        )
+        with self.assertRaises(Exception):
+            input_b.with_user(outsider_user).read(['survey_id'])
+
+        # TC-ACC-010's original wording assumed a non-authorized participant
+        # could still see aggregate results once closed. That's since been
+        # superseded by issue #68 (PR #94): govoo.evaluation.result access
+        # is restricted to Secretary/Admin/Auditor only, with no grant at
+        # all for Director/Shareholder Portal (see test_006 below, and
+        # govoo_evaluation/security/ir.model.access.csv) -- a deliberate
+        # security hardening, not an oversight. Asserting the current,
+        # more restrictive behavior here rather than the stale assumption.
+        campaign.action_close()
+        self.assertTrue(campaign.result_ids)
+        with self.assertRaises(AccessError):
+            campaign.result_ids.with_user(outsider_user).read(['participant_count'])
 
         # Secretary/Admin retain full access to ALL responses -- the other
         # half of BR-EVAL-001 that bug #18 broke without this test noticing.

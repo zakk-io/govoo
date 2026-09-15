@@ -34,7 +34,8 @@ class TestRegisterEntry(TransactionCase):
         self.assertEqual(entries[0].change_type, 'create')
 
     def test_entry_write_rejected(self):
-        """TC-SEC-STAT-005: Any user cannot write on register.entry."""
+        """TC-SEC-STAT-005 / TC-ACC-008: Any user, including Board
+        Administrator, cannot write on register.entry (append-only ledger)."""
         entry = self.env['govoo.register.entry'].create({
             'register_model': 'test.model',
             'res_id': 1,
@@ -46,7 +47,8 @@ class TestRegisterEntry(TransactionCase):
             entry.write({'notes': 'tamper attempt'})
 
     def test_entry_unlink_rejected(self):
-        """TC-SEC-STAT-005: Any user cannot unlink register.entry."""
+        """TC-SEC-STAT-005 / TC-ACC-008: Any user, including Board
+        Administrator, cannot unlink register.entry (append-only ledger)."""
         entry = self.env['govoo.register.entry'].create({
             'register_model': 'test.model',
             'res_id': 1,

@@ -136,3 +136,37 @@ class TestMinutesWorkflow(GovooBoardTestBase):
             year=minutes.create_date.year + 10,
         )
         self.assertEqual(minutes.retention_until, expected_retention)
+
+
+@tagged('post_install', '-at_install', 'govoo_board')
+class GovooMinutesAcceptanceTC(GovooBoardTestBase):
+    """TC-ACC-009: Enterprise feature graceful degradation."""
+
+    def test_sign_completes_without_sign_app_or_signed_document(self):
+        """TC-ACC-009: minutes reach 'signed' on Community, with no Sign
+        app and no signed_document_id attached, without an unhandled
+        error. Signing is feature-flagged (ir.attachment on Community vs
+        documents.document on Enterprise) and must not hard-depend on
+        either being present."""
+        meeting = self._make_meeting()
+        meeting.action_schedule()
+        meeting.action_hold()
+
+        minutes = self.env['govoo.minutes'].create({
+            'meeting_id': meeting.id,
+            'body': '<p>Minutes content.</p>',
+        })
+        self.assertFalse(minutes.signed_document_id)
+
+        # BR-BOARD-008: signing is blocked unless e-signature legal validity
+        # is confirmed (or a signed document is manually uploaded) -- not
+        # this test's concern (Enterprise/Community feature-flagging),
+        # so confirm it to isolate that path.
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.e_signature_legally_confirmed', 'True',
+        )
+        minutes.action_submit_for_approval()
+        minutes.action_approve()
+        minutes.action_sign()
+
+        self.assertEqual(minutes.state, 'signed')
