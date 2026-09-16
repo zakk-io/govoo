@@ -89,10 +89,22 @@
                             <field name="resolution_ids"/>
                         </page>
                         <page string="Pack" name="pack">
-                            <field name="pack_id"/>
+                            <div class="alert alert-info" role="alert" invisible="pack_id">
+                                No board pack has been compiled for this meeting yet.
+                                <button name="action_create_pack" type="object"
+                                        string="Compile Board Pack" class="btn-link"
+                                        groups="govoo_base.group_govoo_secretary"/>
+                            </div>
+                            <field name="pack_id" invisible="not pack_id"/>
                         </page>
                         <page string="Minutes" name="minutes">
-                            <field name="minutes_id"
+                            <div class="alert alert-info" role="alert" invisible="minutes_id">
+                                Minutes have not been drafted yet.
+                                <button name="action_create_minutes" type="object"
+                                        string="Draft Minutes" class="btn-link"
+                                        groups="govoo_base.group_govoo_secretary"/>
+                            </div>
+                            <field name="minutes_id" invisible="not minutes_id"
                                    context="{'default_meeting_id': id}"
                                    domain="[('meeting_id', '=', id)]"/>
                         </page>
