@@ -89,3 +89,15 @@ class GovooAppointment(models.Model):
                     raise ValidationError(
                         _('Date Resigned must be greater than or equal to Date Appointed.')
                     )
+
+    @api.depends('partner_id.name', 'role')
+    def _compute_display_name(self):
+        # No plain-text field on this model (a Many2one can't be used as
+        # _rec_name -- its default display conversion is str(recordset),
+        # not the related record's display name), so display_name would
+        # otherwise fall back to the raw "govoo.appointment,<id>" string.
+        role_labels = dict(self._fields['role']._description_selection(self.env))
+        for rec in self:
+            role_label = role_labels.get(rec.role, rec.role)
+            rec.display_name = '%s — %s' % (rec.partner_id.name, role_label) \
+                if rec.partner_id else role_label

@@ -9,6 +9,7 @@ class GovooResolution(models.Model):
     _description = 'Resolution'
     _inherit = ['mail.thread', 'mail.activity.mixin', 'portal.mixin']
     _order = 'create_date desc'
+    _rec_name = 'title'
 
     meeting_id = fields.Many2one(
         comodel_name='govoo.meeting',
