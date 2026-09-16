@@ -305,7 +305,12 @@ class GovooResolution(models.Model):
             else:
                 rec.state = 'failed'
                 rec.result = 'failed'
+            # Otherwise action_open's "Vote on resolution" activity nags as
+            # overdue forever on a resolution that no longer needs a vote
+            # (issue #154).
+            rec.activity_feedback(['mail.mail_activity_data_todo'])
 
     def action_withdraw(self):
         self._validate_state_transition('withdrawn')
         self.write({'state': 'withdrawn'})
+        self.activity_feedback(['mail.mail_activity_data_todo'])
