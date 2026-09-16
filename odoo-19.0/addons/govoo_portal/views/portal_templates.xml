@@ -157,6 +157,11 @@
                                     Some confidential agenda items were excluded from your copy.
                                 </t>
                             </p>
+                            <a t-if="meeting.pack_id.document_id"
+                               t-attf-href="/my/meetings/#{meeting.id}/pack?access_token=#{token}"
+                               class="btn btn-primary">
+                                <i class="fa fa-download me-1"/> Download Board Pack
+                            </a>
                         </t>
                         <t t-else="">
                             <p class="text-muted">Not yet distributed to you.</p>

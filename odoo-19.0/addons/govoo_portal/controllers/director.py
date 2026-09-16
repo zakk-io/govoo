@@ -36,10 +36,14 @@ class DirectorPortal(CustomerPortal):
         values = self._prepare_portal_layout_values()
         partner = request.env.user.partner_id
 
-        # Get committees this partner belongs to
+        # Get committees this partner belongs to. Any non-secretary role
+        # (director/chair/md/committee_member) counts as membership, same
+        # as govoo.committee.member_ids's own domain -- a Chairperson or
+        # MD appointed directly to the Board (role='chair'/'md', not
+        # 'committee_member') must still see their own Board meetings.
         committee_ids = request.env['govoo.appointment'].sudo().search([
             ('partner_id', '=', partner.id),
-            ('role', '=', 'committee_member'),
+            ('role', '!=', 'secretary'),
             ('state', '=', 'active'),
         ]).mapped('committee_id')
 
@@ -66,6 +70,35 @@ class DirectorPortal(CustomerPortal):
             'default_url': '/my/meetings',
         })
         return request.render('govoo_portal.portal_my_meetings', values)
+
+    @http.route('/my/meetings/<int:meeting_id>/pack', type='http', auth='user', website=True)
+    def portal_my_meeting_pack(self, meeting_id, access_token=None, **kw):
+        """Download the compiled board pack PDF -- gated on the same
+        meeting access check as the meeting detail page itself, plus a
+        check that this partner is an actual pack recipient (BR-SEC-006:
+        no share-link-only bypass; being sent the pack is required, not
+        just being able to read the meeting)."""
+        try:
+            meeting_sudo = self._document_check_access(
+                'govoo.meeting', meeting_id, access_token,
+            )
+        except (AccessError, MissingError):
+            return request.redirect('/my')
+
+        partner = request.env.user.partner_id
+        if not meeting_sudo.pack_id or not meeting_sudo.pack_id.document_id:
+            return request.redirect('/my/meetings/%d?access_token=%s' % (meeting_id, access_token or ''))
+        recipient = request.env['govoo.board.pack.recipient'].sudo().search([
+            ('pack_id', '=', meeting_sudo.pack_id.id),
+            ('partner_id', '=', partner.id),
+        ], limit=1)
+        if not recipient:
+            return request.redirect('/my/meetings/%d?access_token=%s' % (meeting_id, access_token or ''))
+
+        stream = request.env['ir.binary']._get_stream_from(
+            meeting_sudo.pack_id.document_id, filename_field='name',
+        )
+        return stream.get_response(as_attachment=True)
 
     @http.route('/my/meetings/<int:meeting_id>', type='http', auth='user', website=True)
     def portal_my_meeting(self, meeting_id, access_token=None, **kw):
@@ -101,10 +134,11 @@ class DirectorPortal(CustomerPortal):
         values = self._prepare_portal_layout_values()
         partner = request.env.user.partner_id
 
-        # Get committees this partner belongs to
+        # Get committees this partner belongs to (see portal_my_meetings
+        # for why 'role != secretary' rather than just 'committee_member').
         committee_ids = request.env['govoo.appointment'].sudo().search([
             ('partner_id', '=', partner.id),
-            ('role', '=', 'committee_member'),
+            ('role', '!=', 'secretary'),
             ('state', '=', 'active'),
         ]).mapped('committee_id')
 
