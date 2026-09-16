@@ -1,5 +1,7 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
+import base64
+
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
@@ -98,10 +100,15 @@ class GovooBoardPack(models.Model):
         pdf_content, _ = self.env['ir.actions.report']._render_qweb_pdf(
             report.id, self.ids,
         )
+        # _render_qweb_pdf returns raw PDF bytes, but ir.attachment.datas
+        # is a Binary field that expects base64 -- writing the raw bytes
+        # directly silently base64-decodes them into garbage, producing
+        # an attachment that looks fine (right mimetype/name) but isn't
+        # a valid PDF at all.
         attachment = self.env['ir.attachment'].create({
             'name': 'Board Pack - %s.pdf' % (self.meeting_id.name,),
             'type': 'binary',
-            'datas': pdf_content,
+            'datas': base64.b64encode(pdf_content),
             'res_model': self._name,
             'res_id': self.id,
         })

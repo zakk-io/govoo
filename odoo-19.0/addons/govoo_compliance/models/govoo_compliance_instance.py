@@ -1,5 +1,7 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
+import base64
+
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
@@ -188,7 +190,10 @@ class GovooComplianceInstance(models.Model):
                 self.obligation_id.name, self.period or 'N/A',
             ),
             'type': 'binary',
-            'datas': pdf_content,
+            # _render_qweb_pdf returns raw PDF bytes; ir.attachment.datas
+            # expects base64 (see the same fix/comment in
+            # govoo_board_pack.py's _generate_document).
+            'datas': base64.b64encode(pdf_content),
             'res_model': self._name,
             'res_id': self.id,
         })

@@ -1,5 +1,7 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
+import base64
+
 from odoo.tests import tagged
 
 from .common import GovooBoardTestBase
@@ -17,6 +19,26 @@ class GovooBoardPackTC(GovooBoardTestBase):
         pack.action_compile()
         self.assertTrue(pack.document_id, 'Compiling a pack should generate and attach a document.')
         self.assertEqual(pack.state, 'compiled')
+        # Regression guard: _render_qweb_pdf returns raw bytes, and
+        # ir.attachment.datas expects base64 -- writing the raw bytes
+        # directly silently produces an attachment with the right
+        # mimetype/name but corrupted, unopenable content.
+        #
+        # Not asserting a literal %PDF- header here: test mode
+        # deliberately substitutes plain HTML for the real wkhtmltopdf
+        # render (ir_actions_report.py's own documented fallback, "In
+        # case of test environment without enough workers to perform
+        # calls to wkhtmltopdf"), and forcing the real renderer via
+        # force_report_rendering deadlocks this single-worker test
+        # server (wkhtmltopdf calls back into the same blocked HTTP
+        # server). Decoding cleanly as UTF-8 and containing the
+        # report's own heading is enough to catch the base64 bug either
+        # way, without depending on wkhtmltopdf being available.
+        content = base64.b64decode(pack.document_id.datas).decode('utf-8')
+        self.assertIn(
+            'Board Pack', content,
+            'The compiled board pack attachment content is corrupted (not valid decoded report output).',
+        )
 
     def test_redaction_is_per_recipient_not_blanket(self):
         """TC-ACC / BR-BOARD-003: two recipients can have different

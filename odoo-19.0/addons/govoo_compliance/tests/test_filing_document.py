@@ -1,5 +1,7 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
+import base64
+
 from odoo.tests import tagged
 
 from .common import GovooComplianceTestBase
@@ -35,4 +37,15 @@ class GovooComplianceFilingDocumentTC(GovooComplianceTestBase):
         self.assertTrue(
             instance.filing_document_id,
             'action_generate_filing_pack() should set filing_document_id.',
+        )
+        # Regression guard: same base64-encoding bug class as
+        # govoo_board_pack.py's _generate_document (see the detailed
+        # comment in test_board_pack.py for why this checks decoded
+        # UTF-8 content rather than a %PDF- header -- forcing real
+        # wkhtmltopdf rendering deadlocks this single-worker test
+        # server).
+        content = base64.b64decode(instance.filing_document_id.datas).decode('utf-8')
+        self.assertIn(
+            'Filing Pack', content,
+            'The generated filing pack attachment content is corrupted (not valid decoded report output).',
         )
