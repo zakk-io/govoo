@@ -9,7 +9,10 @@
         <t t-call="portal.portal_layout">
             <div class="container mt-4">
                 <h3>Welcome, <t t-esc="user.name"/></h3>
-                <p class="text-muted">Portal type: <t t-esc="portal_type"/></p>
+                <p class="text-muted">
+                    <t t-if="portal_type == 'director'">Director Portal</t>
+                    <t t-elif="portal_type == 'shareholder'">Shareholder Portal</t>
+                </p>
 
                 <div class="row mt-4">
                     <div class="col-md-4">
