@@ -10,7 +10,7 @@
                 <field name="meeting_type"/>
                 <field name="committee_id"/>
                 <field name="date"/>
-                <field name="quorum_met" widget="boolean_toggle"/>
+                <field name="quorum_met"/>
                 <field name="state" widget="badge"
                        decoration-success="state in ('held', 'minuted', 'closed')"
                        decoration-info="state == 'scheduled'"
