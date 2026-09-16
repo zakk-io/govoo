@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Governance top-level menu -->
+    <!-- clagov top-level menu -->
     <menuitem id="govoo_menu_root"
-              name="Governance"
+              name="clagov"
               sequence="100"
               web_icon="govoo_base,static/description/icon.png"/>
 
