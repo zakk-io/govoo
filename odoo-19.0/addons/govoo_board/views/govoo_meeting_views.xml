@@ -42,11 +42,12 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button name="action_view_agenda" type="object"
-                                class="oe_stat_button" icon="fa-list"
-                                invisible="not agenda_count">
-                            <field name="agenda_count" widget="statinfo" string="Agenda"/>
-                        </button>
+                        <!-- Agenda has no smart button: docs/spec/ui/views.md's
+                             govoo.agenda.item row requires an inline editable
+                             list on this form, which the Agenda tab below
+                             provides directly; a smart button here would
+                             just be a second, read-only path to the same
+                             data (issue #151). -->
                         <button name="action_view_pack" type="object"
                                 class="oe_stat_button" icon="fa-archive"
                                 invisible="not pack_count">
@@ -82,19 +83,13 @@
                         <field name="attendee_ids" widget="many2many_tags"/>
                     </group>
                     <notebook>
+                        <!-- Pack, Minutes, and Resolutions are reachable via
+                             their smart buttons above only; see issue #151
+                             (they used to also have a notebook tab here,
+                             duplicating the same data via a second
+                             navigation idiom). -->
                         <page string="Agenda" name="agenda">
                             <field name="agenda_ids"/>
-                        </page>
-                        <page string="Resolutions" name="resolutions">
-                            <field name="resolution_ids"/>
-                        </page>
-                        <page string="Pack" name="pack">
-                            <field name="pack_id"/>
-                        </page>
-                        <page string="Minutes" name="minutes">
-                            <field name="minutes_id"
-                                   context="{'default_meeting_id': id}"
-                                   domain="[('meeting_id', '=', id)]"/>
                         </page>
                     </notebook>
                 </sheet>
