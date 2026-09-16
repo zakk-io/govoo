@@ -53,6 +53,17 @@ class GovooRegisterDirector(models.Model):
     # [CONFIRM] exact statutory particulars required on printed extract (FR-SEC-001)
     # Additional fields TBD by legal advisor
 
+    @api.depends('partner_id.name', 'role')
+    def _compute_display_name(self):
+        # Same rationale as govoo.appointment._compute_display_name: no
+        # plain-text field to use as _rec_name, so display_name would
+        # otherwise fall back to "govoo.register.director,<id>".
+        role_labels = dict(self._fields['role']._description_selection(self.env))
+        for rec in self:
+            role_label = role_labels.get(rec.role, rec.role)
+            rec.display_name = '%s — %s' % (rec.partner_id.name, role_label) \
+                if rec.partner_id else role_label
+
     def _audit_log(self, change_type, effective_date):
         self.env['govoo.register.entry']._log_entry(
             register_model='govoo.register.director',

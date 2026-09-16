@@ -9,6 +9,7 @@ class GovooResolution(models.Model):
     _description = 'Resolution'
     _inherit = ['mail.thread', 'mail.activity.mixin', 'portal.mixin']
     _order = 'create_date desc'
+    _rec_name = 'title'
 
     meeting_id = fields.Many2one(
         comodel_name='govoo.meeting',
@@ -66,6 +67,13 @@ class GovooResolution(models.Model):
     vote_count = fields.Integer(
         string='Votes',
         compute='_compute_vote_count',
+    )
+    requires_my_vote = fields.Boolean(
+        string='Requires My Vote',
+        compute='_compute_requires_my_vote',
+        search='_search_requires_my_vote',
+        help='Open resolution with no vote yet cast by the current user '
+             '(dashboards.md §1: "absence of own vote row").',
     )
     result = fields.Selection(
         selection=[
@@ -150,6 +158,33 @@ class GovooResolution(models.Model):
     def _compute_vote_count(self):
         for rec in self:
             rec.vote_count = len(rec.vote_ids)
+
+    @api.depends_context('uid')
+    @api.depends('state', 'vote_ids.voter_id')
+    def _compute_requires_my_vote(self):
+        partner = self.env.user.partner_id
+        for rec in self:
+            rec.requires_my_vote = (
+                rec.state == 'open' and partner not in rec.vote_ids.voter_id
+            )
+
+    def _search_requires_my_vote(self, operator, value):
+        # Boolean domain leaves are normalized by the ORM to 'in'/'not in'
+        # with a set (e.g. ('requires_my_vote', 'in', {True})), not just
+        # plain '='/'!=' with a scalar -- handle both forms.
+        if isinstance(value, (list, tuple, set, frozenset)):
+            wants_true = True in value
+        else:
+            wants_true = bool(value)
+        if operator in ('!=', 'not in'):
+            wants_true = not wants_true
+        partner = self.env.user.partner_id
+        matching_ids = self.search([('state', '=', 'open')]).filtered(
+            lambda rec: partner not in rec.vote_ids.voter_id
+        ).ids
+        if wants_true:
+            return [('id', 'in', matching_ids)]
+        return [('id', 'not in', matching_ids)]
 
     def action_view_votes(self):
         self.ensure_one()
@@ -270,7 +305,12 @@ class GovooResolution(models.Model):
             else:
                 rec.state = 'failed'
                 rec.result = 'failed'
+            # Otherwise action_open's "Vote on resolution" activity nags as
+            # overdue forever on a resolution that no longer needs a vote
+            # (issue #154).
+            rec.activity_feedback(['mail.mail_activity_data_todo'])
 
     def action_withdraw(self):
         self._validate_state_transition('withdrawn')
         self.write({'state': 'withdrawn'})
+        self.activity_feedback(['mail.mail_activity_data_todo'])

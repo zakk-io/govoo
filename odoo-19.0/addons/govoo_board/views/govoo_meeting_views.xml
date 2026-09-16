@@ -10,7 +10,7 @@
                 <field name="meeting_type"/>
                 <field name="committee_id"/>
                 <field name="date"/>
-                <field name="quorum_met" widget="boolean_toggle"/>
+                <field name="quorum_met"/>
                 <field name="state" widget="badge"
                        decoration-success="state in ('held', 'minuted', 'closed')"
                        decoration-info="state == 'scheduled'"
@@ -42,11 +42,12 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button name="action_view_agenda" type="object"
-                                class="oe_stat_button" icon="fa-list"
-                                invisible="not agenda_count">
-                            <field name="agenda_count" widget="statinfo" string="Agenda"/>
-                        </button>
+                        <!-- Agenda has no smart button: docs/spec/ui/views.md's
+                             govoo.agenda.item row requires an inline editable
+                             list on this form, which the Agenda tab below
+                             provides directly; a smart button here would
+                             just be a second, read-only path to the same
+                             data (issue #151). -->
                         <button name="action_view_pack" type="object"
                                 class="oe_stat_button" icon="fa-archive"
                                 invisible="not pack_count">
@@ -62,6 +63,18 @@
                                 invisible="not resolution_count">
                             <field name="resolution_count" widget="statinfo" string="Resolutions"/>
                         </button>
+                    </div>
+                    <div class="alert alert-info" role="alert" invisible="pack_id">
+                        No board pack has been compiled for this meeting yet.
+                        <button name="action_create_pack" type="object"
+                                string="Compile Board Pack" class="btn-link"
+                                groups="govoo_base.group_govoo_secretary"/>
+                    </div>
+                    <div class="alert alert-info" role="alert" invisible="minutes_id">
+                        Minutes have not been drafted yet.
+                        <button name="action_create_minutes" type="object"
+                                string="Draft Minutes" class="btn-link"
+                                groups="govoo_base.group_govoo_secretary"/>
                     </div>
                     <group>
                         <group>
@@ -82,31 +95,13 @@
                         <field name="attendee_ids" widget="many2many_tags"/>
                     </group>
                     <notebook>
+                        <!-- Pack, Minutes, and Resolutions are reachable via
+                             their smart buttons above only; see issue #151
+                             (they used to also have a notebook tab here,
+                             duplicating the same data via a second
+                             navigation idiom). -->
                         <page string="Agenda" name="agenda">
                             <field name="agenda_ids"/>
-                        </page>
-                        <page string="Resolutions" name="resolutions">
-                            <field name="resolution_ids"/>
-                        </page>
-                        <page string="Pack" name="pack">
-                            <div class="alert alert-info" role="alert" invisible="pack_id">
-                                No board pack has been compiled for this meeting yet.
-                                <button name="action_create_pack" type="object"
-                                        string="Compile Board Pack" class="btn-link"
-                                        groups="govoo_base.group_govoo_secretary"/>
-                            </div>
-                            <field name="pack_id" invisible="not pack_id"/>
-                        </page>
-                        <page string="Minutes" name="minutes">
-                            <div class="alert alert-info" role="alert" invisible="minutes_id">
-                                Minutes have not been drafted yet.
-                                <button name="action_create_minutes" type="object"
-                                        string="Draft Minutes" class="btn-link"
-                                        groups="govoo_base.group_govoo_secretary"/>
-                            </div>
-                            <field name="minutes_id" invisible="not minutes_id"
-                                   context="{'default_meeting_id': id}"
-                                   domain="[('meeting_id', '=', id)]"/>
                         </page>
                     </notebook>
                 </sheet>

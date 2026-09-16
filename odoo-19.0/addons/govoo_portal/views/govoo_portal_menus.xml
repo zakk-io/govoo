@@ -25,22 +25,21 @@
         </field>
     </record>
 
-    <!-- Dashboard action -->
-    <record id="action_govoo_dashboard" model="ir.actions.act_window">
-        <field name="name">Dashboard</field>
+    <!-- Dashboard: Upcoming Meetings (embedded in the board below) -->
+    <record id="action_govoo_dashboard_meetings" model="ir.actions.act_window">
+        <field name="name">Upcoming Meetings</field>
         <field name="res_model">govoo.meeting</field>
         <field name="view_mode">list</field>
         <field name="search_view_id" ref="govoo_dashboard_meeting_search"/>
-        <field name="context">{'search_default_filter_upcoming': 1}</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Welcome to Govoo — Corporate Governance Platform
-            </p>
-            <p>
-                Use the left menu to navigate between Governance, Ownership,
-                Statutory Registers, Compliance, and Evaluations.
-            </p>
-        </field>
+        <field name="domain">[('state', 'in', ('draft', 'scheduled'))]</field>
+    </record>
+
+    <!-- Dashboard: Open Resolutions Requiring My Vote (embedded below) -->
+    <record id="action_govoo_dashboard_my_votes" model="ir.actions.act_window">
+        <field name="name">Open Resolutions Requiring My Vote</field>
+        <field name="res_model">govoo.resolution</field>
+        <field name="view_mode">list</field>
+        <field name="domain">[('requires_my_vote', '=', True)]</field>
     </record>
 
     <!-- ============================================================ -->
@@ -130,13 +129,45 @@
     </record>
 
     <!-- ============================================================ -->
-    <!-- Dashboard: Evaluation Trend (Graph)                           -->
+    <!-- Consolidated landing dashboard (dashboards.md §1).            -->
+    <!-- Evaluation trend, cap table and recent register changes are   -->
+    <!-- deferred to a follow-up pass; see issue #150.                 -->
     <!-- ============================================================ -->
 
-    <record id="action_evaluation_trend_dashboard" model="ir.actions.act_window">
-        <field name="name">Evaluation Trends</field>
-        <field name="res_model">govoo.evaluation.result</field>
-        <field name="view_mode">graph,pivot</field>
+    <record id="govoo_board_dashboard_view" model="ir.ui.view">
+        <field name="name">govoo.dashboard.board</field>
+        <field name="model">board.board</field>
+        <field name="arch" type="xml">
+            <form string="Governance Dashboard">
+                <board style="2-1">
+                    <column>
+                        <!-- The board widget's action tag only reads
+                             domain/context from its OWN attributes, not
+                             from the referenced action record's stored
+                             domain/context; both must be repeated here. -->
+                        <action name="%(action_govoo_dashboard_meetings)d"
+                                string="Upcoming Meetings"
+                                domain="[('state', 'in', ('draft', 'scheduled'))]"/>
+                        <action name="%(action_govoo_dashboard_my_votes)d"
+                                string="Open Resolutions Requiring My Vote"
+                                domain="[('requires_my_vote', '=', True)]"/>
+                    </column>
+                    <column>
+                        <action name="%(action_compliance_rag_dashboard)d"
+                                string="Compliance RAG Summary"
+                                context="{'search_default_filter_active': 1}"/>
+                    </column>
+                </board>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_govoo_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">board.board</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="govoo_board_dashboard_view"/>
+        <field name="context">{'disable_toolbar': True}</field>
     </record>
 
     <!-- ============================================================ -->
@@ -148,17 +179,5 @@
               parent="govoo_base.govoo_menu_root"
               sequence="5"
               action="action_govoo_dashboard"/>
-
-    <menuitem id="govoo_menu_dashboard_compliance"
-              name="Compliance RAG"
-              parent="govoo_base.govoo_menu_root"
-              sequence="8"
-              action="action_compliance_rag_dashboard"/>
-
-    <menuitem id="govoo_menu_dashboard_evaluation"
-              name="Evaluation Trends"
-              parent="govoo_base.govoo_menu_root"
-              sequence="9"
-              action="action_evaluation_trend_dashboard"/>
 
 </odoo>

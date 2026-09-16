@@ -246,6 +246,46 @@ class GovooResolutionTC(GovooBoardTestBase):
         with self.assertRaises(ValidationError):
             resolution.sign_request_id = attachment
 
+    def test_tally_marks_vote_activity_done(self):
+        """Issue #154: reaching a terminal state via action_tally() must
+        clear the "Vote on resolution" activity scheduled by action_open(),
+        not leave it nagging as overdue forever."""
+        meeting = self._make_meeting()
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+        self.assertTrue(
+            resolution.activity_ids.filtered(
+                lambda a: a.activity_type_id == self.env.ref('mail.mail_activity_data_todo'),
+            ),
+        )
+        for partner in [self.partner_a, self.partner_b, self.partner_c]:
+            self.env['govoo.vote'].create({
+                'resolution_id': resolution.id,
+                'voter_id': partner.id,
+                'choice': 'for',
+            })
+        resolution.action_tally()
+        self.assertEqual(resolution.state, 'passed')
+        self.assertFalse(
+            resolution.activity_ids.filtered(
+                lambda a: a.activity_type_id == self.env.ref('mail.mail_activity_data_todo'),
+            ),
+        )
+
+    def test_withdraw_marks_vote_activity_done(self):
+        """Issue #154: withdrawing an open resolution must also clear the
+        "Vote on resolution" activity."""
+        meeting = self._make_meeting()
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+        resolution.action_withdraw()
+        self.assertEqual(resolution.state, 'withdrawn')
+        self.assertFalse(
+            resolution.activity_ids.filtered(
+                lambda a: a.activity_type_id == self.env.ref('mail.mail_activity_data_todo'),
+            ),
+        )
+
     def test_sign_request_allowed_when_legally_confirmed(self):
         """Once confirmed, sign_request_id can be set."""
         self.env['ir.config_parameter'].sudo().set_param(

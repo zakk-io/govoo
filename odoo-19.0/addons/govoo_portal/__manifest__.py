@@ -24,6 +24,7 @@ owned by other Govoo modules.
         'govoo_evaluation',
         'portal',
         'website',
+        'board',
     ],
     'data': [
         'views/portal_templates.xml',
