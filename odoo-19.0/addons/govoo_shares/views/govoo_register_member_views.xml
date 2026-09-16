@@ -17,7 +17,7 @@
                                 <field name="share_class_id"/>
                                 <field name="quantity"/>
                                 <field name="percentage"/>
-                                <field name="voting_power"/>
+                                <field name="voting_power" options="{'hide_trailing_zeros': True}"/>
                             </list>
                         </field>
                     </page>

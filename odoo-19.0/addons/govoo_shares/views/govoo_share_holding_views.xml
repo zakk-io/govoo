@@ -10,7 +10,7 @@
                 <field name="partner_id"/>
                 <field name="quantity"/>
                 <field name="percentage" widget="progressbar"/>
-                <field name="voting_power"/>
+                <field name="voting_power" options="{'hide_trailing_zeros': True}"/>
                 <field name="company_id" groups="base.group_multi_company"/>
             </list>
         </field>
@@ -30,7 +30,7 @@
                         <group>
                             <field name="quantity"/>
                             <field name="percentage"/>
-                            <field name="voting_power"/>
+                            <field name="voting_power" options="{'hide_trailing_zeros': True}"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                     </group>
