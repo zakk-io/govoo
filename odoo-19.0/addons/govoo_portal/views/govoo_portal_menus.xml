@@ -142,19 +142,34 @@
                 <board style="2-1">
                     <column>
                         <!-- The board widget's action tag only reads
-                             domain/context from its OWN attributes, not
-                             from the referenced action record's stored
-                             domain/context; both must be repeated here. -->
+                             domain/context/view_mode from its OWN
+                             attributes, not from the referenced action
+                             record's stored values; all must be repeated
+                             here. view_mode and context are set explicitly
+                             (even when they'd just match the action's own
+                             default) because Odoo's board widget
+                             re-serializes every action tag's attributes
+                             verbatim, as the literal string "null", the
+                             first time a user touches the dashboard layout
+                             (drag, fold, or "Change Layout"); an omitted
+                             attribute here becomes view_mode="null" on
+                             save, permanently corrupting the dashboard for
+                             that user. -->
                         <action name="%(action_govoo_dashboard_meetings)d"
                                 string="Upcoming Meetings"
+                                view_mode="list"
+                                context="{}"
                                 domain="[('state', 'in', ('draft', 'scheduled'))]"/>
                         <action name="%(action_govoo_dashboard_my_votes)d"
                                 string="Open Resolutions Requiring My Vote"
+                                view_mode="list"
+                                context="{}"
                                 domain="[('requires_my_vote', '=', True)]"/>
                     </column>
                     <column>
                         <action name="%(action_compliance_rag_dashboard)d"
                                 string="Compliance RAG Summary"
+                                view_mode="kanban"
                                 context="{'search_default_filter_active': 1}"/>
                     </column>
                 </board>
