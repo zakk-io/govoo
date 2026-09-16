@@ -8,8 +8,8 @@
             <list>
                 <field name="partner_id"/>
                 <field name="role"/>
-                <field name="date_appointed"/>
-                <field name="date_resigned"/>
+                <field name="date_appointed" width="130px"/>
+                <field name="date_resigned" width="130px"/>
                 <field name="state"/>
                 <field name="company_id" groups="base.group_multi_company"/>
             </list>
