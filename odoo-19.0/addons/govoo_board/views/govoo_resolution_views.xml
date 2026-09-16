@@ -69,7 +69,7 @@
                                 <list editable="bottom">
                                     <field name="voter_id"/>
                                     <field name="choice"/>
-                                    <field name="weight"/>
+                                    <field name="weight" options="{'hide_trailing_zeros': True}"/>
                                     <field name="is_conflicted"/>
                                     <field name="timestamp"/>
                                 </list>

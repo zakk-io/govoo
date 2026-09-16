@@ -12,7 +12,7 @@
                        decoration-success="choice == 'for'"
                        decoration-danger="choice == 'against'"
                        decoration-warning="choice == 'abstain'"/>
-                <field name="weight"/>
+                <field name="weight" options="{'hide_trailing_zeros': True}"/>
                 <field name="is_conflicted" widget="boolean_toggle"/>
                 <field name="timestamp"/>
             </list>
@@ -33,7 +33,7 @@
                         <field name="choice" widget="badge"
                                decoration-success="choice == 'for'"
                                decoration-danger="choice == 'against'"/>
-                        <field name="weight"/>
+                        <field name="weight" options="{'hide_trailing_zeros': True}"/>
                     </t>
                 </templates>
             </kanban>
