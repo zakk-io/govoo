@@ -184,6 +184,35 @@ class GovooMeeting(models.Model):
             'res_id': self.minutes_id.id,
         }
 
+    def action_create_pack(self):
+        """Create the board pack for this meeting and open it -- the Pack
+        tab's empty state's call-to-action (issue #152). govoo.board.pack's
+        own create() links itself back onto meeting.pack_id.
+        """
+        self.ensure_one()
+        pack = self.env['govoo.board.pack'].create({'meeting_id': self.id})
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Board Pack',
+            'res_model': 'govoo.board.pack',
+            'view_mode': 'form',
+            'res_id': pack.id,
+        }
+
+    def action_create_minutes(self):
+        """Create the minutes for this meeting and open it -- the Minutes
+        tab's empty state's call-to-action (issue #152).
+        """
+        self.ensure_one()
+        minutes = self.env['govoo.minutes'].create({'meeting_id': self.id})
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Minutes',
+            'res_model': 'govoo.minutes',
+            'view_mode': 'form',
+            'res_id': minutes.id,
+        }
+
     def action_view_resolutions(self):
         self.ensure_one()
         return {

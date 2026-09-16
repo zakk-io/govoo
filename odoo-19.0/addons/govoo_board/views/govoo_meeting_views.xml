@@ -64,6 +64,18 @@
                             <field name="resolution_count" widget="statinfo" string="Resolutions"/>
                         </button>
                     </div>
+                    <div class="alert alert-info" role="alert" invisible="pack_id">
+                        No board pack has been compiled for this meeting yet.
+                        <button name="action_create_pack" type="object"
+                                string="Compile Board Pack" class="btn-link"
+                                groups="govoo_base.group_govoo_secretary"/>
+                    </div>
+                    <div class="alert alert-info" role="alert" invisible="minutes_id">
+                        Minutes have not been drafted yet.
+                        <button name="action_create_minutes" type="object"
+                                string="Draft Minutes" class="btn-link"
+                                groups="govoo_base.group_govoo_secretary"/>
+                    </div>
                     <group>
                         <group>
                             <field name="name"/>
