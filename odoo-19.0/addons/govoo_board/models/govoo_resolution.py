@@ -68,6 +68,13 @@ class GovooResolution(models.Model):
         string='Votes',
         compute='_compute_vote_count',
     )
+    requires_my_vote = fields.Boolean(
+        string='Requires My Vote',
+        compute='_compute_requires_my_vote',
+        search='_search_requires_my_vote',
+        help='Open resolution with no vote yet cast by the current user '
+             '(dashboards.md §1: "absence of own vote row").',
+    )
     result = fields.Selection(
         selection=[
             ('passed', 'Passed'),
@@ -151,6 +158,33 @@ class GovooResolution(models.Model):
     def _compute_vote_count(self):
         for rec in self:
             rec.vote_count = len(rec.vote_ids)
+
+    @api.depends_context('uid')
+    @api.depends('state', 'vote_ids.voter_id')
+    def _compute_requires_my_vote(self):
+        partner = self.env.user.partner_id
+        for rec in self:
+            rec.requires_my_vote = (
+                rec.state == 'open' and partner not in rec.vote_ids.voter_id
+            )
+
+    def _search_requires_my_vote(self, operator, value):
+        # Boolean domain leaves are normalized by the ORM to 'in'/'not in'
+        # with a set (e.g. ('requires_my_vote', 'in', {True})), not just
+        # plain '='/'!=' with a scalar -- handle both forms.
+        if isinstance(value, (list, tuple, set, frozenset)):
+            wants_true = True in value
+        else:
+            wants_true = bool(value)
+        if operator in ('!=', 'not in'):
+            wants_true = not wants_true
+        partner = self.env.user.partner_id
+        matching_ids = self.search([('state', '=', 'open')]).filtered(
+            lambda rec: partner not in rec.vote_ids.voter_id
+        ).ids
+        if wants_true:
+            return [('id', 'in', matching_ids)]
+        return [('id', 'not in', matching_ids)]
 
     def action_view_votes(self):
         self.ensure_one()
