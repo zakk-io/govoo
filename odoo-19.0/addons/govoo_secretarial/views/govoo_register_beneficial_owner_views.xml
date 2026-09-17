@@ -9,8 +9,7 @@
                 <field name="partner_id"/>
                 <field name="nature_of_control"/>
                 <field name="date_became_registrable"/>
-                <field name="is_provisional" widget="badge"
-                       decoration-danger="is_provisional == True"/>
+                <field name="is_provisional" decoration-danger="is_provisional == True"/>
                 <field name="company_id" groups="base.group_multi_company"/>
             </list>
         </field>
