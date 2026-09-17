@@ -26,7 +26,13 @@
                         </group>
                     </group>
                     <group string="Distribution">
-                        <field name="distribution_ids"/>
+                        <field name="distribution_ids" nolabel="1">
+                            <list create="0" edit="0">
+                                <field name="partner_id"/>
+                                <field name="sent_date"/>
+                                <field name="redacted_item_ids" widget="many2many_tags"/>
+                            </list>
+                        </field>
                     </group>
                 </sheet>
                 <chatter/>
