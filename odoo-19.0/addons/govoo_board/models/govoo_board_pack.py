@@ -1,6 +1,7 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
 import base64
+import io
 
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
@@ -94,11 +95,20 @@ class GovooBoardPack(models.Model):
             rec.state = 'compiled'
 
     def _generate_document(self):
-        """Generate the merged master board pack PDF and attach it."""
+        """Generate the merged master board pack PDF and attach it.
+
+        This is the Secretary's own internal reference/print copy: every
+        agenda item is included regardless of confidentiality, same as
+        before. Per-recipient redacted copies are generated separately
+        by _generate_recipient_document(), never from this attachment.
+        """
         self.ensure_one()
         report = self.env.ref('govoo_board.action_report_board_pack')
         pdf_content, _ = self.env['ir.actions.report']._render_qweb_pdf(
             report.id, self.ids,
+        )
+        pdf_content = self._merge_agenda_documents(
+            pdf_content, self.meeting_id.agenda_ids,
         )
         # _render_qweb_pdf returns raw PDF bytes, but ir.attachment.datas
         # is a Binary field that expects base64 -- writing the raw bytes
@@ -113,6 +123,58 @@ class GovooBoardPack(models.Model):
             'res_id': self.id,
         })
         self.document_id = attachment
+
+    def _generate_recipient_document(self, recipient):
+        """Generate THIS recipient's own copy of the board pack, on demand.
+
+        Unlike _generate_document()'s stored master copy, a confidential
+        agenda item this recipient isn't authorized for is fully omitted
+        here -- title and description, not just a hidden badge -- and
+        only the PDF attachments of items they CAN see get merged in.
+        Generated fresh on every download rather than cached, so it
+        always reflects the recipient's current authorization.
+        """
+        self.ensure_one()
+        report = self.env.ref('govoo_board.action_report_board_pack')
+        redacted_ids = recipient.redacted_item_ids.ids
+        pdf_content, _ = self.env['ir.actions.report']._render_qweb_pdf(
+            report.id, self.ids,
+            data={'redacted_item_ids': redacted_ids},
+        )
+        visible_items = self.meeting_id.agenda_ids.filtered(
+            lambda item: item.id not in redacted_ids,
+        )
+        return self._merge_agenda_documents(pdf_content, visible_items)
+
+    def _merge_agenda_documents(self, pdf_content, visible_items):
+        """Merge each visible agenda item's PDF attachments (e.g. the
+        previous meeting's signed minutes, attached to an "Approval of
+        Minutes" item) as real pages after the agenda body, in agenda
+        order. Non-PDF attachments (Word docs, images, etc.) are left
+        out of the merge -- they're still listed by name in the agenda
+        body -- rather than failing the whole pack over one file Odoo
+        can't merge as PDF pages.
+        """
+        self.ensure_one()
+        streams = [io.BytesIO(pdf_content)]
+        for item in visible_items.sorted('sequence'):
+            for doc in item.document_ids:
+                if (doc.mimetype or '').split(';')[0] != 'application/pdf':
+                    continue
+                try:
+                    streams.append(io.BytesIO(base64.b64decode(doc.datas)))
+                except Exception:
+                    continue
+        if len(streams) == 1:
+            return pdf_content
+
+        def _skip_unmergeable(error, error_stream):
+            streams.remove(error_stream)
+
+        with self.env['ir.actions.report']._merge_pdfs(
+            streams, handle_error=_skip_unmergeable,
+        ) as merged:
+            return merged.getvalue()
 
     def action_distribute(self):
         """Distribute compiled pack to recipients via portal notification."""

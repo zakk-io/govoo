@@ -176,14 +176,21 @@
         </t>
     </template>
 
-    <!-- Board Pack: merged agenda + linked documents (master copy;
-         per-recipient redaction is applied at portal render time via
-         govoo.board.pack.recipient.redacted_item_ids, not here) -->
+    <!-- Board Pack: merged agenda + linked documents.
+         redacted_item_ids (passed via _render_qweb_pdf's data=, see
+         govoo.board.pack._generate_recipient_document) lists agenda
+         item ids this specific recipient is NOT authorized for; their
+         title and description are fully omitted here, not just flagged,
+         and the caller (_merge_agenda_documents) skips merging those
+         items' attachments too. When absent (the Secretary's own
+         master copy via _generate_document), every item renders in
+         full. -->
     <template id="report_board_pack">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="pack">
                 <t t-call="web.external_layout">
                     <t t-set="o" t-value="pack"/>
+                    <t t-set="redacted_ids" t-value="redacted_item_ids or []"/>
                     <div class="page">
                         <h2>Board Pack</h2>
                         <p>
@@ -198,21 +205,32 @@
                         <h3>Agenda</h3>
                         <t t-foreach="pack.meeting_id.agenda_ids.sorted('sequence')" t-as="item">
                             <div class="mb-3">
-                                <h4>
-                                    <t t-esc="item.title"/>
-                                    <span t-if="item.is_confidential"
-                                          class="badge text-bg-warning">Confidential</span>
-                                </h4>
-                                <p t-if="item.presenter_id">
-                                    <strong>Presenter:</strong>
-                                    <t t-esc="item.presenter_id.name"/>
-                                </p>
-                                <div t-field="item.description"/>
-                                <ul t-if="item.document_ids">
-                                    <li t-foreach="item.document_ids" t-as="doc">
-                                        <t t-esc="doc.name"/>
-                                    </li>
-                                </ul>
+                                <t t-if="item.id in redacted_ids">
+                                    <h4>Confidential Item<span class="badge text-bg-warning ms-2">Redacted</span></h4>
+                                    <p class="text-muted">
+                                        This item is confidential and has been redacted from your copy of the pack.
+                                    </p>
+                                </t>
+                                <t t-else="">
+                                    <h4>
+                                        <t t-esc="item.title"/>
+                                        <span t-if="item.is_confidential"
+                                              class="badge text-bg-warning">Confidential</span>
+                                    </h4>
+                                    <p t-if="item.presenter_id">
+                                        <strong>Presenter:</strong>
+                                        <t t-esc="item.presenter_id.name"/>
+                                    </p>
+                                    <div t-field="item.description"/>
+                                    <ul t-if="item.document_ids">
+                                        <li t-foreach="item.document_ids" t-as="doc">
+                                            <t t-esc="doc.name"/>
+                                            <t t-if="(doc.mimetype or '').split(';')[0] == 'application/pdf'">
+                                                (attached as pages following this agenda)
+                                            </t>
+                                        </li>
+                                    </ul>
+                                </t>
                             </div>
                         </t>
                     </div>

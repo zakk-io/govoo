@@ -2,7 +2,7 @@
 
 from odoo import SUPERUSER_ID, _, http
 from odoo.exceptions import AccessError, MissingError
-from odoo.http import request
+from odoo.http import content_disposition, request
 
 from odoo.addons.portal.controllers.portal import CustomerPortal
 from odoo.addons.portal.controllers.portal import pager as portal_pager
@@ -95,10 +95,22 @@ class DirectorPortal(CustomerPortal):
         if not recipient:
             return request.redirect('/my/meetings/%d?access_token=%s' % (meeting_id, access_token or ''))
 
-        stream = request.env['ir.binary']._get_stream_from(
-            meeting_sudo.pack_id.document_id, filename_field='name',
+        # Generated fresh per recipient, per request -- NOT the stored
+        # master document_id, which is the Secretary's own unredacted
+        # reference copy. This is what actually enforces BR-BOARD-003
+        # at the file level: a confidential item this recipient isn't
+        # authorized for is genuinely absent from these bytes, not just
+        # hidden by the portal page around it.
+        pdf_content = meeting_sudo.pack_id.sudo()._generate_recipient_document(recipient)
+        return request.make_response(
+            pdf_content,
+            headers=[
+                ('Content-Type', 'application/pdf'),
+                ('Content-Disposition', content_disposition(
+                    'Board Pack - %s.pdf' % meeting_sudo.name,
+                )),
+            ],
         )
-        return stream.get_response(as_attachment=True)
 
     @http.route('/my/meetings/<int:meeting_id>', type='http', auth='user', website=True)
     def portal_my_meeting(self, meeting_id, access_token=None, **kw):
