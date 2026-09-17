@@ -5,8 +5,8 @@
 Most companies run governance across different disconnected tools: 
 for statutory registers they use Word or Excel,
 for board packs they emailed them as PDFs, 
-meeting votes collected by phone or email,
-a cap table in spreadsheet someone
+meeting votes get collected by phone or email,
+a cap table is in spreadsheet
 and compliance deadlines tracked in someone's calendar. 
 using these tools data Will get lost or get accessed by someone who shouldn't see them.
 
@@ -48,7 +48,7 @@ Log in as each user fresh via "Use another user" on the login screen, rather tha
 **Action:** Open the Audit Committee, show its member list, and point out that the Secretary's own appointment does not appear as a voting committee member even though she's active in the system.
 **Navigate:** clagov → Committees → Audit Committee
 **Why is the action:** Committee composition rules (e.g. "the Company Secretary attends but is not a member," "only active appointments count") are usually informal knowledge someone has to police manually. Here they're structural: the membership list is computed from a rule, not typed in by hand — so it can't quietly drift out of compliance with the committee's own charter.
-
+**Notes:** register of memebers (a list of a company members who owns a shares in the company)
 
 ---
 
@@ -80,6 +80,7 @@ Log in as each user fresh via "Use another user" on the login screen, rather tha
 **Navigate:** clagov → Board & Meetings → Board Meeting - Q4 2026
 **Why is the action:** This is the core workflow the whole product exists for. Showing that a confidential agenda item is genuinely excluded from an unauthorized director's copy — not just hidden behind a checkbox — is the single strongest trust-building moment in the demo. It's a real security guarantee enforced when the PDF is generated, not a UI convenience that a determined person could bypass.
 
+t's the agenda + papers sent to directors so they can prepare for a meeting that hasn't happened yet.
 ---
 
 ## Scene 7 — Distributing the pack ★
