@@ -80,16 +80,20 @@ instruction (per source §26 quality bar).
 ## 6b. `govoo.contract`, `govoo.contract.obligation`, `govoo.contract.milestone` — Contract Viewer Portal
 - **Rule (Contract Viewer Portal):**
   ```
-  The record rule for govoo.contract must restrict Contract Viewer Portal users to contracts where
-  counterparty_id equals the partner associated with the portal user, OR the portal user's partner
-  is a named approver on that contract [ENGINEERING DETAIL -- "named approver" is not modeled as a
-  distinct field in modules/govoo_contracts.md; if approval routing (FR-CM-06) is later modeled as
-  its own child records rather than a single Contract Approver group, this rule should reference
-  that model instead -- CONFIRM once the routing data model is finalized].
+  The record rule for govoo.contract restricts Contract Viewer Portal users to contracts where
+  counterparty_id equals the partner associated with the portal user, OR that partner appears in
+  portal_approver_ids on that contract.
   ```
-  Domain sketch: `[('counterparty_id', '=', user.partner_id.id)]`.
+  Domain: `['|', ('counterparty_id', '=', user.partner_id.id), ('portal_approver_ids', 'in', user.partner_id.id)]`.
+- **`[ENGINEERING DETAIL — resolved, issue #177]** "Named approver" is modeled as an explicit
+  `govoo.contract.portal_approver_ids` (Many2many `res.partner`) field, set by the Contract
+  Manager/Admin on the contract form — a deliberate choice over widening this to reference the
+  internal approval-routing (`Contract Approver` group / `govoo.contract.delegation`) data, since
+  that data controls *who may approve internally*, not *who may view externally as a portal user*;
+  the two are related but not the same concept, and conflating them would let every internal
+  approver see every contract via the portal regardless of whether they're actually a party to it.
 - `govoo.contract.obligation` and `govoo.contract.milestone` inherit the same domain via their
-  `contract_id` relation.
+  `contract_id` relation, once those models exist (issue #174).
 - **Source:** addendum §3.2 CM-F16, §4 — "Counterparties/approvers see only their contracts (record
   rules)."
 
