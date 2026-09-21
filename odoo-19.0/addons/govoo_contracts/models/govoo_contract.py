@@ -98,6 +98,16 @@ class GovooContract(models.Model):
              'approval or its value meets the type\'s approval threshold '
              '(BR-CM-001).',
     )
+    # Always ir.attachment (Many2one comodel is fixed at class-definition
+    # time); when a signing document is generated for this field, check
+    # self.env['govoo.feature.flags'].is_sign_app_installed() to use
+    # sign.request instead, falling back to ir.attachment on Community --
+    # same pattern as govoo_board's govoo.resolution.sign_request_id.
+    sign_request_id = fields.Many2one(
+        comodel_name='ir.attachment',
+        string='Sign Request',
+        tracking=True,
+    )
     state = fields.Selection(
         selection=[
             ('draft', 'Draft'),
@@ -113,6 +123,27 @@ class GovooContract(models.Model):
         required=True,
         tracking=True,
     )
+
+    @api.constrains('sign_request_id')
+    def _check_esignature_legally_confirmed(self):
+        """BR-CM-005: contract e-signature reuses the exact same
+        Rwandan legal-validity confirmation as govoo_board's
+        BR-BOARD-008 -- the same ir.config_parameter key, not a separate
+        govoo_contracts-specific flag (docs/spec/decisions/
+        open-decisions.md item 26 is one confirmation, not two)."""
+        confirmed = self.env['ir.config_parameter'].sudo().get_param(
+            'govoo_board.e_signature_legally_confirmed', 'False',
+        ) in ('True', '1')
+        if confirmed:
+            return
+        for rec in self:
+            if rec.sign_request_id:
+                raise ValidationError(_(
+                    'E-signature is not yet confirmed as legally valid '
+                    'under Rwandan law (BR-CM-005); Sign Request cannot '
+                    'be used. Attach the manually signed copy as the '
+                    'Executed Document instead.'
+                ))
 
     @api.constrains('date_start', 'date_end')
     def _check_dates(self):
