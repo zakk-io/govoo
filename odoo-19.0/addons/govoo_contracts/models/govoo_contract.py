@@ -64,6 +64,25 @@ class GovooContract(models.Model):
         comodel_name='govoo.contract.clause',
         string='Clauses',
     )
+    is_related_party = fields.Boolean(
+        string='Related Party',
+        compute='_compute_is_related_party',
+        store=True,
+        help='BR-CM-003: True when the counterparty is a director, '
+             'shareholder, officer, or beneficial owner of this company '
+             '-- read from the existing govoo_base/govoo_secretarial '
+             'classification, never a second, independent classification.',
+    )
+    conflict_declared = fields.Boolean(
+        string='Conflict of Interest Declared',
+        tracking=True,
+        help='Required before a related-party contract can be approved '
+             '(BR-CM-003) -- mirrors govoo.vote.is_conflicted\'s '
+             'declared-interest pattern (BR-BOARD-007).',
+    )
+    conflict_declaration_notes = fields.Text(
+        string='Conflict Declaration Notes',
+    )
     portal_approver_ids = fields.Many2many(
         comodel_name='res.partner',
         string='Named Approvers (Portal)',
@@ -150,6 +169,22 @@ class GovooContract(models.Model):
         super()._compute_access_url()
         for rec in self:
             rec.access_url = '/my/contracts/%s' % rec.id
+
+    @api.depends(
+        'counterparty_id.govoo_is_director',
+        'counterparty_id.govoo_is_shareholder',
+        'counterparty_id.govoo_is_officer',
+        'counterparty_id.govoo_is_beneficial_owner',
+    )
+    def _compute_is_related_party(self):
+        for rec in self:
+            partner = rec.counterparty_id
+            rec.is_related_party = bool(partner) and any((
+                partner.govoo_is_director,
+                partner.govoo_is_shareholder,
+                partner.govoo_is_officer,
+                partner.govoo_is_beneficial_owner,
+            ))
 
     @api.constrains('sign_request_id')
     def _check_esignature_legally_confirmed(self):
@@ -243,9 +278,24 @@ class GovooContract(models.Model):
                     'approving it.'
                 ))
 
+    def _check_related_party_gate(self):
+        """BR-CM-003: a related-party contract cannot be approved until a
+        conflict-of-interest declaration is recorded -- mirrors
+        govoo.vote.is_conflicted's declared-interest exclusion
+        (BR-BOARD-007), applied here as an approval gate rather than a
+        tally exclusion."""
+        for rec in self:
+            if rec.is_related_party and not rec.conflict_declared:
+                raise ValidationError(_(
+                    'This contract\'s counterparty is a related party '
+                    '(BR-CM-003): record a conflict-of-interest '
+                    'declaration before approving it.'
+                ))
+
     def action_approve(self):
         self._validate_state_transition('approved')
         self._check_board_approval_gate()
+        self._check_related_party_gate()
         self.write({'state': 'approved'})
 
     def _check_delegation_of_authority(self):
