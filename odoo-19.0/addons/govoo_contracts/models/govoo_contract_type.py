@@ -57,3 +57,11 @@ class GovooContractType(models.Model):
              'never a Python literal, same discipline as govoo_rw retention '
              'config for govoo.minutes.',
     )
+    renewal_notice_days = fields.Integer(
+        string='Renewal/Expiry Notice (Days)',
+        default=0,
+        help='FR-CM-11/BR-CM-006: how many days before a contract of this '
+             'type reaches its End Date to stage a reminder, via the '
+             'existing govoo_compliance-style mail.activity mechanism. '
+             '0 (default) disables the reminder for this type.',
+    )
