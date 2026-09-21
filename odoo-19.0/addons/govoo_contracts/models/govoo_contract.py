@@ -190,8 +190,33 @@ class GovooContract(models.Model):
         self._check_board_approval_gate()
         self.write({'state': 'approved'})
 
+    def _check_delegation_of_authority(self):
+        """BR-CM-002: execution (approved -> executed) is blocked unless
+        the executing user's delegated authority, per
+        govoo.contract.delegation, covers this contract's type and value.
+        Checked for every execution, not only board-approved contracts --
+        board approval and delegated signing authority are independent
+        controls. The matrix itself is [CONFIRM]-configurable data
+        (docs/spec/decisions/open-decisions.md item 28), never a
+        hard-coded limit here."""
+        delegation_model = self.env['govoo.contract.delegation']
+        for rec in self:
+            matching = delegation_model.search([
+                ('company_id', '=', rec.company_id.id),
+                ('user_id', '=', self.env.uid),
+                ('contract_type_id', 'in', (rec.contract_type_id.id, False)),
+                ('max_value', '>=', rec.value),
+            ], limit=1)
+            if not matching:
+                raise ValidationError(_(
+                    'You are not authorized to execute this contract '
+                    '(BR-CM-002): no delegation-of-authority entry covers '
+                    'your user for this contract type and value.'
+                ))
+
     def action_execute(self):
         self._validate_state_transition('executed')
+        self._check_delegation_of_authority()
         self.write({'state': 'executed'})
 
     def action_activate(self):
