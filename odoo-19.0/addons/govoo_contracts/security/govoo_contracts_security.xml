@@ -38,4 +38,18 @@
         <field name="groups" eval="[(4, ref('govoo_base.group_govoo_contract_portal'))]"/>
     </record>
 
+    <record id="govoo_contract_template_comp_rule" model="ir.rule">
+        <field name="name">Contract Template: multi-company</field>
+        <field name="model_id" ref="model_govoo_contract_template"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+    <record id="govoo_contract_clause_comp_rule" model="ir.rule">
+        <field name="name">Contract Clause: multi-company</field>
+        <field name="model_id" ref="model_govoo_contract_clause"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
 </odoo>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="govoo_contract_generate_wizard_view_form" model="ir.ui.view">
+        <field name="name">govoo.contract.generate.wizard.form</field>
+        <field name="model">govoo.contract.generate.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="template_id" invisible="1"/>
+                    <field name="counterparty_id"/>
+                    <field name="optional_clause_ids"
+                           widget="many2many_tags"
+                           domain="[('id', 'in', template_id.clause_ids.ids), ('is_mandatory', '=', False)]"/>
+                </group>
+                <footer>
+                    <button name="action_generate" string="Generate" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="govoo_contract_generate_wizard_action" model="ir.actions.act_window">
+        <field name="name">Generate Contract</field>
+        <field name="res_model">govoo.contract.generate.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

@@ -26,4 +26,18 @@
               groups="govoo_base.group_govoo_admin,govoo_base.group_govoo_contract_manager"
               sequence="30"/>
 
+    <menuitem id="govoo_menu_contract_template"
+              name="Templates"
+              parent="govoo_menu_contracts"
+              action="govoo_contract_template_action"
+              groups="govoo_base.group_govoo_admin,govoo_base.group_govoo_contract_manager"
+              sequence="40"/>
+
+    <menuitem id="govoo_menu_contract_clause"
+              name="Clauses"
+              parent="govoo_menu_contracts"
+              action="govoo_contract_clause_action"
+              groups="govoo_base.group_govoo_admin,govoo_base.group_govoo_contract_manager"
+              sequence="50"/>
+
 </odoo>

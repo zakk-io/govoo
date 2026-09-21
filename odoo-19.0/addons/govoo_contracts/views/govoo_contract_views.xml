@@ -68,6 +68,10 @@
                             <field name="executed_document_id" readonly="state in ('executed', 'active', 'expired', 'terminated')"/>
                         </group>
                     </group>
+                    <group string="Clauses">
+                        <field name="template_id" readonly="1"/>
+                        <field name="clause_ids" widget="many2many_tags" nolabel="1"/>
+                    </group>
                 </sheet>
                 <chatter/>
             </form>
