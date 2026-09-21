@@ -62,6 +62,7 @@
                             <field name="date_start"/>
                             <field name="date_end"/>
                             <field name="renewal_type"/>
+                            <field name="resolution_id"/>
                             <field name="executed_document_id" readonly="state in ('executed', 'active', 'expired', 'terminated')"/>
                         </group>
                     </group>

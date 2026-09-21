@@ -89,6 +89,15 @@ class GovooContract(models.Model):
              'an amendment or renewal must attach a new document, never '
              'edit this one in place.',
     )
+    resolution_id = fields.Many2one(
+        comodel_name='govoo.resolution',
+        string='Board Resolution',
+        tracking=True,
+        help='Required, and must be in state "passed", before this '
+             'contract can be approved when its type requires board '
+             'approval or its value meets the type\'s approval threshold '
+             '(BR-CM-001).',
+    )
     state = fields.Selection(
         selection=[
             ('draft', 'Draft'),
@@ -141,16 +150,44 @@ class GovooContract(models.Model):
         return super().unlink()
 
     def action_submit(self):
-        """draft -> in_approval. Board-approval/delegation-of-authority/
-        related-party gates are added on top of this action by the
-        Approval Routing, Delegation-of-Authority, and Related-Party
-        Checks feature clusters (issues #169-171) -- not implemented here.
+        """draft -> in_approval. Delegation-of-authority and related-party
+        gates are added on top of this action by their own feature
+        clusters (issues #170-171) -- not implemented here.
         """
         self._validate_state_transition('in_approval')
         self.write({'state': 'in_approval'})
 
+    def _requires_board_approval(self):
+        """BR-CM-001: a contract type flagged requires_board_approval, or
+        whose configured approval_threshold is met/exceeded by this
+        contract's value, needs a passed board resolution before it can
+        be approved. Both thresholds are configuration data on
+        govoo.contract.type, never a hard-coded value here
+        (docs/spec/decisions/open-decisions.md item 27)."""
+        self.ensure_one()
+        contract_type = self.contract_type_id
+        if contract_type.requires_board_approval:
+            return True
+        if contract_type.approval_threshold and self.value >= contract_type.approval_threshold:
+            return True
+        return False
+
+    def _check_board_approval_gate(self):
+        """BR-CM-001: block in_approval -> approved without a linked,
+        passed board resolution when board approval is required."""
+        for rec in self:
+            if not rec._requires_board_approval():
+                continue
+            if not rec.resolution_id or rec.resolution_id.state != 'passed':
+                raise ValidationError(_(
+                    'This contract requires board approval (BR-CM-001): '
+                    'link a board resolution in "Passed" state before '
+                    'approving it.'
+                ))
+
     def action_approve(self):
         self._validate_state_transition('approved')
+        self._check_board_approval_gate()
         self.write({'state': 'approved'})
 
     def action_execute(self):

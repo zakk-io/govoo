@@ -2,3 +2,4 @@
 
 from . import common
 from . import test_contract_core
+from . import test_approval_routing
