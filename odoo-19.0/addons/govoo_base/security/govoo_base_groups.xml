@@ -63,24 +63,42 @@
         <field name="comment">Read-only access within assigned companies, no write permissions.</field>
     </record>
 
-    <!-- Contract Manager: manages the contract register/templates
-         (govoo_contracts addendum). Deliberately independent of Secretary,
-         not implied by it, per docs/spec/security/access-control.md
-         [ENGINEERING DETAIL - CONFIRM] note on this choice. -->
+    <!-- Contract Manager and Contract Approver each get their OWN
+         single-group privilege (govoo_contracts addendum). res.groups in
+         this Odoo version has no category_id of its own, only
+         privilege_id (res.groups.privilege carries the category). A
+         privilege with exactly one group renders as an independent
+         checkbox on the Users form; a privilege shared by several groups
+         renders as one mutually-exclusive selector among them. Both
+         groups are deliberately independent of Secretary/Admin/Auditor
+         AND of each other, so a one-group-per-privilege design is
+         required here, not a shared "Contract Management" privilege
+         (which would just move the same mutual-exclusivity bug onto
+         Contract Manager vs. Contract Approver instead of fixing it). A
+         user can hold Company Secretary, Contract Manager, and Contract
+         Approver all at once if that reflects their real job. -->
+    <record model="res.groups.privilege" id="res_groups_privilege_contract_manager">
+        <field name="name">Contract Manager</field>
+        <field name="sequence">110</field>
+        <field name="category_id" ref="base.module_category_extra"/>
+    </record>
+
+    <record model="res.groups.privilege" id="res_groups_privilege_contract_approver">
+        <field name="name">Contract Approver</field>
+        <field name="sequence">120</field>
+        <field name="category_id" ref="base.module_category_extra"/>
+    </record>
+
     <record id="group_govoo_contract_manager" model="res.groups">
         <field name="name">Contract Manager</field>
-        <field name="sequence">70</field>
-        <field name="privilege_id" ref="res_groups_privilege_governance"/>
+        <field name="privilege_id" ref="res_groups_privilege_contract_manager"/>
         <field name="implied_ids" eval="[(4, ref('group_govoo_user'))]"/>
         <field name="comment">Manages the contract register, templates/clauses, and obligations. Cannot approve contracts above their own delegated authority (BR-CM-002).</field>
     </record>
 
-    <!-- Contract Approver: approves contracts within a delegated authority
-         limit (BR-CM-002). Independent of Contract Manager. -->
     <record id="group_govoo_contract_approver" model="res.groups">
         <field name="name">Contract Approver</field>
-        <field name="sequence">80</field>
-        <field name="privilege_id" ref="res_groups_privilege_governance"/>
+        <field name="privilege_id" ref="res_groups_privilege_contract_approver"/>
         <field name="implied_ids" eval="[(4, ref('group_govoo_user'))]"/>
         <field name="comment">Approves contracts within their delegated authority limit. Read-only elsewhere in the contract register.</field>
     </record>
