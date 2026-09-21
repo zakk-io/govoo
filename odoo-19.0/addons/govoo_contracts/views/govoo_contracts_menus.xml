@@ -40,4 +40,13 @@
               groups="govoo_base.group_govoo_admin,govoo_base.group_govoo_contract_manager"
               sequence="50"/>
 
+    <!-- Dashboard-worthy view (ui/dashboards.md section 4b): all
+         obligations across contracts, grouped by status with RAG
+         coloring, not scoped to a single contract's smart button. -->
+    <menuitem id="govoo_menu_contract_obligation_dashboard"
+              name="Obligations"
+              parent="govoo_menu_contracts"
+              action="govoo_contract_obligation_dashboard_action"
+              sequence="60"/>
+
 </odoo>

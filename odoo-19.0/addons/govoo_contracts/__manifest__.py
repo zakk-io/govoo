@@ -23,6 +23,7 @@ e-signature execution, obligation/milestone tracking, and renewal/termination.
         'views/govoo_contract_clause_views.xml',
         'views/govoo_contract_generate_wizard_views.xml',
         'views/govoo_contract_template_views.xml',
+        'views/govoo_contract_obligation_views.xml',
         'views/govoo_contract_views.xml',
         'views/govoo_contracts_menus.xml',
         'views/portal_templates.xml',
