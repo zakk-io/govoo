@@ -13,4 +13,26 @@
         <field name="interval_type">days</field>
     </record>
 
+    <!-- Daily cron: stage reminders for open/overdue obligations
+         (BR-CM-006), same reuse discipline as the reminder above. -->
+    <record id="cron_send_contract_obligation_reminders" model="ir.cron">
+        <field name="name">Contracts: Send Obligation Reminders</field>
+        <field name="model_id" ref="model_govoo_contract_obligation"/>
+        <field name="state">code</field>
+        <field name="code">model.env['govoo.contract.cron']._cron_send_obligation_reminders()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
+
+    <!-- Daily cron: escalate overdue obligations, same pattern as
+         govoo_compliance's late-instance escalation. -->
+    <record id="cron_escalate_overdue_contract_obligations" model="ir.cron">
+        <field name="name">Contracts: Escalate Overdue Obligations</field>
+        <field name="model_id" ref="model_govoo_contract_obligation"/>
+        <field name="state">code</field>
+        <field name="code">model.env['govoo.contract.cron']._cron_escalate_overdue_obligations()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
+
 </odoo>

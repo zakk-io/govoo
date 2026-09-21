@@ -50,6 +50,18 @@
                            statusbar_visible="draft,in_approval,approved,executed,active"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_obligations" type="object"
+                                class="oe_stat_button" icon="fa-tasks"
+                                invisible="not obligation_count">
+                            <field name="obligation_count" widget="statinfo" string="Obligations"/>
+                        </button>
+                        <button name="action_view_milestones" type="object"
+                                class="oe_stat_button" icon="fa-flag-checkered"
+                                invisible="not milestone_count">
+                            <field name="milestone_count" widget="statinfo" string="Milestones"/>
+                        </button>
+                    </div>
                     <group>
                         <group>
                             <field name="name"/>
@@ -75,6 +87,30 @@
                         <field name="template_id" readonly="1"/>
                         <field name="clause_ids" widget="many2many_tags" nolabel="1"/>
                     </group>
+                    <notebook>
+                        <page string="Obligations" name="obligations">
+                            <field name="obligation_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="due_date"/>
+                                    <field name="responsible_id"/>
+                                    <field name="amount"/>
+                                    <field name="lead_time_days"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Milestones" name="milestones">
+                            <field name="milestone_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="date"/>
+                                    <field name="value"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
                 <chatter/>
             </form>

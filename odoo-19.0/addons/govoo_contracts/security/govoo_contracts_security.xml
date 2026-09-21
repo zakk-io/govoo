@@ -52,4 +52,35 @@
         <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
     </record>
 
+    <record id="govoo_contract_obligation_comp_rule" model="ir.rule">
+        <field name="name">Contract Obligation: multi-company</field>
+        <field name="model_id" ref="model_govoo_contract_obligation"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+    <record id="govoo_contract_milestone_comp_rule" model="ir.rule">
+        <field name="name">Contract Milestone: multi-company</field>
+        <field name="model_id" ref="model_govoo_contract_milestone"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
+    <!-- Contract Viewer Portal: obligations/milestones inherit the same
+         "own contracts" scope via contract_id, per
+         security/record-rules.md section 6b. -->
+    <record id="govoo_contract_obligation_portal_rule" model="ir.rule">
+        <field name="name">Contract Obligation: Contract Viewer Portal own contracts</field>
+        <field name="model_id" ref="model_govoo_contract_obligation"/>
+        <field name="domain_force">['|', ('contract_id.counterparty_id', '=', user.partner_id.id), ('contract_id.portal_approver_ids', 'in', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_contract_portal'))]"/>
+    </record>
+
+    <record id="govoo_contract_milestone_portal_rule" model="ir.rule">
+        <field name="name">Contract Milestone: Contract Viewer Portal own contracts</field>
+        <field name="model_id" ref="model_govoo_contract_milestone"/>
+        <field name="domain_force">['|', ('contract_id.counterparty_id', '=', user.partner_id.id), ('contract_id.portal_approver_ids', 'in', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_contract_portal'))]"/>
+    </record>
+
 </odoo>
