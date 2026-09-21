@@ -64,6 +64,24 @@ class GovooContract(models.Model):
         comodel_name='govoo.contract.clause',
         string='Clauses',
     )
+    obligation_ids = fields.One2many(
+        comodel_name='govoo.contract.obligation',
+        inverse_name='contract_id',
+        string='Obligations',
+    )
+    milestone_ids = fields.One2many(
+        comodel_name='govoo.contract.milestone',
+        inverse_name='contract_id',
+        string='Milestones',
+    )
+    obligation_count = fields.Integer(
+        string='Obligations',
+        compute='_compute_obligation_count',
+    )
+    milestone_count = fields.Integer(
+        string='Milestones',
+        compute='_compute_milestone_count',
+    )
     is_related_party = fields.Boolean(
         string='Related Party',
         compute='_compute_is_related_party',
@@ -165,6 +183,16 @@ class GovooContract(models.Model):
         tracking=True,
     )
 
+    @api.depends('obligation_ids')
+    def _compute_obligation_count(self):
+        for rec in self:
+            rec.obligation_count = len(rec.obligation_ids)
+
+    @api.depends('milestone_ids')
+    def _compute_milestone_count(self):
+        for rec in self:
+            rec.milestone_count = len(rec.milestone_ids)
+
     def _compute_access_url(self):
         super()._compute_access_url()
         for rec in self:
@@ -241,6 +269,28 @@ class GovooContract(models.Model):
                     'An executed contract cannot be deleted (BR-CM-004).'
                 ))
         return super().unlink()
+
+    def action_view_obligations(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Obligations'),
+            'res_model': 'govoo.contract.obligation',
+            'view_mode': 'list,form',
+            'domain': [('contract_id', '=', self.id)],
+            'context': {'default_contract_id': self.id},
+        }
+
+    def action_view_milestones(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Milestones'),
+            'res_model': 'govoo.contract.milestone',
+            'view_mode': 'list,form',
+            'domain': [('contract_id', '=', self.id)],
+            'context': {'default_contract_id': self.id},
+        }
 
     def action_submit(self):
         """draft -> in_approval. Delegation-of-authority and related-party
