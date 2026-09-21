@@ -52,6 +52,18 @@ class GovooContract(models.Model):
         required=True,
         tracking=True,
     )
+    template_id = fields.Many2one(
+        comodel_name='govoo.contract.template',
+        string='Generated From Template',
+        ondelete='set null',
+        help='Informational only -- clause_ids is a snapshot at '
+             'generation time, so later edits to the template never '
+             'retroactively change an already-generated contract.',
+    )
+    clause_ids = fields.Many2many(
+        comodel_name='govoo.contract.clause',
+        string='Clauses',
+    )
     portal_approver_ids = fields.Many2many(
         comodel_name='res.partner',
         string='Named Approvers (Portal)',

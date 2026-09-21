@@ -7,3 +7,4 @@ from . import test_delegation_of_authority
 from . import test_esignature_execution
 from . import test_key_date_reminders
 from . import test_portal_access
+from . import test_template_clause_library

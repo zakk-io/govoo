@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="govoo_contract_template_view_list" model="ir.ui.view">
+        <field name="name">govoo.contract.template.list</field>
+        <field name="model">govoo.contract.template</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="contract_type_id"/>
+                <field name="language"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="govoo_contract_template_view_form" model="ir.ui.view">
+        <field name="name">govoo.contract.template.form</field>
+        <field name="model">govoo.contract.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="%(govoo_contract_generate_wizard_action)d"
+                            string="Generate Contract" type="action"
+                            class="oe_highlight"
+                            context="{'default_template_id': id}"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="contract_type_id"/>
+                            <field name="language"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="clause_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <group string="Template Body">
+                        <field name="body" nolabel="1"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="govoo_contract_template_action" model="ir.actions.act_window">
+        <field name="name">Templates</field>
+        <field name="res_model">govoo.contract.template</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

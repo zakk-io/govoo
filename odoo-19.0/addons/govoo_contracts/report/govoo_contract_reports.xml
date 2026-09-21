@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_report_govoo_contract" model="ir.actions.report">
+        <field name="name">Generated Contract Document</field>
+        <field name="model">govoo.contract</field>
+        <field name="model_id" ref="model_govoo_contract"/>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">govoo_contracts.report_contract</field>
+        <field name="report_file">govoo_contracts.report_contract</field>
+        <field name="binding_model_id" ref="model_govoo_contract"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_contract">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="contract">
+                <t t-call="web.external_layout">
+                    <t t-set="o" t-value="contract"/>
+                    <div class="page">
+                        <h2>
+                            <t t-esc="contract.name"/>
+                        </h2>
+                        <p>
+                            <strong>Contract Type:</strong>
+                            <t t-esc="contract.contract_type_id.name"/>
+                        </p>
+                        <p>
+                            <strong>Counterparty:</strong>
+                            <t t-esc="contract.counterparty_id.name"/>
+                        </p>
+                        <p t-if="contract.template_id">
+                            <strong>Generated From Template:</strong>
+                            <t t-esc="contract.template_id.name"/>
+                        </p>
+
+                        <div t-if="contract.template_id.body" t-out="contract.template_id.body"/>
+
+                        <h3>Clauses</h3>
+                        <t t-foreach="contract.clause_ids" t-as="clause">
+                            <h4>
+                                <t t-esc="clause.name"/>
+                                <t t-if="clause.is_mandatory"> (Mandatory)</t>
+                            </h4>
+                            <div t-if="clause.body" t-out="clause.body"/>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>
