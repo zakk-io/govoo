@@ -11,3 +11,4 @@ from . import test_template_clause_library
 from . import test_related_party_checks
 from . import test_obligation_milestone_tracking
 from . import test_renewal_termination_workflow
+from . import test_retention_alignment
