@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="govoo_contract_delegation_view_list" model="ir.ui.view">
+        <field name="name">govoo.contract.delegation.list</field>
+        <field name="model">govoo.contract.delegation</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="user_id"/>
+                <field name="contract_type_id"/>
+                <field name="max_value"/>
+                <field name="active"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="govoo_contract_delegation_action" model="ir.actions.act_window">
+        <field name="name">Delegation of Authority</field>
+        <field name="res_model">govoo.contract.delegation</field>
+        <field name="view_mode">list</field>
+    </record>
+
+</odoo>

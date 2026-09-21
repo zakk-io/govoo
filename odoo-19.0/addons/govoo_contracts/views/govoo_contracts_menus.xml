@@ -19,4 +19,11 @@
               groups="govoo_base.group_govoo_admin,govoo_base.group_govoo_contract_manager"
               sequence="20"/>
 
+    <menuitem id="govoo_menu_contract_delegation"
+              name="Delegation of Authority"
+              parent="govoo_menu_contracts"
+              action="govoo_contract_delegation_action"
+              groups="govoo_base.group_govoo_admin,govoo_base.group_govoo_contract_manager"
+              sequence="30"/>
+
 </odoo>

@@ -18,6 +18,7 @@ e-signature execution, obligation/milestone tracking, and renewal/termination.
         'security/govoo_contracts_security.xml',
         'security/ir.model.access.csv',
         'views/govoo_contract_type_views.xml',
+        'views/govoo_contract_delegation_views.xml',
         'views/govoo_contract_views.xml',
         'views/govoo_contracts_menus.xml',
     ],

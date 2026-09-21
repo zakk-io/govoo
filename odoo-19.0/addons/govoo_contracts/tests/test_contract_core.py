@@ -12,6 +12,14 @@ class TestContractCore(GovooContractsTestBase):
     """Contract Register & Core Models (issue #167): model, state
     machine, write-once executed document, and multi-company isolation."""
 
+    def setUp(self):
+        super().setUp()
+        # Execution is gated by delegation-of-authority (BR-CM-002, issue
+        # #170); grant the test user a broad one here so these core-model
+        # tests aren't coupled to that gate. The gate itself is exercised
+        # in test_delegation_of_authority.py.
+        self._grant_delegation()
+
     def test_contract_creation_defaults(self):
         contract = self._make_contract()
         self.assertEqual(contract.state, 'draft')
