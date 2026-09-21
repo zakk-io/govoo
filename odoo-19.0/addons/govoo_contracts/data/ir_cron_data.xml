@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Daily cron: stage key-date (renewal/expiry) reminders for active
+         contracts, reusing the govoo_compliance-style mail.activity
+         mechanism (BR-CM-006) rather than a second reminder engine. -->
+    <record id="cron_send_contract_key_date_reminders" model="ir.cron">
+        <field name="name">Contracts: Send Key-Date Reminders</field>
+        <field name="model_id" ref="model_govoo_contract"/>
+        <field name="state">code</field>
+        <field name="code">model.env['govoo.contract.cron']._cron_send_key_date_reminders()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
+
+</odoo>
