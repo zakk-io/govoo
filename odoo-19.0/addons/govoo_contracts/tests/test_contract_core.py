@@ -49,6 +49,9 @@ class TestContractCore(GovooContractsTestBase):
         contract.action_approve()
         contract.action_execute()
         contract.action_activate()
+        # action_terminate() requires termination_reason (issue #175,
+        # FR-CM-14) -- the reason itself isn't this test's concern.
+        contract.termination_reason = 'Test termination.'
         contract.action_terminate()
         self.assertEqual(contract.state, 'terminated')
 

@@ -81,3 +81,23 @@ class GovooContractCron(models.AbstractModel):
         """Daily: delegate to govoo.contract.obligation's own escalation
         method (same underlying engine, not a second one)."""
         self.env['govoo.contract.obligation']._cron_escalate_overdue()
+
+    @api.model
+    def _cron_expire_fixed_term_contracts(self):
+        """FR-CM-14/TC-CM-010: fixed-term contracts past date_end
+        transition to 'expired'. Evergreen (renewal_type='auto')
+        contracts are explicitly excluded and stay active until
+        explicitly terminated -- the whole point of the distinction."""
+        today = fields.Date.context_today(self)
+        contracts = self.env['govoo.contract'].search([
+            ('state', '=', 'active'),
+            ('renewal_type', '=', 'fixed'),
+            ('date_end', '!=', False),
+            ('date_end', '<', today),
+        ])
+        if contracts:
+            contracts.action_expire()
+            _logger.info(
+                'Contracts: auto-expired %d fixed-term contract(s) past '
+                'their End Date.', len(contracts),
+            )

@@ -140,6 +140,13 @@ class GovooContract(models.Model):
         required=True,
         tracking=True,
     )
+    termination_reason = fields.Text(
+        string='Termination Reason',
+        help='Required before action_terminate() can be called (FR-CM-14) '
+             '-- same "field must already be set, the action only '
+             'transitions" pattern as govoo.compliance.instance.action_file '
+             'requiring reference_no/filed_date.',
+    )
     executed_document_id = fields.Many2one(
         comodel_name='ir.attachment',
         string='Executed Document',
@@ -386,5 +393,14 @@ class GovooContract(models.Model):
         self.write({'state': 'expired'})
 
     def action_terminate(self):
+        """active -> terminated. Requires termination_reason to already
+        be set (FR-CM-14) -- recorded via mail.thread tracking, not a
+        separate audit model."""
         self._validate_state_transition('terminated')
+        for rec in self:
+            if not rec.termination_reason:
+                raise ValidationError(_(
+                    'Record a Termination Reason before terminating this '
+                    'contract.'
+                ))
         self.write({'state': 'terminated'})

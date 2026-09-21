@@ -35,4 +35,15 @@
         <field name="interval_type">days</field>
     </record>
 
+    <!-- Daily cron: auto-expire fixed-term contracts past their End
+         Date. Evergreen contracts are explicitly excluded (FR-CM-14). -->
+    <record id="cron_expire_fixed_term_contracts" model="ir.cron">
+        <field name="name">Contracts: Expire Fixed-Term Contracts</field>
+        <field name="model_id" ref="model_govoo_contract"/>
+        <field name="state">code</field>
+        <field name="code">model.env['govoo.contract.cron']._cron_expire_fixed_term_contracts()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
+
 </odoo>
