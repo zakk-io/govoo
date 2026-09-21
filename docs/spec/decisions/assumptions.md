@@ -14,6 +14,22 @@ against, clearly flagged so they can be revisited without archaeology through th
   model**, unless per-obligation rule configuration later needs its own editable records.
   (`modules/govoo_compliance.md` "Note on `govoo.compliance.rule`".)
 
+## Contract Management addendum assumptions
+- **`FR-CM-NN` uses 2-digit numbering (`FR-CM-01`..`FR-CM-20`)**, deviating from every other area's
+  3-digit `FR-<AREA>-NNN` convention. This is deliberate: the addendum source document numbers its
+  own features `CM-F01`..`CM-F20`, and matching that numbering exactly gives 1:1 traceability
+  between `requirements/product-requirements.md` and the addendum without a lookup table. If this
+  repository's ID convention is later tightened to enforce a single fixed width, renumber
+  `FR-CM-*` to 3 digits and update every cross-reference (`requirements/traceability.md`,
+  `modules/govoo_contracts.md`, `workflows/contracts.md`) in the same change.
+- **"Named approver" is not yet modeled as a distinct field on `govoo.contract`** — the Contract
+  Viewer Portal's read scope (BR-CM-007, `security/record-rules.md` §6b) is specified in terms of
+  "counterparty or named approver" per the addendum, but no field currently carries "named approver"
+  as data (only `approver_id`/`approval_ids` in the internal approval-routing flow, which the portal
+  should not need to read). Flagged `[ENGINEERING DETAIL — CONFIRM]` at the record-rule definition
+  itself; an implementer must either add an explicit `portal_approver_ids` field or confirm that
+  "named approver" always coincides with `counterparty_id` for the addendum's intended use cases.
+
 ## Data-model assumptions
 - **`govoo.register.charge` has a `company_id` field** for consistency with every other register,
   even though the source's field table for this specific model doesn't list it explicitly.

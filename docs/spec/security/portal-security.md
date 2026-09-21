@@ -9,7 +9,9 @@ record rules above** (verbatim source instruction, §6.3).
 
 ## 2. What this means concretely for every portal-exposed model
 Portal-exposed models: `govoo.meeting`, `govoo.agenda.item`, `govoo.board.pack`, `govoo.minutes`,
-`govoo.resolution`, `govoo.vote`, `govoo.share.holding`, `govoo.register.member` (own record read).
+`govoo.resolution`, `govoo.vote`, `govoo.share.holding`, `govoo.register.member` (own record read),
+`govoo.contract`, `govoo.contract.obligation`, `govoo.contract.milestone` (own record read, per
+`security/record-rules.md` §6b).
 
 For each:
 1. Inherit `portal.mixin`.

@@ -3,20 +3,32 @@
 Source: §12 of the source spec (baseline build order), expanded per the master prompt's request
 for objectives/prerequisites/deliverables/dependencies/tests/exit-criteria per phase.
 
-## Baseline sequence (source, verbatim order)
+## Baseline sequence (source, verbatim order, extended)
 ```
 1. govoo_base
 2. govoo_secretarial
 3. govoo_shares
 4. govoo_board
 5. govoo_compliance
-6. govoo_rw
-7. govoo_evaluation
-8. Portal + dashboard
-9. Optional accounting / EBM
+6. govoo_contracts        (new — addendum, depends on govoo_base, govoo_compliance, govoo_board)
+7. govoo_rw
+8. govoo_evaluation
+9. Portal + dashboard
+10. Optional accounting / EBM
 ```
-Steps 1-4 are the **board/register MVP**. Steps 5-6 are **compliance/localization**. Step 8 is
-**external-user capability**. (Source's own phase grouping, restated.)
+Steps 1-4 are the **board/register MVP**. Steps 5-6 are **compliance/localization**, now including
+`govoo_contracts` as step 6 per the addendum's own build sequence (§8: it depends on `govoo_base`,
+`govoo_compliance`, and `govoo_board`, and must therefore land after all three — step 5 is the
+earliest point that dependency set is satisfied). `govoo_rw`, `govoo_evaluation`, and Portal are
+renumbered 7-9 accordingly; nothing about their own content or dependencies changes, only their
+position in this list. Step 9 is **external-user capability**. (Source's own phase grouping,
+restated, with the addendum module inserted per its own stated dependencies rather than appended at
+the end.)
+
+The addendum's build sequence (§8) also lists two out-of-scope steps — `govoo_ai` (its own step 1)
+and "Contract intelligence" (its own step 3, after both `govoo_ai` and `govoo_contracts` are
+stable) — neither of which is specced in this repository; see
+`integrations/future-integrations.md` for why they are tracked but not built here.
 
 ## Phase 1 — MVP: govoo_base → govoo_secretarial → govoo_shares → govoo_board
 | | |
@@ -38,6 +50,16 @@ Steps 1-4 are the **board/register MVP**. Steps 5-6 are **compliance/localizatio
 | **Tests** | `TC-COMP-*`, `TC-RW-*`, `TC-WF-COMP-001`, `TC-ACC-003`, `TC-ACC-004`. |
 | **Exit criteria** | Definition of Done met for both modules; **no** Rwanda-seeded legal/tax value is `active = True` without a corresponding `decisions/confirmed-decisions.md` entry. |
 
+## Phase 2b — Contract Management: govoo_contracts (addendum, inserted after govoo_compliance)
+| | |
+| --- | --- |
+| **Objective** | Contract register, template/clause library, approval routing linked to board approval and delegation-of-authority, related-party conflict checks, e-signature execution, and obligation/milestone/renewal tracking. |
+| **Prerequisites** | `govoo_base` (groups, company scoping), `govoo_compliance` (reused reminder engine), and `govoo_board` (resolution linkage for the board-approval gate) all installed and passing tests. |
+| **Deliverables** | `govoo_contracts` installed and passing tests, per `modules/govoo_contracts.md` and `workflows/contracts.md`. |
+| **Dependencies** | Cannot start before `govoo_board` (step 4) and `govoo_compliance` (step 5) are both done — this is later than the addendum's own minimal dependency set would technically allow if only `govoo_base` were required, because the board-approval gate (BR-CM-001) and reminder reuse (BR-CM-006) are core, not optional, features of this module. |
+| **Tests** | `TC-CM-*`, `TC-WF-CM-001`, `TC-SEC-010..011`, `TC-ACC-011`, `TC-ACC-012`. |
+| **Exit criteria** | Definition of Done (`implementation/module-checklists.md`) met; AC-11, AC-12 pass; CM-F15 (financial linkage) and CM-F19/F20 (AI) remain off/unbuilt per their `[OPTIONAL]`/out-of-scope status — their absence must not block this module's own DoD. |
+
 ## Phase 3 — Evaluation (parallelizable with Phase 2)
 | | |
 | --- | --- |
@@ -52,11 +74,11 @@ Steps 1-4 are the **board/register MVP**. Steps 5-6 are **compliance/localizatio
 | | |
 | --- | --- |
 | **Objective** | Director and shareholder self-service, plus the aggregated internal dashboard. |
-| **Prerequisites** | Phases 1-3 complete (Portal depends on all custom modules per `architecture/dependency-graph.md`). |
-| **Deliverables** | Portal controllers/views (per `modules/portal.md`) and dashboard aggregation layer, installed and passing tests. |
-| **Dependencies** | All prior modules. |
-| **Tests** | `TC-SEC-005`, `TC-SEC-005b`, `TC-WF-PORTAL-*`, `TC-ACC-007`. |
-| **Exit criteria** | Definition of Done met; AC-07 passes; pre-go-live checklist (`devops/environments.md` §4) started. |
+| **Prerequisites** | Phases 1-3 and 2b complete (Portal depends on all custom modules, including `govoo_contracts`, per `architecture/dependency-graph.md`). |
+| **Deliverables** | Portal controllers/views (per `modules/portal.md`) and dashboard aggregation layer, installed and passing tests — including the Contract Viewer Portal (`ui/portal-ui.md` §2b) and contract dashboard (`ui/dashboards.md` §4b). |
+| **Dependencies** | All prior modules, including `govoo_contracts`. |
+| **Tests** | `TC-SEC-005`, `TC-SEC-005b`, `TC-SEC-010`, `TC-WF-PORTAL-*`, `TC-ACC-007`, `TC-ACC-012`. |
+| **Exit criteria** | Definition of Done met; AC-07 and AC-12 pass; pre-go-live checklist (`devops/environments.md` §4) started. |
 
 ## Phase 5 — Optional: govoo_rw_accounting / govoo_rw_ebm
 | | |

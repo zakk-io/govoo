@@ -131,6 +131,13 @@ exercises real HTTP/controller behavior, not just ORM domain filtering).
   disjoint-groups check in this version. Fixed pattern (`new_test_user(..., groups=...)`, group
   set atomically at creation) is what the current suite uses.
 
+### govoo_contracts (addendum, Phase 2b) — not started
+- [ ] 1-10, same discipline as every other module. **Not started** — the spec (`modules/govoo_contracts.md`, `workflows/contracts.md`) exists as of this addendum pass; no code, migration, or test run exists yet, so no criterion here may be checked based on the spec alone. Per this file's own 2026-09-15 history note, a checkmark not backed by an actual test run is worse than no checkmark — this entry deliberately stays all-unchecked until a real `-i govoo_contracts --test-tags /govoo_contracts` run is cited with a date and result, the same way every other module above is documented.
+- [ ] 3, 9 (security, multi-company): particular attention needed for the three new groups (Contract Manager, Contract Approver, Contract Viewer Portal) and the record rule in `security/record-rules.md` §6b — this is new access-control surface, exactly the category of change that produced the confidentiality/isolation bugs (issues #67/#68/#110) found in the 2026-09-15 audit of other modules.
+- [ ] 8 (no hard-coded legal/tax value): contract board-approval thresholds, delegation-of-authority limits, and `govoo.contract.type.retention_years` must all be configurable data, never a Python literal (BR-CM-001, BR-CM-002, FR-CM-18) — include `govoo_contracts` in the CI hard-coded-value lint check recommended in `data-model/constraints.md` §3 and `devops/ci-cd.md` §1 step 6 once that check exists (it does not exist yet for any module, per this file's own note that "there is no CI system in this repository as of this writing").
+- [ ] 10 (Enterprise/Community degradation): Sign (contract e-signature) and Documents (generated/executed contract storage) fallbacks must be covered by the same style of `test_community_fallback.py` test used for `govoo_board`.
+- CM-F15 (financial linkage) and CM-F19/CM-F20 (AI extraction/summarization) are `[OPTIONAL]`/out of scope for this module's own DoD — their absence must not block marking `govoo_contracts` itself Done, per `modules/govoo_contracts.md`'s "Out of scope for this module" section.
+
 ### govoo_rw_accounting / govoo_rw_ebm (optional, Phase 5)
 - [ ] 1-7, 9-10 as applicable, same discipline as every other module.
 - [ ] 8. **Critical, same as `govoo_rw`:** no hard-coded tax rate/chart-of-accounts value without a

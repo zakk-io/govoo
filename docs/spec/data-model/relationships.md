@@ -69,6 +69,22 @@ survey.survey (1) ----< (M) survey.user_input  (standard Odoo)
 survey.user_input (M) ----> aggregated into ----> govoo.evaluation.result (per campaign/dimension)
 ```
 
+## 5b. Contract relationship chain (`govoo_contracts`)
+```
+res.company (1) ----< (M) govoo.contract
+res.partner (1) ----< (M) govoo.contract [counterparty_id]
+govoo.contract.type (1) ----< (M) govoo.contract
+govoo.contract.type (M) >---< (M) govoo.contract.clause [mandatory_clause_ids]
+govoo.contract.template (M) >---- (0..1) govoo.contract.type
+govoo.contract (1) ----< (M) govoo.contract.obligation
+govoo.contract (1) ----< (M) govoo.contract.milestone
+govoo.contract (M) ---- (0..1) govoo.resolution [resolution_id, board-approval linkage]
+govoo.contract (M) ---- (0..1) sign.request [sign_request_id, feature-flagged]
+govoo.contract.obligation.due_date ----> feeds ----> govoo_compliance reminder engine
+                                                       (mail.activity, not a stored FK — same
+                                                        mechanism as govoo.compliance.instance)
+```
+
 ## 6. Cross-module relationships requiring careful FK/dependency direction
 | Relationship | Direction | Why this direction (not the reverse) |
 | --- | --- | --- |
@@ -76,6 +92,9 @@ survey.user_input (M) ----> aggregated into ----> govoo.evaluation.result (per c
 | `govoo.register.member.holding_ids` reads `govoo.share.holding` | `govoo_secretarial` ← `govoo_shares` (secretarial consumes shares' output) | Statutory register presentation is `govoo_secretarial`'s job; the underlying computation is `govoo_shares`'s |
 | `govoo.minutes.retention_until` reads `govoo_rw` retention config | `govoo_board` → `govoo_rw` (config dependency, not a hard code dependency) | `[ENGINEERING DETAIL]` implement via `ir.config_parameter` lookup rather than a Python import of `govoo_rw`, so `govoo_board` does not need a hard module dependency on `govoo_rw` for deployments that never localize to Rwanda |
 | `govoo.compliance.instance.due_date` reads `govoo_rw` deadline templates | `govoo_compliance` → `govoo_rw` (data dependency) | Same rationale — obligation catalogue rows are data seeded BY `govoo_rw`, not a code dependency FROM `govoo_compliance` TO `govoo_rw` |
+| `govoo.contract.resolution_id` reads `govoo.resolution.state` | `govoo_contracts` → `govoo_board` (read-only dependency) | Board-approval gating (BR-CM-001) checks an existing resolution's tallied result; `govoo_contracts` never re-implements voting/tallying |
+| `govoo.contract.obligation.due_date` feeds the `govoo_compliance` reminder engine | `govoo_contracts` → `govoo_compliance` (mechanism reuse) | BR-CM-006 — a parallel reminder cron in `govoo_contracts` would duplicate `govoo_compliance`'s existing, already-tested engine |
+| `govoo.contract.is_related_party` reads `govoo_base`/`govoo_secretarial` interests data | `govoo_contracts` → `govoo_base`/`govoo_secretarial` (read-only dependency) | Related-party source data (directors' interests) is owned by those modules; `govoo_contracts` computes a flag from it, never re-enters it |
 
 ## 7. Foreign key / index guidance (`[RECOMMENDED]`, not explicit in source)
 - Index `company_id` on every model that has it (multi-company query performance).
@@ -83,3 +102,6 @@ survey.user_input (M) ----> aggregated into ----> govoo.evaluation.result (per c
 - Index `(register_model, res_id)` on `govoo.register.entry` (frequent lookup key for
   "show me this record's history").
 - Index `due_date` and `state` on `govoo.compliance.instance` (dashboard/cron query patterns).
+- Index `due_date` and `state` on `govoo.contract.obligation` (same dashboard/cron query pattern).
+- Index `counterparty_id` and `state` on `govoo.contract` (register/dashboard filtering, portal
+  lookup).

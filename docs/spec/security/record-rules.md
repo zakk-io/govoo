@@ -77,6 +77,22 @@ instruction (per source §26 quality bar).
   `group_govoo_admin`.
 - **Source:** §7.6.2 — "individual responses not exposed to non-authorized roles."
 
+## 6b. `govoo.contract`, `govoo.contract.obligation`, `govoo.contract.milestone` — Contract Viewer Portal
+- **Rule (Contract Viewer Portal):**
+  ```
+  The record rule for govoo.contract must restrict Contract Viewer Portal users to contracts where
+  counterparty_id equals the partner associated with the portal user, OR the portal user's partner
+  is a named approver on that contract [ENGINEERING DETAIL -- "named approver" is not modeled as a
+  distinct field in modules/govoo_contracts.md; if approval routing (FR-CM-06) is later modeled as
+  its own child records rather than a single Contract Approver group, this rule should reference
+  that model instead -- CONFIRM once the routing data model is finalized].
+  ```
+  Domain sketch: `[('counterparty_id', '=', user.partner_id.id)]`.
+- `govoo.contract.obligation` and `govoo.contract.milestone` inherit the same domain via their
+  `contract_id` relation.
+- **Source:** addendum §3.2 CM-F16, §4 — "Counterparties/approvers see only their contracts (record
+  rules)."
+
 ## 7. `govoo.register.entry` — no write/unlink rule needed (handled at access-rights layer)
 - As stated in `access-control.md`, this model's protection is `ir.model.access.csv`-level (no
   group gets `write`/`unlink` permission at all), not a record-rule restriction on *which* rows —

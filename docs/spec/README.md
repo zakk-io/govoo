@@ -38,9 +38,11 @@ govoo_base  →  govoo_secretarial  →  govoo_shares  →  govoo_board
      │                                                     ▲
      └────────────────────────────────────────────────────┘
 govoo_base  →  govoo_compliance  →  govoo_rw
+govoo_base, govoo_compliance, govoo_board  →  govoo_contracts  (addendum — Contract Management)
 govoo_base  →  govoo_evaluation (wraps survey)
 all of the above → Portal + Dashboard
 (optional, separate) → govoo_rw_accounting, govoo_rw_ebm
+(unspecced, future) → govoo_ai, Contract intelligence (see integrations/future-integrations.md)
 ```
 
 ## Where an AI coding agent should start
@@ -71,6 +73,10 @@ model → workflow → UI → test, so completeness against the source spec is a
 6. Whether RDB/Irembo exposes any public filing API.
 7. GL posting policy for capital events (default: off).
 8. RPO/RTO targets and backup location.
+9-23. Additional engineering-detail items surfaced during decomposition (see full list, `decisions/open-decisions.md`).
+24-29. **Contract Management / AI addendum items** (§9): AI provider/hosting/DPA; self-hosted-model
+   necessity; e-signature legal validity for contracts (CM-F10); board-approval thresholds/contract
+   types (CM-F07); delegation-of-authority matrix (CM-F08); AI token caps/pricing.
 
 None of these may be hard-coded, pre-seeded as authoritative, or treated as resolved anywhere in
 this repository or in the implementation. See `data-model/constraints.md` and `modules/govoo_rw.md`

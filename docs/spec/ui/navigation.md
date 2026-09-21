@@ -46,6 +46,13 @@ Governance                              (app root, govoo_base.govoo_menu_root)
 |   |-- Campaigns                       (govoo.evaluation.campaign)
 |   `-- Results                         (govoo.evaluation.result, aggregate dashboard)
 |
+|-- Contracts                            (govoo_contracts, new — addendum)
+|   |-- Contracts                       (govoo.contract)
+|   |-- Templates                       (govoo.contract.template)
+|   |-- Clauses                         (govoo.contract.clause)
+|   |-- Types                           (govoo.contract.type)          -- Contract Manager/Admin only
+|   `-- Obligations & Milestones        (govoo.contract.obligation, govoo.contract.milestone)
+|
 |-- Rwanda
 |   `-- Retention Rules                 (govoo.rw.retention)
 |
@@ -54,20 +61,21 @@ Governance                              (app root, govoo_base.govoo_menu_root)
 ```
 
 ## Menu visibility by group
-| Menu | Governance User | Secretary | Admin | Auditor |
-| --- | --- | --- | --- | --- |
-| Appointments | Read | Full | Read | Read |
-| Committees | Read | Full | Read/Write | Read |
-| Statutory Registers | Read (except Beneficial Ownership) | Full | Read | Read |
-| Shares & Cap Table | Read | Full | Read | Read |
-| Board & Meetings | Read | Full | Read | Read |
-| Compliance | Read (instances only) | Full | Full (catalogue) | Read |
-| Evaluations | — | Full | Config | — |
-| Rwanda | — | Read | Full | — |
-| Configuration | — | — | Full | — |
+| Menu | Governance User | Secretary | Admin | Auditor | Contract Manager | Contract Approver |
+| --- | --- | --- | --- | --- | --- | --- |
+| Appointments | Read | Full | Read | Read | — | — |
+| Committees | Read | Full | Read/Write | Read | — | — |
+| Statutory Registers | Read (except Beneficial Ownership) | Full | Read | Read | — | — |
+| Shares & Cap Table | Read | Full | Read | Read | — | — |
+| Board & Meetings | Read | Full | Read | Read | Read (resolution lookup only) | Read (resolution lookup only) |
+| Compliance | Read (instances only) | Full | Full (catalogue) | Read | — | — |
+| Evaluations | — | Full | Config | — | — | — |
+| Contracts | — | — | Read | Read | Full | Read + approve action |
+| Rwanda | — | Read | Full | — | — | — |
+| Configuration | — | — | Full | — | — | — |
 
-Portal users (Director, Shareholder) do not see this backend menu at all — they use the portal
-"My Governance" area (see `ui/portal-ui.md`).
+Portal users (Director, Shareholder, **Contract Viewer**) do not see this backend menu at all —
+they use the portal "My Governance"/"My Contracts" area (see `ui/portal-ui.md`).
 
 ## Breadcrumb / drill-down expectations
 - Committee → Meetings (filtered) → Agenda/Pack/Minutes/Resolutions (drill-down from the meeting
@@ -75,3 +83,6 @@ Portal users (Director, Shareholder) do not see this backend menu at all — the
 - Share Class → Allotments/Transfers (filtered) → Holdings (smart button on the class form showing
   current holders).
 - Compliance obligation → Instances (smart button showing generated instances for that obligation).
+- Contract → Obligations/Milestones/Documents (smart buttons on the contract form, not separate
+  top-level navigation) → linked board Resolution (drill-down into `govoo_board`, read-only from
+  this side).

@@ -15,8 +15,15 @@ govoo_base
 govoo_rw depends on: govoo_secretarial, govoo_shares, govoo_board, govoo_compliance
                       (source §12 lists govoo_rw depends on "2-5", i.e. secretarial/shares/board/compliance)
 
+govoo_contracts (addendum) depends on: govoo_base, govoo_compliance, govoo_board
+                      (addendum §8: board-approval gate needs govoo_board's govoo.resolution;
+                       key-date reminders reuse govoo_compliance's engine, not a new one)
+
 govoo_rw_accounting (optional) depends on: govoo_rw, standard `account`
 govoo_rw_ebm (optional) depends on: govoo_rw_accounting
+
+(unspecced, future) govoo_ai depends on: govoo_base at minimum (not further specified here)
+(unspecced, future) Contract intelligence depends on: govoo_ai, govoo_contracts (addendum §8 step 3)
 ```
 
 ## 2. Model-level dependency chain — governance/board
@@ -91,6 +98,9 @@ govoo.compliance.instance (per company, per period)
 | `govoo.minutes.retention_until` | `govoo_rw` retention config | Computed field depends on Rwanda retention rule (10 years) shipped as `govoo_rw` data, not a literal in `govoo_board`. |
 | `govoo.compliance.instance.due_date` | `govoo_rw` provisional deadline templates + `res.company.govoo_financial_year_end` | FYE-relative obligations need the company's financial year end field (from `govoo_base`) and the (provisional, `[CONFIRM]`) deadline template from `govoo_rw`. |
 | Filing-pack export | `govoo.compliance.instance` + relevant register/document data | Must assemble from already-modeled data; do not assume an external API exists (`[CONFIRM]`, source §13 item 6). |
+| `govoo.contract.resolution_id` (addendum) | `govoo.resolution` (`govoo_board`) | Board-approval gate (BR-CM-001) reads an actual passed resolution; it cannot exist before `govoo_board` does. |
+| `govoo.contract.obligation.due_date` reminders (addendum) | `govoo_compliance`'s reminder/cron engine | Reused directly, not reimplemented, per BR-CM-006 — `govoo_contracts` cannot ship reminders before `govoo_compliance` exists. |
+| `govoo.contract.is_related_party` (addendum) | `govoo_base`/`govoo_secretarial` party/relationship data | The conflict check (BR-CM-003) reads existing related-party classification; it does not introduce a second one. |
 
 ## 7. Implication for build order
 Because `govoo_board`'s shareholder e-voting depends on `govoo_shares`, and `govoo_secretarial`'s
@@ -99,4 +109,6 @@ the source build order (§12) is a hard sequencing constraint, not a suggestion:
 `govoo_base` → `govoo_secretarial` → `govoo_shares` → `govoo_board`. `govoo_compliance` and
 `govoo_evaluation` only need `govoo_base` and can be parallelized. `govoo_rw` must come after
 `govoo_secretarial`/`govoo_shares`/`govoo_board`/`govoo_compliance` because it supplies
-configuration data those modules consume. See `implementation/build-sequence.md`.
+configuration data those modules consume. `govoo_contracts` (addendum) must come after `govoo_board`
+and `govoo_compliance` for the same reason as §6 above — it consumes their data rather than
+duplicating it. See `implementation/build-sequence.md`.

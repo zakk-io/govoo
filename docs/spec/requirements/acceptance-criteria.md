@@ -82,3 +82,24 @@ govoo_rw)
 - **When** a participant (not Secretary/Admin) views the campaign results,
 - **Then** they see only aggregated scores, never another individual's raw response.
 - Maps to: FR-EVAL-002, BR-EVAL-001, TC-EVAL-002.
+
+## AC-11 — Contract approval respects board-approval and delegation-of-authority gates
+(govoo_contracts, addendum)
+- **Given** a contract of a type flagged `requires_board_approval = True` and an approver with a
+  delegated authority limit lower than the contract's `value`,
+- **When** the contract is submitted for approval without a linked board `resolution_id`, or the
+  under-authorized approver attempts to approve it directly,
+- **Then** both attempts are rejected, and the contract only reaches `approved` once a passed
+  resolution is linked (where required) and an approver within their delegated authority limit
+  approves it.
+- Maps to: FR-CM-07, FR-CM-08, BR-CM-001, BR-CM-002, TC-CM-001..002.
+
+## AC-12 — Contract Viewer Portal isolation and write-once executed documents
+(govoo_contracts, addendum)
+- **Given** a contract that has reached `state = 'executed'`, and a Contract Viewer Portal user who
+  is not a party to it,
+- **When** that portal user attempts to open the contract by direct/guessed URL, and separately any
+  user (including Contract Manager) attempts to edit or delete the executed document,
+- **Then** both attempts are denied — the portal access at the record-rule/token level, and the
+  edit/delete at the access-rights layer, in all cases.
+- Maps to: FR-CM-16, BR-CM-004, BR-CM-007, TC-CM-004, TC-SEC-010..011.

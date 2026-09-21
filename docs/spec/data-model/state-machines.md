@@ -156,3 +156,34 @@ draft --> open --> closed
   (exact completion threshold `[ENGINEERING DETAIL]`, not specified in source).
 - **Side effects:** `closed` triggers `govoo.evaluation.result` aggregation (FR-EVAL-002).
 - **Audit:** `tracking=True` on `state`.
+
+## `govoo.contract.state`
+```
+draft --> in_approval --> approved --> executed --> active --> expired
+                                                            `-> terminated
+```
+- **States:** `draft`, `in_approval`, `approved`, `executed`, `active`, `expired`, `terminated`.
+- **Allowed transitions:** strictly forward, one step at a time (no skipping — same discipline as
+  `govoo.meeting.state`/BR-BOARD-002, applied here as an engineering-consistency choice since the
+  addendum states the state list but not an explicit transition-skipping rule).
+- **Who can trigger:** Contract Manager (`draft → in_approval`); Contract Approver
+  (`in_approval → approved`, subject to BR-CM-001/BR-CM-003 gates); execution flow
+  (`approved → executed`, subject to BR-CM-002/BR-CM-005 gates); system/Contract Manager
+  (`executed → active` once `date_start` is reached; `active → expired` automatically if
+  `date_end` passes with no renewal action; `active → terminated` on an explicit termination
+  action).
+- **Required conditions:**
+  - `in_approval → approved`: if `contract_type_id.requires_board_approval` or
+    `value >= contract_type_id.approval_threshold`, `resolution_id.state = 'passed'` (BR-CM-001);
+    if `is_related_party = True`, a conflict-of-interest declaration is recorded (BR-CM-003).
+  - `approved → executed`: the executing user's authority covers the contract's type/value per the
+    delegation-of-authority matrix (BR-CM-002); e-signature path gated on legal-validity
+    confirmation (BR-CM-005) — until confirmed, a manual signed-copy-upload path is used instead.
+  - `executed → active`: `date_start` reached (or contract recorded as already in effect).
+- **Forbidden transitions:** any backward transition; skipping a state; any transition out of
+  `expired`/`terminated` (terminal).
+- **Side effects:** `executed` locks the executed document as write-once (BR-CM-004); `active`
+  begins key-date reminder generation (FR-CM-11) via the `govoo_compliance` engine (BR-CM-006).
+- **Notifications:** state changes notify the counterparty (portal, where `govoo.contract.contract_type_id`
+  is portal-visible) and internal approvers, via standard `mail.thread` behavior.
+- **Audit:** `tracking=True` on `state`, `resolution_id`, `sign_request_id`.

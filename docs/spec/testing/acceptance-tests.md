@@ -17,6 +17,8 @@ in `implementation/module-checklists.md` and `requirements/traceability.md`.
 | TC-ACC-008 | Register append-only ledger cannot be altered | AC-08 | No group, including Board Administrator, can edit/delete an existing ledger entry |
 | TC-ACC-009 | Enterprise feature graceful degradation | AC-09 | Workflows complete on Community without unhandled errors |
 | TC-ACC-010 | Evaluation confidentiality holds under aggregation | AC-10 | Only aggregates visible to non-authorized participants |
+| TC-ACC-011 | Contract approval respects board-approval and delegation-of-authority gates | AC-11 | Contract cannot reach `approved` without a linked passed resolution (where required) or via an under-authorized approver |
+| TC-ACC-012 | Contract Viewer Portal isolation and write-once executed documents | AC-12 | Non-party portal access denied by direct URL; executed document cannot be edited/deleted by any group |
 
 ## How acceptance tests differ from workflow tests
 `testing/workflow-tests.md` (`TC-WF-*`) exercises the mechanics of a single workflow in detail

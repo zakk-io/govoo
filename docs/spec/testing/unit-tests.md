@@ -71,3 +71,17 @@ source §18 instruction.
 | TC-EVAL-002 | Non-Secretary/Admin participant reads another participant's `survey.user_input` | Access denied |
 | TC-EVAL-003 | Campaign created with empty `participant_ids` | Rejected |
 | TC-EVAL-004 | Campaign created with a participant who isn't a committee member (board/committee/peer evaluation types) | Rejected |
+
+## govoo_contracts (addendum)
+| Test ID | Scenario | Expected result |
+| --- | --- | --- |
+| TC-CM-001 | Contract of a type flagged `requires_board_approval = True` moved `in_approval → approved` with no linked `resolution_id` | `ValidationError` raised (BR-CM-001) |
+| TC-CM-002 | Contract `value` exceeds the approver's delegated authority limit; approver attempts to approve | `ValidationError`/access denied (BR-CM-002) |
+| TC-CM-003 | Contract's `counterparty_id` matches a related party (per `govoo_base`/`govoo_secretarial` linkage) and no conflict declaration exists | `is_related_party` computed `True`; `approved` transition blocked until a conflict declaration is recorded (BR-CM-003) |
+| TC-CM-004 | Contract reaches `state = 'executed'`; any group (incl. Contract Manager) attempts `write()`/`unlink()` on the executed document | Operation rejected for all groups (BR-CM-004, mirrors TC-SEC-STAT-005) |
+| TC-CM-005 | E-signature legal-validity flag unconfirmed; contract reaches `approved` | Sign UI path hidden/unavailable; manual signed-copy-upload path used instead (BR-CM-005) |
+| TC-CM-006 | Contract obligation with `due_date` approaching; compliance reminder engine cron runs | Reminder generated via the existing `govoo_compliance` mechanism, no parallel reminder created (BR-CM-006) |
+| TC-CM-007 | Contract Viewer Portal user (named approver on Contract A) attempts to read Contract B (not a party) | Denied (BR-CM-007) |
+| TC-CM-008 | Contract created with GL/accounting hook not explicitly enabled | No `account.move` created (BR-CM-008, mirrors TC-SHARE-005) |
+| TC-CM-009 | Contract template with mandatory clauses generates a contract | Generated document includes every mandatory clause; optional clauses only where selected |
+| TC-CM-010 | Contract `date_end` reached with `renewal_type = 'auto'` (evergreen) vs `'fixed'` | Evergreen contract stays `active` past `date_end` unless terminated; fixed-term contract transitions to `expired` |

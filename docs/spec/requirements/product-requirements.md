@@ -628,6 +628,444 @@ uncertain — implement as inactive/configurable) / `[OPTIONAL]` (separate insta
 
 ---
 
+## govoo_contracts
+
+Source: `contract_management_clagov_contracts.md` (the addendum) §3.2, one FR per addendum feature
+ID (CM-F01–F20). Priority carries the addendum's MoSCoW rating (§3.5): Must→MUST, Should→SHOULD,
+Could→MAY.
+
+### FR-CM-01 — Contract register
+- **Priority:** MUST
+- **Description:** `govoo.contract`: central register with `counterparty_id`, `company_id`,
+  `contract_type_id`, `value`, `state`, linked documents.
+- **Actors:** Contract Manager (create/manage), Contract Approver (read + approve action),
+  Contract Viewer Portal (read own), Auditor (read).
+- **Preconditions:** `company_id` and `counterparty_id` (a `res.partner`) exist.
+- **Trigger:** A new contract is drafted or generated from a template.
+- **Expected behavior:** Every contract is a single `govoo.contract` row tracked through its full
+  lifecycle (`data-model/state-machines.md`); no parallel/shadow contract list is created elsewhere.
+- **Business rules:** BR-CM-001 through BR-CM-005 (lifecycle gating).
+- **Validation rules:** `date_end >= date_start` when both set; `value >= 0` when set.
+- **Failure behavior:** N/A at this model level.
+- **Security considerations:** Company-scoped (BR-SEC-001); Contract Viewer Portal restricted to own
+  contracts (BR-CM-007).
+- **Audit requirements:** `mail.thread`; `tracking=True` on `state`, `value`, `counterparty_id`.
+- **Dependencies:** `govoo_base` (partners/companies).
+- **Acceptance criteria:**
+  - *Given* a new contract is created, *when* saved, *then* it defaults to `state = 'draft'` and is
+    visible only within its `company_id`.
+- **Source reference:** addendum §3.2 CM-F01, §3.3.
+
+### FR-CM-02 — Types & tagging
+- **Priority:** MUST
+- **Description:** `govoo.contract.type` categorizes contracts: officer/service agreements, NDAs,
+  shareholder agreements, related-party, leases, supplier agreements, engagement letters, SLAs.
+- **Actors:** Contract Manager (maintain catalogue).
+- **Preconditions:** None (foundational config model).
+- **Trigger:** A new contract category is needed, or an existing contract is tagged.
+- **Expected behavior:** `contract_type_id` drives `approval_threshold`,
+  `requires_board_approval`, and `mandatory_clause_ids` for every contract of that type.
+- **Business rules:** BR-CM-001 (threshold gating references this model's config).
+- **Validation rules:** N/A.
+- **Failure behavior:** N/A.
+- **Security considerations:** Config-level access (Contract Manager).
+- **Audit requirements:** `mail.thread`; `tracking=True` on `approval_threshold`,
+  `requires_board_approval`.
+- **Dependencies:** None.
+- **Acceptance criteria:**
+  - *Given* a contract type with `requires_board_approval = True`, *when* a contract of that type
+    is saved, *then* it is subject to BR-CM-001 at approval time.
+- **Source reference:** addendum §3.2 CM-F02.
+
+### FR-CM-03 — Version control
+- **Priority:** MUST
+- **Description:** Every draft/executed version of a contract is retained via `document_ids`
+  (Documents, feature-flagged; `ir.attachment` fallback).
+- **Actors:** Contract Manager (upload/generate versions), Auditor (read history).
+- **Preconditions:** A contract exists.
+- **Trigger:** A new draft is produced, or the contract is executed.
+- **Expected behavior:** No version is ever overwritten in place — each is a distinct
+  `documents.document`/`ir.attachment` row linked via `document_ids`, same pattern as
+  `govoo.board.pack.document_id` and `govoo.minutes.signed_document_id`.
+- **Business rules:** BR-CM-004 (the executed version specifically is write-once).
+- **Validation rules:** N/A.
+- **Failure behavior:** If Documents (Enterprise) is unavailable, falls back to `ir.attachment`
+  per the feature-flag pattern (`architecture/technology-standards.md` §8).
+- **Security considerations:** Documents inherit the parent contract's access restrictions
+  (`integrations/documents.md`).
+- **Audit requirements:** `mail.thread` records every version added.
+- **Dependencies:** FR-CM-01.
+- **Acceptance criteria:**
+  - *Given* a contract with two draft versions and one executed version, *when* the document
+    history is viewed, *then* all three remain individually accessible.
+- **Source reference:** addendum §3.2 CM-F03.
+
+### FR-CM-04 — Template & clause library
+- **Priority:** SHOULD
+- **Description:** `govoo.contract.template` (body + merge fields + language) and
+  `govoo.contract.clause` (reusable, standard vs optional, mandatory flag).
+- **Actors:** Contract Manager (author templates/clauses).
+- **Preconditions:** None.
+- **Trigger:** A recurring contract type needs a standard starting point.
+- **Expected behavior:** Templates reference clauses; a `contract_type_id`'s
+  `mandatory_clause_ids` are checked for presence before a contract of that type can leave `draft`
+  `[ENGINEERING DETAIL — exact enforcement point not itemized in the addendum; recommend checking
+  at draft → in_approval, mirroring how govoo_board checks agenda readiness before a pack compiles]`.
+- **Business rules:** N/A beyond mandatory-clause presence.
+- **Validation rules:** N/A.
+- **Failure behavior:** N/A.
+- **Security considerations:** Config-level access (Contract Manager).
+- **Audit requirements:** `mail.thread` on template/clause changes.
+- **Dependencies:** FR-CM-02.
+- **Acceptance criteria:**
+  - *Given* a contract type with two mandatory clauses, *when* a contract of that type generated
+    from a template omits one, *then* it is flagged before approval can begin.
+- **Source reference:** addendum §3.2 CM-F04, §3.3.
+
+### FR-CM-05 — Generate from template
+- **Priority:** SHOULD
+- **Description:** Produce a contract document (QWeb) in English, French, or Kinyarwanda from a
+  `govoo.contract.template`.
+- **Actors:** Contract Manager.
+- **Preconditions:** A template exists for the desired `contract_type_id`/language.
+- **Trigger:** Contract Manager generates a new contract from a template.
+- **Expected behavior:** Merge fields are populated from `res.partner`/`res.company` data (same
+  QWeb-merge approach already used for board packs/reports — no new templating engine).
+- **Business rules:** N/A.
+- **Validation rules:** N/A.
+- **Failure behavior:** N/A.
+- **Security considerations:** N/A beyond standard model access.
+- **Audit requirements:** `mail.thread` records the generation event.
+- **Dependencies:** FR-CM-04.
+- **Acceptance criteria:**
+  - *Given* a template with a `{{counterparty_name}}` merge field, *when* a contract is generated
+    for a specific counterparty, *then* the field is populated correctly in the output document.
+- **Source reference:** addendum §3.2 CM-F05.
+
+### FR-CM-06 — Approval routing
+- **Priority:** MUST
+- **Description:** Configurable legal → finance → board routing before a contract can execute.
+- **Actors:** Contract Manager (submits), Contract Approver (approves within delegation-of-authority
+  limits).
+- **Preconditions:** Contract in `draft`, mandatory clauses present (FR-CM-04).
+- **Trigger:** Contract Manager submits for approval.
+- **Expected behavior:** `draft → in_approval` transition; routing steps themselves are
+  configuration, not a hard-coded sequence, so different contract types can have different routing
+  `[ENGINEERING DETAIL — exact routing-step data model not itemized in the addendum; recommend a
+  simple ordered approver list per contract_type_id, consistent with "configurable" language in
+  §3.2]`.
+- **Business rules:** BR-CM-001 (board-approval gating layers on top of this routing, not instead of
+  it).
+- **Validation rules:** Cannot move to `in_approval` without mandatory clauses present.
+- **Failure behavior:** N/A.
+- **Security considerations:** Only Contract Approver group can action the approval step; Contract
+  Manager cannot approve their own submission `[ENGINEERING DETAIL — separation-of-duties rule
+  inferred from the existing Secretary/Director pattern (BR-SEC-004), not explicit in the addendum
+  — CONFIRM]`.
+- **Audit requirements:** `mail.thread`; `tracking=True` on `state`.
+- **Dependencies:** FR-CM-01, FR-CM-04.
+- **Acceptance criteria:** see `workflows/contracts.md`.
+- **Source reference:** addendum §3.2 CM-F06.
+
+### FR-CM-07 — Board-approval linkage
+- **Priority:** MUST (critical — governance differentiator)
+- **Description:** Contracts above a threshold, or of a defined type, require a linked
+  `govoo.resolution` in state `passed` before execution.
+- **Actors:** Contract Approver, Company Secretary (drafts the linked resolution in `govoo_board`).
+- **Preconditions:** `contract_type_id.requires_board_approval = True` or `value >=
+  contract_type_id.approval_threshold`.
+- **Trigger:** Approval routing reaches the board-approval step.
+- **Expected behavior:** `in_approval → approved` is blocked while `resolution_id` is unset or its
+  `state != 'passed'` (BR-CM-001).
+- **Business rules:** BR-CM-001.
+- **Validation rules:** Thresholds/qualifying types are `[CONFIRM]` — addendum §9 item 4; never
+  hard-coded, represented as `govoo.contract.type` config data, inactive/zero until confirmed.
+- **Failure behavior:** Attempting to approve without a passed resolution raises a `ValidationError`;
+  state remains at `in_approval`.
+- **Security considerations:** This is a hard gate, not a warning — no group, including Contract
+  Approver, can bypass it.
+- **Audit requirements:** `mail.thread`; `tracking=True` on `resolution_id`.
+- **Dependencies:** FR-CM-06, `govoo_board` FR-BOARD-005 (resolution lifecycle).
+- **Acceptance criteria:**
+  - *Given* a contract of a type requiring board approval with no linked passed resolution, *when*
+    approval is attempted, *then* it is rejected.
+- **Source reference:** addendum §3.2 CM-F07, §3.4; §9 item 4.
+
+### FR-CM-08 — Delegation-of-authority matrix
+- **Priority:** MUST (critical — governance differentiator)
+- **Description:** Who may sign what contract type/value; execution is blocked outside that
+  authority.
+- **Actors:** Contract Approver (signs within limits), Board Administrator (configures the matrix,
+  cannot sign on that basis alone — same separation-of-duties principle as BR-SEC-004).
+- **Preconditions:** A board-approved delegation-of-authority matrix exists as configuration data.
+- **Trigger:** Execution (`approved → executed`) is attempted.
+- **Expected behavior:** The executing user's authority (role/value limit per the matrix) must cover
+  the contract's `contract_type_id`/`value`; otherwise execution is blocked (BR-CM-002).
+- **Business rules:** BR-CM-002.
+- **Validation rules:** The matrix itself is `[CONFIRM]` — addendum §9 item 5; represented as
+  configurable data, never a hard-coded limit in Python.
+- **Failure behavior:** Execution attempted outside authority raises a `ValidationError`; `state`
+  remains `approved`.
+- **Security considerations:** Enforced at the model/workflow layer, not merely a UI hint — mirrors
+  BR-SEC-004's "the constraint is enforced at the access/business-rule layer, not by trust" pattern.
+- **Audit requirements:** `mail.thread`; every execution attempt (successful or blocked) is logged.
+- **Dependencies:** FR-CM-07.
+- **Acceptance criteria:**
+  - *Given* a delegation-of-authority matrix limiting a role to contracts under a stated value,
+    *when* a user in that role attempts to execute a contract above it, *then* execution is
+    rejected.
+- **Source reference:** addendum §3.2 CM-F08, §3.4; §9 item 5.
+
+### FR-CM-09 — Related-party check
+- **Priority:** SHOULD
+- **Description:** Cross-reference the counterparty against the directors'-interests / related-party
+  data; flag conflicts.
+- **Actors:** System (computes `is_related_party`), Contract Manager/Approver (declare/review
+  conflict).
+- **Preconditions:** `counterparty_id` set.
+- **Trigger:** Contract created/counterparty changed.
+- **Expected behavior:** `is_related_party` is computed, never independently entered; a `True` value
+  forces a conflict-of-interest declaration before approval (BR-CM-003).
+- **Business rules:** BR-CM-003.
+- **Validation rules:** N/A beyond the declaration gate.
+- **Failure behavior:** Approval blocked without a recorded declaration when `is_related_party =
+  True`.
+- **Security considerations:** Same declared-interest philosophy as `govoo.vote.is_conflicted`
+  (BR-BOARD-007).
+- **Audit requirements:** `mail.thread`; `tracking=True` on `is_related_party`.
+- **Dependencies:** `govoo_base`/`govoo_secretarial` interests data.
+- **Acceptance criteria:**
+  - *Given* a counterparty matching a director's declared interest, *when* the contract is created,
+    *then* `is_related_party = True` and approval is blocked pending a conflict declaration.
+- **Source reference:** addendum §3.2 CM-F09, §3.4.
+
+### FR-CM-10 — E-signature
+- **Priority:** MUST
+- **Description:** Execute via Odoo Sign (ordered signing, audit trail); the resulting executed PDF
+  is locked (write-once, BR-CM-004).
+- **Actors:** Signatories (per delegation-of-authority), Contract Manager (initiates).
+- **Preconditions:** `state = 'approved'`; delegation-of-authority check passes (FR-CM-08).
+- **Trigger:** Execution is initiated.
+- **Expected behavior:** `sign_request_id` created; on completion, the signed document becomes the
+  write-once executed version and `state → executed`.
+- **Business rules:** BR-CM-004, BR-CM-005.
+- **Validation rules:** N/A beyond the state-machine precondition.
+- **Failure behavior:** Gated behind the same Rwanda e-signature legal-validity `[CONFIRM]` as
+  `govoo_board` (BR-BOARD-008) — until confirmed, execution uses a manual signed-copy-upload path,
+  and the system must not present an e-signed contract as legally conclusive.
+- **Security considerations:** Signed documents inherit the parent contract's access restrictions.
+- **Audit requirements:** `mail.thread`; `tracking=True` on `state`, `sign_request_id`.
+- **Dependencies:** FR-CM-08, `integrations/sign.md`.
+- **Acceptance criteria:** see `workflows/contracts.md`.
+- **Source reference:** addendum §3.2 CM-F10; §9 item 3.
+
+### FR-CM-11 — Key-date tracking
+- **Priority:** MUST
+- **Description:** Start/end/renewal/notice dates auto-create compliance reminders via the
+  *existing* `govoo_compliance` engine.
+- **Actors:** System (reminder generation), responsible user (receives reminders).
+- **Preconditions:** Contract `state = 'active'` with relevant dates set.
+- **Trigger:** Contract becomes active, or an obligation's `due_date` approaches.
+- **Expected behavior:** Reminders are staged the same way `govoo.compliance.instance` reminders are
+  (BR-CM-006) — no parallel reminder mechanism is built in this module.
+- **Business rules:** BR-CM-006.
+- **Validation rules:** N/A.
+- **Failure behavior:** N/A.
+- **Security considerations:** N/A beyond standard model access.
+- **Audit requirements:** Reminder creation/completion tracked via standard `mail.activity`
+  mechanisms, same as `govoo_compliance`.
+- **Dependencies:** `govoo_compliance` FR-COMP-003 (reminder engine).
+- **Acceptance criteria:**
+  - *Given* a contract obligation with a `due_date` 30 days out, *when* the existing compliance
+    reminder cron runs, *then* a staged reminder is created for the responsible user, using the
+    same mechanism as a statutory obligation.
+- **Source reference:** addendum §3.2 CM-F11, §3.4.
+
+### FR-CM-12 — Auto-renewal & notice alerts
+- **Priority:** SHOULD
+- **Description:** Evergreen (`renewal_type = 'auto'`) tracking; alert before the notice window
+  (`notice_period_days`) lapses.
+- **Actors:** System (alerting), Contract Manager (acts on renewal/termination decision).
+- **Preconditions:** `renewal_type = 'auto'`, `date_end` and `notice_period_days` set.
+- **Trigger:** Current date enters the notice window before `date_end`.
+- **Expected behavior:** A reminder fires via the same engine as FR-CM-11; if no termination notice
+  is recorded before `date_end`, the contract's evergreen nature is reflected in reporting
+  `[ENGINEERING DETAIL — exact "renewed" state representation not itemized; recommend the contract
+  remaining `active` with a new implicit term rather than a fresh `govoo.contract` row, to avoid
+  document/version fragmentation — CONFIRM]`.
+- **Business rules:** BR-CM-006 (shares the reminder mechanism).
+- **Validation rules:** N/A.
+- **Failure behavior:** N/A.
+- **Security considerations:** N/A.
+- **Audit requirements:** `mail.thread`.
+- **Dependencies:** FR-CM-11.
+- **Acceptance criteria:**
+  - *Given* an evergreen contract with a 60-day notice period, *when* the current date enters that
+    window before `date_end`, *then* a reminder is generated.
+- **Source reference:** addendum §3.2 CM-F12.
+
+### FR-CM-13 — Obligation & milestone tracking
+- **Priority:** SHOULD
+- **Description:** `govoo.contract.obligation` (deliverables) and `govoo.contract.milestone`
+  (payment/delivery milestones) with owners and status.
+- **Actors:** Contract Manager (define), responsible user (action/update status).
+- **Preconditions:** Contract exists.
+- **Trigger:** Contract has deliverables or a payment schedule.
+- **Expected behavior:** Each obligation/milestone tracked independently with its own `state`; an
+  obligation's `due_date` feeds FR-CM-11.
+- **Business rules:** N/A beyond FR-CM-11's reminder integration.
+- **Validation rules:** N/A.
+- **Failure behavior:** N/A.
+- **Security considerations:** Inherits parent contract's company/portal scoping.
+- **Audit requirements:** `mail.thread` on both models.
+- **Dependencies:** FR-CM-01.
+- **Acceptance criteria:**
+  - *Given* an obligation marked `done`, *when* the contract's obligation list is reviewed, *then*
+    it no longer counts toward outstanding/overdue reporting.
+- **Source reference:** addendum §3.2 CM-F13, §3.3.
+
+### FR-CM-14 — Renewal/termination workflow
+- **Priority:** SHOULD
+- **Description:** Guided renew, renegotiate, or terminate flow as a contract approaches `date_end`.
+- **Actors:** Contract Manager.
+- **Preconditions:** Contract `state = 'active'`, approaching or past `date_end`.
+- **Trigger:** Contract Manager acts on a renewal/notice reminder (FR-CM-12), or `date_end` passes.
+- **Expected behavior:** `active → expired` (no action taken) or `active → terminated` (early/at-term
+  termination recorded); a renewal produces a new term (mechanism `[ENGINEERING DETAIL]`, see
+  FR-CM-12).
+- **Business rules:** N/A beyond the state machine (`data-model/state-machines.md`).
+- **Validation rules:** Terminal states (`expired`, `terminated`) do not transition further.
+- **Failure behavior:** N/A.
+- **Security considerations:** Contract Manager action; Contract Approver notified per routing
+  config.
+- **Audit requirements:** `mail.thread`; `tracking=True` on `state`.
+- **Dependencies:** FR-CM-01, FR-CM-12.
+- **Acceptance criteria:** see `workflows/contracts.md`.
+- **Source reference:** addendum §3.2 CM-F14.
+
+### FR-CM-15 — Financial linkage (optional)
+- **Priority:** `[CONFIRM]` / `[OPTIONAL]` (MAY)
+- **Description:** Value + payment schedule in RWF; optional link to Odoo Accounting behind a flag.
+- **Actors:** Client accounting team (enables/configures).
+- **Preconditions:** `account` module installed; client accounting policy confirmed.
+- **Trigger:** A contract's milestone/obligation reaches a billable event, IF this feature is
+  enabled.
+- **Expected behavior:** **Off by default.** Same pattern as `govoo_shares` FR-SHARE-005/
+  BR-SHARE-004 — only enabled per a client-confirmed accounting policy.
+- **Business rules:** BR-CM-008.
+- **Validation rules:** N/A until confirmed.
+- **Failure behavior:** If disabled (default), no `account.move`/invoice/PO is ever created by
+  `govoo_contracts`.
+- **Security considerations:** Only Accounting-privileged users can enable this feature.
+- **Audit requirements:** If enabled, standard `account.move` audit applies.
+- **Dependencies:** FR-CM-13.
+- **Acceptance criteria:**
+  - *Given* the financial linkage is not explicitly enabled, *when* a milestone is marked `paid`,
+    *then* no `account.move` is created.
+- **Source reference:** addendum §3.2 CM-F15, §5.
+
+### FR-CM-16 — Portal access
+- **Priority:** MUST
+- **Description:** Counterparties/approvers see only their own contracts via record rules.
+- **Actors:** Contract Viewer (Portal).
+- **Preconditions:** Portal user linked to a `res.partner` that is a contract counterparty or named
+  approver.
+- **Trigger:** Portal login.
+- **Expected behavior:** Record rules restrict `govoo.contract` (and its obligations/milestones)
+  visibility to contracts where the portal user's partner is the counterparty or a named approver
+  (BR-CM-007) — same "deny, don't merely hide" discipline as FR-PORTAL-001/002.
+- **Business rules:** BR-CM-007, BR-SEC-002, BR-SEC-006.
+- **Validation rules:** N/A.
+- **Failure behavior:** Direct-URL access to another counterparty's contract is denied, not merely
+  hidden from menus.
+- **Security considerations:** `portal.mixin` + access tokens, per `security/portal-security.md`.
+- **Audit requirements:** Standard portal access-log behavior.
+- **Dependencies:** FR-CM-01.
+- **Acceptance criteria:**
+  - *Given* a Contract Viewer Portal user who is a counterparty on Contract A but not Contract B,
+    *when* they attempt to open Contract B by direct URL, *then* access is denied.
+- **Source reference:** addendum §3.2 CM-F16, §4.
+
+### FR-CM-17 — Dashboards
+- **Priority:** SHOULD
+- **Description:** Register, expiry/renewal calendar, obligations status, spend by counterparty.
+- **Actors:** Contract Manager, Contract Approver, Board Administrator.
+- **Preconditions:** Contracts/obligations exist.
+- **Trigger:** Dashboard viewed.
+- **Expected behavior:** Same Enterprise-Spreadsheet-Dashboards-with-Community-fallback pattern as
+  every other dashboard in the system (`ui/dashboards.md` §5) — content available either way,
+  presentation richness differs.
+- **Business rules:** N/A.
+- **Validation rules:** N/A.
+- **Failure behavior:** N/A.
+- **Security considerations:** Company-scoped; portal users do not see this internal dashboard.
+- **Audit requirements:** N/A.
+- **Dependencies:** FR-CM-01, FR-CM-13.
+- **Source reference:** addendum §3.2 CM-F17.
+
+### FR-CM-18 — Retention
+- **Priority:** SHOULD
+- **Description:** Align contract retention to the statutory retention rules already configured in
+  `govoo_rw`.
+- **Actors:** System (disposal job), Contract Manager (oversight).
+- **Preconditions:** `govoo_rw` retention configuration exists.
+- **Trigger:** Contract creation (retention period computed) / scheduled disposal job run.
+- **Expected behavior:** `contract_type_id.retention_years` is read from/aligned with `govoo_rw`
+  configuration at compute time, never a literal in `govoo_contracts` — same discipline as
+  `govoo.minutes.retention_until` (BR-BOARD-004, BR-RW-002).
+- **Business rules:** BR-RW-002, BR-RW-003 (erasure-rights reconciliation applies here too).
+- **Validation rules:** N/A.
+- **Failure behavior:** N/A.
+- **Security considerations:** Disposal job restricted to system/Admin execution, same as `govoo_rw`
+  FR-RW-002.
+- **Audit requirements:** Every disposal action is itself logged before the underlying record is
+  removed.
+- **Dependencies:** `govoo_rw` FR-RW-002.
+- **Source reference:** addendum §3.2 CM-F18, §3.4.
+
+### FR-CM-19 — AI extraction
+- **Priority:** `[OPTIONAL]` (MAY) — depends on a separate, not-yet-specced module
+- **Description:** Pull key terms/dates/obligations from legacy contracts, human-confirmed, using
+  `govoo_ai`.
+- **Actors:** Contract Manager (reviews/confirms extracted data).
+- **Preconditions:** `govoo_ai` installed and configured (out of scope for this document — see
+  `modules/govoo_contracts.md` "Out of scope").
+- **Trigger:** A legacy contract document is uploaded for extraction.
+- **Expected behavior:** Extraction output is never auto-committed to `govoo.contract`/
+  `govoo.contract.obligation` fields — a human reviews and confirms before it becomes the record of
+  fact (human-in-the-loop, addendum §7 criterion 4).
+- **Business rules:** N/A (governed by `govoo_ai`'s own rules once that module is specced).
+- **Validation rules:** N/A.
+- **Failure behavior:** If `govoo_ai` is not installed, this feature is simply absent — no error, no
+  degraded core-contract-management functionality (addendum §6, "contract workflows never depend on
+  AI being available").
+- **Security considerations:** N/A here (governed by `govoo_ai`'s own security model).
+- **Audit requirements:** N/A here.
+- **Dependencies:** `govoo_ai` (not specced by this repository as of this addendum).
+- **Source reference:** addendum §3.2 CM-F19, §8 step 3.
+
+### FR-CM-20 — AI summarize / risk / Q&A
+- **Priority:** `[OPTIONAL]` (MAY) — depends on a separate, not-yet-specced module
+- **Description:** Summarize contracts, flag risky/missing clauses, detect template deviation,
+  answer questions over contract content, using `govoo_ai`.
+- **Actors:** Contract Manager, Contract Approver (consult AI output as an aid, not a decision-maker).
+- **Preconditions:** `govoo_ai` installed and configured.
+- **Trigger:** User requests a summary/risk-flag/Q&A over one or more contracts.
+- **Expected behavior:** AI output is clearly labelled as such and never presented as an official
+  approval/compliance determination — a named human remains accountable for every official record
+  (addendum's closing note).
+- **Business rules:** N/A (governed by `govoo_ai`).
+- **Validation rules:** N/A.
+- **Failure behavior:** Same graceful-absence behavior as FR-CM-19.
+- **Security considerations:** AI retrieval must honour existing record rules/company scope — an AI
+  query must never surface a contract the requesting user could not otherwise read (addendum §4).
+- **Audit requirements:** Every AI request/response is logged (governed by `govoo_ai`'s own audit
+  model once specced).
+- **Dependencies:** `govoo_ai` (not specced by this repository as of this addendum).
+- **Source reference:** addendum §3.2 CM-F20, §8 step 3.
+
+---
+
 ## govoo_rw
 
 ### FR-RW-001 — Locale, currency, and company field configuration

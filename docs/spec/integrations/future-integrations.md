@@ -27,6 +27,34 @@ unconfirmed API.
 - **If later confirmed:** implement as the hook already scoped in `modules/govoo_shares.md`
   FR-SHARE-005; do not build this ahead of confirmation.
 
+## GL / Accounting posting for contract value and payment schedules (govoo_contracts, addendum)
+- **Status:** `[OPTIONAL]`, off by default (FR-CM-15, BR-CM-008) — same pattern and same
+  confirmation discipline as the capital-events hook immediately above; this is a second instance
+  of the identical "optional GL hook, disabled until a client accounting policy is confirmed"
+  pattern, not a new integration concept.
+- **If later confirmed:** implement as the hook scoped in `modules/govoo_contracts.md` FR-CM-15;
+  do not build this ahead of confirmation.
+
+## Contract intelligence — `govoo_ai` (govoo_contracts addendum §3.2 CM-F19/CM-F20, §8 step 3)
+- **Status:** `[CONFIRM]` / out of scope for this addendum pass. The addendum's own build sequence
+  (§8) places "Contract intelligence" as step 3, explicitly **after** both `govoo_ai` and
+  `govoo_contracts` are independently stable — it is not part of `govoo_contracts`' core build.
+  `govoo_ai` itself is **not specced anywhere in this repository** as of this addendum; only the
+  fact that `govoo_contracts` is shaped to eventually support it (via `document_ids`/
+  `obligation_ids`) is recorded here.
+- **Non-negotiable constraints once `govoo_ai` is built** (addendum §4, §6, §7): AI retrieval must
+  honour existing record rules/company scope — an AI query must never surface a contract the
+  requesting user could not otherwise read; AI output is never auto-committed to a `govoo.contract`/
+  `govoo.contract.obligation` field without human confirmation (human-in-the-loop); contract
+  workflows must never depend on AI being available (graceful degradation, same discipline as
+  Documents/Sign feature flags elsewhere in this repository).
+- **Data residency / provider items:** addendum §9 items 1, 2, 6 (AI provider/hosting region/DPA,
+  self-hosted-model necessity, token-cap/pricing metering) are recorded in
+  `decisions/open-decisions.md` as unresolved, even though they belong to `govoo_ai` rather than
+  `govoo_contracts` proper — the addendum bundles both modules in one source document, and the
+  instruction to add "all of the addendum's open items" is not narrowed to only the
+  `govoo_contracts`-specific ones.
+
 ## Approvals app
 - **Status:** available in the Odoo standard-apps list (source §3.3) but not adopted for v1 — see
   rationale in `integrations/odoo-standard-apps.md`.

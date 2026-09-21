@@ -43,6 +43,26 @@ before marking a module Done (`implementation/module-checklists.md`).
 | §6.2 | FR-PORTAL-002 | Portal | (record rules over govoo_shares/govoo_board) | `workflows/share-management.md`, `workflows/voting.md` | `ui/portal-ui.md` | TC-SEC-005 |
 | §6.3 | FR-PORTAL-003 | Portal | `portal.mixin` (all portal-exposed models) | — | `ui/portal-ui.md` | TC-SEC-005, TC-SEC-006 |
 
+## Contract Management addendum (`docs/contract_management_clagov_contracts.md`, hereafter "the
+addendum" — not a source-spec §, tracked separately since it post-dates the original baseline)
+| Addendum § | FR ID | Module | Model(s) | Workflow spec | UI spec | Test(s) |
+| --- | --- | --- | --- | --- | --- | --- |
+| §3.2 CM-F01 | FR-CM-01 | govoo_contracts | `govoo.contract` | `workflows/contracts.md` | `ui/views.md` | TC-CM-001 |
+| §3.2 CM-F02 | FR-CM-02 | govoo_contracts | `govoo.contract.type` | `workflows/contracts.md` | `ui/views.md` | TC-CM-009 |
+| §3.2 CM-F03 | FR-CM-03 | govoo_contracts | `govoo.contract.template` | `workflows/contracts.md` | `ui/views.md` | TC-CM-009 |
+| §3.2 CM-F04 | FR-CM-04 | govoo_contracts | `govoo.contract.clause` | `workflows/contracts.md` | `ui/views.md` | TC-CM-009 |
+| §3.2 CM-F07 | FR-CM-07 | govoo_contracts | `govoo.contract` (state gate) | `workflows/contracts.md` | `ui/views.md` | TC-CM-001 |
+| §3.2 CM-F08 | FR-CM-08 | govoo_contracts | `govoo.contract` (approval routing) | `workflows/contracts.md` | `ui/views.md` | TC-CM-002 |
+| §3.2 CM-F09 | FR-CM-09 | govoo_contracts | `govoo.contract` (`is_related_party`) | `workflows/contracts.md` | `ui/views.md` | TC-CM-003 |
+| §3.2 CM-F10 | FR-CM-10 | govoo_contracts | `govoo.contract` (`sign_request_id`) | `workflows/contracts.md` | `integrations/sign.md` | TC-CM-005 |
+| §3.2 CM-F11 | FR-CM-11 | govoo_contracts | `govoo.contract.obligation`, `govoo.contract.milestone` | `workflows/contracts.md` | `ui/views.md` | TC-CM-006 |
+| §3.2 CM-F12 | FR-CM-12 | govoo_contracts | `govoo.contract` (renewal/termination) | `workflows/contracts.md` | `ui/views.md` | TC-CM-010 |
+| §3.2 CM-F15 | FR-CM-15 | govoo_contracts | `account.move` hook (optional) | `workflows/contracts.md` | — | TC-CM-008 |
+| §3.2 CM-F16 | FR-CM-16 | govoo_contracts | (record rules over `govoo.contract`) | `workflows/contracts.md` | `ui/portal-ui.md` §2b | TC-CM-007, TC-SEC-010 |
+| §3.2 CM-F17 | FR-CM-17 | govoo_contracts | `govoo.contract` (dashboard aggregation) | — | `ui/dashboards.md` §4b | — |
+| §3.2 CM-F18 | FR-CM-18 | govoo_contracts | `govoo.contract.type.retention_years` | — | — | — |
+| §3.2 CM-F19, CM-F20 | FR-CM-19, FR-CM-20 | *(out of scope — `govoo_ai`)* | — | — | — | — |
+
 ## Non-functional / open-decision traceability
 | Source § | Item | Owning spec | Status |
 | --- | --- | --- | --- |
@@ -54,6 +74,12 @@ before marking a module Done (`implementation/module-checklists.md`).
 | §13 item 6 | RDB/Irembo filing API | `modules/govoo_compliance.md`, `decisions/open-decisions.md` | `[CONFIRM]` |
 | §13 item 7 | GL posting policy | `modules/govoo_shares.md`, `decisions/open-decisions.md` | `[CONFIRM]` |
 | §13 item 8 | RPO/RTO, backup location | `devops/backup-recovery.md`, `decisions/open-decisions.md` | `[CONFIRM]` |
+| addendum §9 item 1 | AI provider/hosting/DPA | `integrations/future-integrations.md`, `decisions/open-decisions.md` (item 24) | `[CONFIRM]` |
+| addendum §9 item 2 | Self-hosted-model necessity | `integrations/future-integrations.md`, `decisions/open-decisions.md` (item 25) | `[CONFIRM]` |
+| addendum §9 item 3 | Contract e-signature legal validity (CM-F10) | `modules/govoo_contracts.md`, `integrations/sign.md`, `decisions/open-decisions.md` (item 26) | `[CONFIRM]` |
+| addendum §9 item 4 | Board-approval thresholds/contract types (CM-F07) | `modules/govoo_contracts.md`, `decisions/open-decisions.md` (item 27) | `[CONFIRM]` |
+| addendum §9 item 5 | Delegation-of-authority matrix (CM-F08) | `modules/govoo_contracts.md`, `decisions/open-decisions.md` (item 28) | `[CONFIRM]` |
+| addendum §9 item 6 | AI token caps/pricing | `integrations/future-integrations.md`, `decisions/open-decisions.md` (item 29) | `[CONFIRM]` |
 
 ## How to keep this file current
 Whenever a module is implemented, update the implicit "status" of each row (not tracked as a column

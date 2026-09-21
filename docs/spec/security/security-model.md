@@ -13,7 +13,9 @@ controls, and `privacy.md` for data-protection requirements.
    - Director portal user sees only meetings/packs of committees they belong to.
    - Shareholder sees only their own `govoo.share.holding` and shareholder resolutions.
    - Auditor group: global read, no write.
-   See `record-rules.md` §2-4.
+   - Contract Viewer Portal sees only contracts where they are the counterparty or a named
+     approver (`govoo_contracts` addendum, §4).
+   See `record-rules.md` §2-4, §6b.
 3. **Field-level:** sensitive PII (national ID, date of birth) restricted to Secretary/Admin
    groups. See `access-control.md` §4.
 4. **Separation of duties:** Secretary/Admin prepare; Directors approve/vote/sign; Admins cannot
@@ -27,7 +29,9 @@ and controllers. **Never expose by URL guessing — use access tokens and the re
 See `portal-security.md`.
 
 ## 3. Security groups (source §6.1)
-Six groups, all defined in `govoo_base`. Full detail in `access-control.md` §1.
+Six groups, all defined in `govoo_base`, per the source spec. The `govoo_contracts` addendum adds
+three more (Contract Manager, Contract Approver, Contract Viewer Portal) — see `access-control.md`
+§1 for the full, current group list (nine groups as of this addendum).
 
 ## 4. Non-functional security requirements (source §10.2)
 - MFA/SSO (OAuth2/SAML/LDAP) for internal users; access tokens for portal.

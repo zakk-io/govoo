@@ -25,6 +25,10 @@ constraint and, critically, every place a value MUST remain configurable rather 
 | `govoo.vote` | `(resolution_id, voter_id)` | Unique — one vote per voter per resolution; exact re-vote behavior `[CONFIRM]` | §7.4.6 |
 | `govoo.compliance.obligation` | `lead_time_days` | `>= 0` | §7.5.1 |
 | `govoo.compliance.instance` | `(obligation_id, company_id, period)` | Unique — no duplicate instance | §7.5.2 (engineering addition) |
+| `govoo.contract` | `date_end` | `>= date_start` when both set | addendum §3.3 (engineering addition) |
+| `govoo.contract` | `value` | `>= 0` when set | addendum §3.3 (engineering addition) |
+| `govoo.contract.obligation` | `due_date` | Required | addendum §3.3 |
+| `govoo.contract.type` | `approval_threshold` | `>= 0` when set | addendum §3.4 (engineering addition) |
 
 ## 2. Multi-company constraints (every transactional model)
 Every model listed in `data-model/entities.md` §1 has `company_id` with `check_company=True`, and is
@@ -42,11 +46,16 @@ disclaimer — the single most important constraint category in the whole system
 | Legal article numbers (any obligation description referencing a specific law article) | Free text or code comments treated as fact | Data field, clearly labelled as reference, not enforcement logic | Legal advisor |
 | RPO/RTO targets | DevOps runbook as fixed numbers | Config per environment tier, `[CONFIRM]` | DevOps + sponsor (§13 item 8) |
 | Annual-return filing window | `govoo_rw` obligation seed | Data row, `active=False`, `[CONFIRM exact window]` | Tax/legal advisor (§13 item 5) |
+| Contract board-approval thresholds/qualifying types | `govoo_contracts` approval-gating Python | `govoo.contract.type.approval_threshold`/`requires_board_approval` data, inactive/zero until confirmed | Client board/counsel (addendum §9 item 4) |
+| Delegation-of-authority (signing) matrix | `govoo_contracts` execution-gating Python | Configurable data, never a hard-coded limit | Client board (addendum §9 item 5) |
 
 **Enforcement mechanism (`[RECOMMENDED]`):** a CI lint rule/grep check that fails the build if a
-percentage, currency amount, or date literal appears inside `govoo_rw`, `govoo_compliance`, or
-`govoo_rw_accounting` Python files outside of `tests/` — forcing such values into `data/` XML/CSV
-or `ir.config_parameter` instead.
+percentage, currency amount, or date literal appears inside `govoo_rw`, `govoo_compliance`,
+`govoo_contracts`, or `govoo_rw_accounting` Python files outside of `tests/` — forcing such values
+into `data/` XML/CSV or `ir.config_parameter` instead. `govoo_contracts` is added to this list here
+because it introduces the same class of confirmable threshold/matrix values (board-approval
+thresholds, delegation-of-authority limits) as `govoo_rw`/`govoo_compliance`'s tax/deadline values —
+see `devops/ci-cd.md` §1 step 6.
 
 ## 4. `[CONFIRM]` items represented as inactive/configurable data (cross-reference)
 Every row in the table above traces to `decisions/open-decisions.md`. No `[CONFIRM]` item may be

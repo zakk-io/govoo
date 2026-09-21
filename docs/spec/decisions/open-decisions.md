@@ -52,6 +52,21 @@ recorded confirmation.**
 | 22 | Exact per-recipient board-pack redaction data model (dedicated child model vs. dynamic rendering) | `modules/govoo_board.md` FR-BOARD-003 | Engineering decision, document once made |
 | 23 | Actual CMA Corporate Governance Code 2024 provision text/numbering to populate `govoo.rw.governance.checklist.item` records against | `modules/govoo_rw.md` §5, FR-RW-004 | Legal advisor (gazetted code text) |
 
+## From the Contract Management / AI addendum (§9, verbatim items)
+| # | Item | Where flagged | Owner (recommended) |
+| --- | --- | --- | --- |
+| 24 | AI provider selection, hosting region, and Data Processing Agreement for any `govoo_ai` capability | `integrations/future-integrations.md` (Contract intelligence section) | Technical sponsor + client counsel (data protection) |
+| 25 | Whether a self-hosted AI model is required (vs. a third-party hosted API) for data-residency reasons | `integrations/future-integrations.md`, `decisions/open-decisions.md` item 2 (related, not identical — item 2 is document/database hosting; this is AI-inference hosting) | Client + counsel + NCSA |
+| 26 | Legal validity of e-signature for contracts under Rwandan law and the client's articles of association (CM-F10) | `modules/govoo_contracts.md`, `integrations/sign.md`, BR-CM-005 | Rwandan legal advisor — **this is the same underlying confirmation as item 3 above (minutes/resolutions), extended to contracts; a single legal opinion may resolve both, but each spec reference must be updated on confirmation, not just one** |
+| 27 | Contract types and value thresholds requiring board-resolution approval before execution (CM-F07) | `modules/govoo_contracts.md` FR-CM-07, BR-CM-001, `data-model/constraints.md` §3 | Client board / company secretary practice |
+| 28 | Delegation-of-authority matrix — who may approve contracts up to what value without board approval (CM-F08) | `modules/govoo_contracts.md` FR-CM-08, BR-CM-002, `data-model/constraints.md` §3 | Client board / company secretary practice |
+| 29 | AI token-usage caps and pricing/metering model for any `govoo_ai` capability | `integrations/future-integrations.md` (Contract intelligence section) | Technical sponsor + commercial/finance |
+
+Items 24, 25, and 29 belong to the unspecced `govoo_ai` module rather than `govoo_contracts` itself,
+but are recorded here because the addendum source document bundles both under one "open items"
+list (§9) — see `integrations/future-integrations.md` for why `govoo_ai` is not built as part of
+this addendum pass.
+
 ## How to use this file
 - Never mark an item here as resolved by editing this file alone — resolution requires adding the
   corresponding entry to `decisions/confirmed-decisions.md` with who confirmed it and when, **and**

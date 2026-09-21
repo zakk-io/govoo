@@ -17,8 +17,10 @@ shape below is `[ENGINEERING DETAIL]` derived to satisfy those expectations, kep
    still installs and passes tests (enforces the module-boundary rule in
    `modules/optional-integrations.md`).
 6. **Hard-coded-value lint `[RECOMMENDED]`:** grep/lint check that fails the build if a percentage,
-   currency literal, or date literal appears in `govoo_rw`, `govoo_compliance`, or
-   `govoo_rw_accounting` Python outside `tests/` (enforces `data-model/constraints.md` §3).
+   currency literal, or date literal appears in `govoo_rw`, `govoo_compliance`, `govoo_contracts`
+   (addendum — board-approval thresholds, delegation-of-authority limits, retention years, per
+   FR-CM-07/08/18), or `govoo_rw_accounting` Python outside `tests/` (enforces
+   `data-model/constraints.md` §3).
 
 ## 2. Branching / review
 - Feature branches, PR review required before merge (source §4).

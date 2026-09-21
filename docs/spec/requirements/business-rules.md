@@ -141,6 +141,51 @@ hard-coded date in Python. *Source §7.5.1, §7.5.2, §9.*
 **BR-COMP-004** — Filing-pack export produces documents for manual submission; it never assumes an
 automated government filing API exists unless/until one is confirmed. *Source §7.5.4; §13 item 6.*
 
+## govoo_contracts
+
+**BR-CM-001** *(board-approval gating)* — A contract whose `contract_type_id.requires_board_approval`
+is `True`, or whose `value >= contract_type_id.approval_threshold`, cannot transition
+`in_approval → executed` (via `approved`) without a linked `govoo.resolution` in `state = 'passed'`.
+Thresholds and qualifying types are `[CONFIRM]` — represented as configuration data, never a
+hard-coded percentage/amount/type list. *Addendum §3.2 CM-F07, §3.4; §9 item 4.*
+
+**BR-CM-002** *(delegation-of-authority enforcement)* — Execution (`approved → executed`) is blocked
+unless the executing user's signing authority, per the board-approved delegation-of-authority
+matrix, covers the contract's `contract_type_id` and `value`. The matrix itself is `[CONFIRM]` —
+represented as configurable data, never a hard-coded limit in Python. Enforced at the
+business-rule/access layer, not a UI-only warning (same discipline as BR-SEC-004). *Addendum §3.2
+CM-F08, §3.4; §9 item 5.*
+
+**BR-CM-003** *(related-party conflict declaration)* — When `govoo.contract.is_related_party = True`,
+approval (`in_approval → approved`) cannot proceed until a conflict-of-interest declaration is
+recorded against the contract. This mirrors `govoo.vote.is_conflicted`'s declared-interest exclusion
+(BR-BOARD-007), applied to contracts rather than votes. *Addendum §3.2 CM-F09, §3.4.*
+
+**BR-CM-004** *(write-once executed documents)* — Once a contract reaches `state = 'executed'`, its
+executed/signed document is write-once: no group may edit or replace it in place. A subsequent
+amendment or renewal produces a new, additional `document_ids` entry, never an edit to the executed
+one — same append-only philosophy as `govoo.register.entry` (BR-SEC-STAT-005) and board-pack
+distribution history. *Addendum §3.2 CM-F03/CM-F10, §7 criterion 3.*
+
+**BR-CM-005** *(e-signature legal-validity gate)* — Contract execution via Sign is gated behind the
+same Rwandan e-signature legal-validity confirmation as `govoo_board` (BR-BOARD-008); until
+confirmed, execution uses a manual signed-copy-upload path, and the system must not present an
+e-signed contract as legally conclusive. *Addendum §3.2 CM-F10; §9 item 3.*
+
+**BR-CM-006** *(key-date reminders reuse the existing engine)* — `govoo.contract.obligation.due_date`
+and contract renewal/notice dates feed the *existing* `govoo_compliance` reminder engine
+(staged `mail.activity`, same offsets/mechanism as statutory deadlines); `govoo_contracts` does not
+build a second, parallel reminder mechanism. *Addendum §3.2 CM-F11/CM-F12, §3.4.*
+
+**BR-CM-007** *(portal isolation)* — Contract Viewer (Portal) sees only contracts where the portal
+user's partner is the counterparty or a named approver — never another counterparty's contract.
+Enforced by record rule **and** portal access token (BR-SEC-006), same "deny, don't merely hide"
+discipline as FR-PORTAL-001/002. *Addendum §3.2 CM-F16, §4.*
+
+**BR-CM-008** *(financial linkage off by default)* — Any GL/Accounting posting for contract value or
+payment-schedule events is off by default and only enabled per a client-confirmed accounting policy
+— same pattern as `govoo_shares`' GL posting hook (BR-SHARE-004). *Addendum §3.2 CM-F15, §5.*
+
 ## govoo_rw
 
 **BR-RW-001** — Currency is configured as RWF with 0 decimal places system-wide for Rwanda

@@ -32,6 +32,12 @@ L=List, F=Form, K=Kanban, C=Calendar, S=Search/filters, SB=Smart buttons, ST=Sta
 | `govoo.compliance.instance` | L, F (ST: upcoming/in_progress/filed/late/waived), C, K (RAG-colored by state) | Dashboard-worthy — see `ui/dashboards.md` |
 | `govoo.evaluation.campaign` | L, F (ST: draft/open/closed) | |
 | `govoo.evaluation.result` | L (aggregate only), graph/pivot `[RECOMMENDED]` | No raw `survey.user_input` browsing here |
+| `govoo.contract` | L, F (ST: draft/in_approval/approved/executed/active/expired/terminated), K (by state), C (expiry/renewal calendar) | SB: "Obligations", "Milestones", "Documents" |
+| `govoo.contract.type` | L, F | Admin/Contract Manager only |
+| `govoo.contract.template` | L, F | Action button: "Generate Contract" |
+| `govoo.contract.clause` | L, F, S (filter: mandatory/optional) | |
+| `govoo.contract.obligation` | Inline list on `govoo.contract` form (one2many, editable list); also a top-level dashboard view (`ui/dashboards.md`) | |
+| `govoo.contract.milestone` | Inline list on `govoo.contract` form | |
 
 ## Form-view conventions (apply to every custom model)
 - Statusbar (`ST`) widget for every model with a `state` field, following the exact transitions in
@@ -55,3 +61,5 @@ L=List, F=Form, K=Kanban, C=Calendar, S=Search/filters, SB=Smart buttons, ST=Sta
 | Minutes document | `govoo.minutes` | |
 | Resolution / voting summary | `govoo.resolution`, `govoo.vote` | |
 | Filing pack | `govoo.compliance.instance` | Bundle for manual submission |
+| Generated contract document | `govoo.contract.template` → `govoo.contract` | Merged from template + partner/company fields |
+| Contract register extract | `govoo.contract` | Printable, dated as-of |

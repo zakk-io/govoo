@@ -12,6 +12,7 @@ Dashboards / Enterprise). This is the aggregation layer described in `modules/po
 | Cap-table snapshot | `govoo.share.holding` | Secretary, Admin, Auditor |
 | Recent register changes | `govoo.register.entry` (latest N) | Secretary, Admin, Auditor |
 | Evaluation trend (aggregate) | `govoo.evaluation.result` | Secretary, Admin |
+| Contract register / expiry-renewal calendar / obligations status / spend by counterparty | `govoo.contract`, `govoo.contract.obligation` | Contract Manager, Contract Approver, Board Administrator (CM-F17) |
 
 ## 2. Compliance RAG (red/amber/green) — source §7.5.3
 - **Green:** `state = 'upcoming'`, more than `lead_time_days` from `due_date`.
@@ -33,6 +34,16 @@ new model).
   `committee_id`/`evaluation_type`, shown as a trend line — never drilling into individual
   `survey.user_input` rows for non-authorized viewers (BR-EVAL-001).
 
+## 4b. Contract dashboard (addendum §3.2 CM-F17)
+- **Register:** all contracts, filterable by `state`/`contract_type_id`/`counterparty_id`.
+- **Expiry/renewal calendar:** `govoo.contract` calendar view keyed on `date_end`, with evergreen
+  (`renewal_type = 'auto'`) contracts flagged distinctly from fixed-term ones.
+- **Obligations status:** `govoo.contract.obligation` grouped by `state`, same RAG-style coloring
+  convention as `ui/dashboards.md` §2 (green/amber/red by proximity to `due_date`), for visual
+  consistency with the compliance dashboard rather than inventing a second color language.
+- **Spend by counterparty:** pivot/graph over `govoo.contract.value` grouped by `counterparty_id`
+  `[RECOMMENDED]`.
+
 ## 5. Enterprise vs Community
 - **Enterprise:** Spreadsheet Dashboards app — richer, drag-and-drop dashboard composition.
 - **Community fallback:** OCA `spreadsheet_dashboard_oca`, or plain Odoo pivot/graph/Kanban views
@@ -44,4 +55,6 @@ new model).
 - Director Portal: "My upcoming meetings," "My open votes," own appointment particulars.
 - Shareholder Portal: "My holdings" (cap-table snapshot for their own `partner_id`), "My open
   votes" (shareholder resolutions they're eligible for).
+- Contract Viewer Portal: "My contracts" (own contracts as counterparty/named approver),
+  "My obligations" (own contract's outstanding obligations/milestones).
 See `ui/portal-ui.md`.

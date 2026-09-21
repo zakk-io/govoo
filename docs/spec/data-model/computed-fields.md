@@ -14,6 +14,7 @@ does not need to infer these from the model tables alone.
 | `state` (transition eligibility check, not the field itself) | `govoo.compliance.instance` | `due_date`, current date, prior `state` | N/A — `state` itself is source data set by user/cron, but the *late* transition is computed | Daily cron evaluation | See BR-COMP-003 |
 | `due_date` | `govoo.compliance.instance` | `obligation_id.basis`, `obligation_id.frequency`, `res.company.govoo_financial_year_end` (if `fye_relative`), `govoo_rw` deadline template data (if seeded from Rwanda templates) | Yes (set at instance-generation time, not re-derived live) | Instance generation (cron) | Must never be a literal — BR-COMP-002 |
 | `aggregate_score`, `participant_count` | `govoo.evaluation.result` | `survey.user_input` rows for the campaign | Yes | Campaign `state → 'closed'` (or on demand, `[ENGINEERING DETAIL]`) | Must never expose per-respondent data through this computation — BR-EVAL-001 |
+| `is_related_party` | `govoo.contract` | `counterparty_id` cross-referenced against `govoo_base`/`govoo_secretarial` directors'-interests data | Yes | `counterparty_id` set/changed | Never independently entered; a `True` value forces a conflict declaration before approval — BR-CM-003 |
 
 ## General rules for computed fields in this system
 1. **Store when the field is used in search/filter/report or read frequently** (e.g. dashboards,

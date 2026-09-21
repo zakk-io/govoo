@@ -27,13 +27,19 @@ file is the single-page domain overview.
 | Compliance instance | `govoo.compliance.instance` | custom | `govoo_compliance` |
 | Evaluation campaign | `govoo.evaluation.campaign` | custom (wraps `survey.survey`) | `govoo_evaluation` |
 | Evaluation result | `govoo.evaluation.result` | custom | `govoo_evaluation` |
+| Contract | `govoo.contract` | custom | `govoo_contracts` |
+| Contract type | `govoo.contract.type` | custom | `govoo_contracts` |
+| Contract template | `govoo.contract.template` | custom | `govoo_contracts` |
+| Contract clause | `govoo.contract.clause` | custom | `govoo_contracts` |
+| Contract obligation | `govoo.contract.obligation` | custom | `govoo_contracts` |
+| Contract milestone | `govoo.contract.milestone` | custom | `govoo_contracts` |
 | Document | `documents.document` / `ir.attachment` | standard | reused everywhere |
 
 ## 2. Data ownership classification
 | Class | Meaning | Examples |
 | --- | --- | --- |
-| **Source data** | Directly entered by a user, the authoritative record of a fact | `govoo.appointment`, `govoo.share.allotment`, `govoo.share.transfer`, `govoo.meeting`, `govoo.resolution`, `govoo.vote`, `govoo.register.charge`, `govoo.register.beneficial.owner` |
-| **Derived data** | Computed from source data, never independently entered | `govoo.appointment.state`, `govoo.share.holding` (all fields), `govoo.meeting.quorum_met`, `govoo.resolution.result`, `govoo.minutes.retention_until`, `govoo.register.director` (curated view), `govoo.register.member` (curated from holdings) |
+| **Source data** | Directly entered by a user, the authoritative record of a fact | `govoo.appointment`, `govoo.share.allotment`, `govoo.share.transfer`, `govoo.meeting`, `govoo.resolution`, `govoo.vote`, `govoo.register.charge`, `govoo.register.beneficial.owner`, `govoo.contract`, `govoo.contract.obligation`, `govoo.contract.milestone` |
+| **Derived data** | Computed from source data, never independently entered | `govoo.appointment.state`, `govoo.share.holding` (all fields), `govoo.meeting.quorum_met`, `govoo.resolution.result`, `govoo.minutes.retention_until`, `govoo.register.director` (curated view), `govoo.register.member` (curated from holdings), `govoo.contract.is_related_party` |
 | **Cached/materialized data** | Derived data that is stored (not computed on the fly) for query performance | `govoo.share.holding` (stored computed fields), aggregate fields on `govoo.evaluation.result` |
 | **External data** | Data whose authoritative source is outside Govoo | Government filing acknowledgement numbers (`reference_no`) once filed — Govoo records the acknowledgement but is not the source of truth for the filing itself |
 | **Documents/files** | Binary/file content | `documents.document` / `ir.attachment` records referenced by `*_document_id` fields throughout |

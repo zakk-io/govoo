@@ -7,7 +7,8 @@ Source: §3.3, §7.4.3 (board packs), throughout §7 wherever a `*_document_id` 
 - **Integration owner:** every module with a `*_document_id`/`document_ids` field —
   `govoo_secretarial` (evidence/charge documents), `govoo_shares` (certificates, transfer
   instruments), `govoo_board` (agenda documents, board packs, minutes, signed documents),
-  `govoo_compliance` (filing documents).
+  `govoo_compliance` (filing documents), `govoo_contracts` (generated contract documents, executed/
+  signed contracts, clause-library attachments — addendum CM-F04, CM-F10).
 - **Direction:** Govoo → Documents (store), Documents → Govoo (retrieve for viewing/merging into
   reports).
 - **Data exchanged:** binary file content + metadata (filename, linked record).

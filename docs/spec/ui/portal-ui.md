@@ -18,6 +18,13 @@ detail this UI must respect; this file covers the presentation layer only.
 | My votes | Open shareholder-type resolutions eligible to vote on; cast-vote widget | `security/record-rules.md` §4 |
 | My register entry | Own `govoo.register.member` entry, read-only | `partner_id = user.partner_id` |
 
+## 2b. Contract Viewer Portal ("My Contracts" area — addendum §3.2 CM-F16)
+| Page | Content | Record rule applied |
+| --- | --- | --- |
+| My contracts | List of contracts where the portal user is counterparty or a named approver | `security/record-rules.md` §6b |
+| Contract detail | Terms, executed document (once `state = 'executed'`), obligations/milestones | Same rule |
+| My obligations | Outstanding obligations/milestones across the user's own contracts | Same rule, via `contract_id` |
+
 ## 3. Portal UI conventions
 - Simplified, read-mostly presentation — no Odoo backend chrome (standard `portal.mixin` layout).
 - Vote-casting is the only meaningful "write" action exposed to portal users (plus, optionally,
@@ -36,3 +43,6 @@ detail this UI must respect; this file covers the presentation layer only.
 - No compliance-instance management (internal-only workflow, `workflows/compliance.md`).
 - No evaluation-campaign administration (portal users only respond to their own survey invite via
   standard Surveys portal flow, not a Govoo-specific evaluation UI).
+- No contract authoring, approval routing, or delegation-of-authority configuration (internal-only
+  workflow, `workflows/contracts.md`) — Contract Viewer Portal is read-mostly, same as every other
+  portal role, with e-signature (where enabled/confirmed) as the only meaningful write action.
