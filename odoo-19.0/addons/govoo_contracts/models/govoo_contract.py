@@ -140,6 +140,20 @@ class GovooContract(models.Model):
         required=True,
         tracking=True,
     )
+    retention_until = fields.Date(
+        string='Retention Until',
+        compute='_compute_retention_until',
+        store=True,
+        help='FR-CM-18: computed from contract_type_id.retention_years at '
+             'compute time, same discipline as govoo.minutes.'
+             'retention_until reading govoo_rw config -- never a Python '
+             'literal. Unlike minutes, no statutory default is assumed '
+             'here if retention_years is unset: contract retention has '
+             'no established default in this project (unlike minutes\' '
+             'confirmed 10-year rule, BR-BOARD-004), so an unconfigured '
+             'type simply computes no retention date rather than '
+             'guessing one.',
+    )
     termination_reason = fields.Text(
         string='Termination Reason',
         help='Required before action_terminate() can be called (FR-CM-14) '
@@ -199,6 +213,17 @@ class GovooContract(models.Model):
     def _compute_milestone_count(self):
         for rec in self:
             rec.milestone_count = len(rec.milestone_ids)
+
+    @api.depends('create_date', 'contract_type_id.retention_years')
+    def _compute_retention_until(self):
+        for rec in self:
+            retention_years = rec.contract_type_id.retention_years
+            if not rec.create_date or not retention_years:
+                rec.retention_until = False
+                continue
+            rec.retention_until = rec.create_date.replace(
+                year=rec.create_date.year + retention_years,
+            )
 
     def _compute_access_url(self):
         super()._compute_access_url()

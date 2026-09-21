@@ -27,6 +27,20 @@ against, clearly flagged so they can be revisited without archaeology through th
   separate from the internal approval-routing data (`Contract Approver` group,
   `govoo.contract.delegation`), since portal visibility and internal approval authority are related
   but distinct concerns — see `security/record-rules.md` §6b.
+- **`govoo.contract.retention_until` reads `contract_type_id.retention_years` directly, not
+  `govoo_rw`'s `govoo.rw.retention` model** (issue #179). `govoo.rw.retention.retention_category` is
+  a fixed Selection with only five statutory values (`minutes`/`resolutions`/`accounts`/
+  `auditor_reports`/`board_reports`) tied to Rwandan company-law retention rules; contract retention
+  has a different legal basis (contract law/limitation periods, not the same statutory regime) and
+  no addendum text ties it to those five categories. `govoo_contracts` also deliberately does not
+  depend on `govoo_rw` (`architecture/dependency-graph.md`), so extending that enum would add a
+  cross-module coupling this addendum doesn't call for. The "never hard-code" discipline is instead
+  satisfied by `contract_type_id.retention_years` itself being ordinary configuration data (FR-CM-18)
+  — the same computed-field-reads-config-at-compute-time *pattern* as `govoo.minutes.
+  retention_until`, applied to a `govoo_contracts`-owned config source rather than `govoo_rw`'s. Also
+  unlike `govoo.minutes.retention_until`, no statutory default (e.g. `govoo_board`'s confirmed
+  10-year rule, BR-BOARD-004) is assumed when `retention_years` is unset — contracts have no
+  established default in this project, so an unconfigured type simply computes no retention date.
 
 ## Data-model assumptions
 - **`govoo.register.charge` has a `company_id` field** for consistency with every other register,
