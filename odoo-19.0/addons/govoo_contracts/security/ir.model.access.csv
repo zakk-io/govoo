@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_govoo_contract_admin,govoo.contract.admin,model_govoo_contract,govoo_base.group_govoo_admin,1,0,0,0
+access_govoo_contract_auditor,govoo.contract.auditor,model_govoo_contract,govoo_base.group_govoo_auditor,1,0,0,0
+access_govoo_contract_manager,govoo.contract.manager,model_govoo_contract,govoo_base.group_govoo_contract_manager,1,1,1,1
+access_govoo_contract_approver,govoo.contract.approver,model_govoo_contract,govoo_base.group_govoo_contract_approver,1,1,0,0
+access_govoo_contract_type_admin,govoo.contract.type.admin,model_govoo_contract_type,govoo_base.group_govoo_admin,1,1,1,1
+access_govoo_contract_type_auditor,govoo.contract.type.auditor,model_govoo_contract_type,govoo_base.group_govoo_auditor,1,0,0,0
+access_govoo_contract_type_manager,govoo.contract.type.manager,model_govoo_contract_type,govoo_base.group_govoo_contract_manager,1,1,1,1
+access_govoo_contract_type_approver,govoo.contract.type.approver,model_govoo_contract_type,govoo_base.group_govoo_contract_approver,1,0,0,0

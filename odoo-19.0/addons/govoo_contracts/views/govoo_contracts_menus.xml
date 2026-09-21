@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="govoo_menu_contracts"
+              name="Contracts"
+              parent="govoo_base.govoo_menu_root"
+              sequence="45"/>
+
+    <menuitem id="govoo_menu_contract"
+              name="Contracts"
+              parent="govoo_menu_contracts"
+              action="govoo_contract_action"
+              sequence="10"/>
+
+    <menuitem id="govoo_menu_contract_type"
+              name="Types"
+              parent="govoo_menu_contracts"
+              action="govoo_contract_type_action"
+              groups="govoo_base.group_govoo_admin,govoo_base.group_govoo_contract_manager"
+              sequence="20"/>
+
+</odoo>

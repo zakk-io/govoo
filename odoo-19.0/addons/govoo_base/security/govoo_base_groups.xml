@@ -63,4 +63,37 @@
         <field name="comment">Read-only access within assigned companies, no write permissions.</field>
     </record>
 
+    <!-- Contract Manager: manages the contract register/templates
+         (govoo_contracts addendum). Deliberately independent of Secretary,
+         not implied by it, per docs/spec/security/access-control.md
+         [ENGINEERING DETAIL - CONFIRM] note on this choice. -->
+    <record id="group_govoo_contract_manager" model="res.groups">
+        <field name="name">Contract Manager</field>
+        <field name="sequence">70</field>
+        <field name="privilege_id" ref="res_groups_privilege_governance"/>
+        <field name="implied_ids" eval="[(4, ref('group_govoo_user'))]"/>
+        <field name="comment">Manages the contract register, templates/clauses, and obligations. Cannot approve contracts above their own delegated authority (BR-CM-002).</field>
+    </record>
+
+    <!-- Contract Approver: approves contracts within a delegated authority
+         limit (BR-CM-002). Independent of Contract Manager. -->
+    <record id="group_govoo_contract_approver" model="res.groups">
+        <field name="name">Contract Approver</field>
+        <field name="sequence">80</field>
+        <field name="privilege_id" ref="res_groups_privilege_governance"/>
+        <field name="implied_ids" eval="[(4, ref('group_govoo_user'))]"/>
+        <field name="comment">Approves contracts within their delegated authority limit. Read-only elsewhere in the contract register.</field>
+    </record>
+
+    <!-- Contract Viewer (Portal): external counterparty/named-approver
+         self-service, isolated-portal-track group (own contracts only,
+         BR-CM-007), same track as Director/Shareholder Portal. -->
+    <record id="group_govoo_contract_portal" model="res.groups">
+        <field name="name">Contract Viewer (Portal)</field>
+        <field name="sequence">90</field>
+        <field name="privilege_id" ref="res_groups_privilege_governance"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="comment">External counterparty/named-approver self-service. Portal-only, sees only own contracts (BR-CM-007).</field>
+    </record>
+
 </odoo>
