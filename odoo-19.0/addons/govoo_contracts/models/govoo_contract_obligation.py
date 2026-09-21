@@ -78,6 +78,45 @@ class GovooContractObligation(models.Model):
         required=True,
         tracking=True,
     )
+    days_to_due = fields.Integer(
+        string='Days to Due',
+        compute='_compute_days_to_due',
+        store=True,
+    )
+    rag_color = fields.Selection(
+        selection=[
+            ('green', 'Green'),
+            ('amber', 'Amber'),
+            ('red', 'Red'),
+            ('grey', 'Grey'),
+        ],
+        string='RAG Status',
+        compute='_compute_rag_color',
+        store=True,
+        help='CM-F17: same RAG-coloring convention as '
+             'govoo.compliance.instance.rag_color, for visual consistency '
+             'with the compliance dashboard rather than a second color '
+             'language (ui/dashboards.md section 2).',
+    )
+
+    @api.depends('due_date')
+    def _compute_days_to_due(self):
+        today = fields.Date.context_today(self)
+        for rec in self:
+            rec.days_to_due = (rec.due_date - today).days if rec.due_date else 0
+
+    @api.depends('state', 'days_to_due', 'lead_time_days')
+    def _compute_rag_color(self):
+        for rec in self:
+            if rec.state in _TERMINAL_STATES:
+                rec.rag_color = 'grey'
+            elif rec.state == 'overdue':
+                rec.rag_color = 'red'
+            elif rec.state == 'open':
+                lead = rec.lead_time_days or 0
+                rec.rag_color = 'amber' if rec.days_to_due <= lead else 'green'
+            else:
+                rec.rag_color = 'grey'
 
     def write(self, vals):
         """Block transitions out of terminal states, same discipline as
