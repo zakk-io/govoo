@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="portal_my_contracts" name="My Contracts">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar"/>
+
+            <t t-if="not contracts">
+                <p class="text-muted">No contracts found.</p>
+            </t>
+
+            <t t-foreach="contracts" t-as="contract">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a t-attf-href="/my/contracts/#{contract.id}?access_token=#{contract._portal_ensure_token()}"
+                               t-esc="contract.name"/>
+                        </h5>
+                        <p class="card-text text-muted mb-1">
+                            <strong>Type:</strong> <t t-esc="contract.contract_type_id.name"/>
+                        </p>
+                        <p class="card-text text-muted mb-1" t-if="contract.date_end">
+                            <strong>End Date:</strong> <t t-esc="contract.date_end"/>
+                        </p>
+                        <span class="badge"
+                              t-attf-class="badge #{contract.state in ('executed', 'active') and 'bg-success' or contract.state in ('draft', 'in_approval') and 'bg-secondary' or 'bg-info'}"
+                              t-esc="contract.state"/>
+                    </div>
+                </div>
+            </t>
+
+            <t t-call="portal.pager"/>
+        </t>
+    </template>
+
+    <template id="portal_my_contract" name="My Contract">
+        <t t-call="portal.portal_layout">
+            <div class="container mt-4">
+                <h3 t-esc="contract.name"/>
+                <p class="text-muted">
+                    <strong>Type:</strong> <t t-esc="contract.contract_type_id.name"/>
+                </p>
+                <p class="text-muted" t-if="contract.date_start">
+                    <strong>Start Date:</strong> <t t-esc="contract.date_start"/>
+                </p>
+                <p class="text-muted" t-if="contract.date_end">
+                    <strong>End Date:</strong> <t t-esc="contract.date_end"/>
+                </p>
+                <p>
+                    <span class="badge bg-info" t-esc="contract.state"/>
+                </p>
+                <t t-if="contract.state in ('executed', 'active', 'expired', 'terminated') and contract.executed_document_id">
+                    <a t-attf-href="/web/content/#{contract.executed_document_id.id}?download=true">
+                        Download Executed Document
+                    </a>
+                </t>
+            </div>
+        </t>
+    </template>
+
+</odoo>

@@ -52,6 +52,16 @@ class GovooContract(models.Model):
         required=True,
         tracking=True,
     )
+    portal_approver_ids = fields.Many2many(
+        comodel_name='res.partner',
+        string='Named Approvers (Portal)',
+        help='Partners other than the counterparty who should see this '
+             'contract in the Contract Viewer Portal as a named approver '
+             '(BR-CM-007, security/record-rules.md section 6b) -- resolves '
+             'the previously-open "named approver" data-model gap '
+             'explicitly, rather than assuming it always equals '
+             'counterparty_id.',
+    )
     currency_id = fields.Many2one(
         comodel_name='res.currency',
         string='Currency',
@@ -123,6 +133,11 @@ class GovooContract(models.Model):
         required=True,
         tracking=True,
     )
+
+    def _compute_access_url(self):
+        super()._compute_access_url()
+        for rec in self:
+            rec.access_url = '/my/contracts/%s' % rec.id
 
     @api.constrains('sign_request_id')
     def _check_esignature_legally_confirmed(self):

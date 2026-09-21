@@ -11,3 +11,4 @@ access_govoo_contract_delegation_admin,govoo.contract.delegation.admin,model_gov
 access_govoo_contract_delegation_manager,govoo.contract.delegation.manager,model_govoo_contract_delegation,govoo_base.group_govoo_contract_manager,1,1,1,1
 access_govoo_contract_delegation_approver,govoo.contract.delegation.approver,model_govoo_contract_delegation,govoo_base.group_govoo_contract_approver,1,0,0,0
 access_govoo_contract_delegation_auditor,govoo.contract.delegation.auditor,model_govoo_contract_delegation,govoo_base.group_govoo_auditor,1,0,0,0
+access_govoo_contract_portal,govoo.contract.portal,model_govoo_contract,govoo_base.group_govoo_contract_portal,1,0,0,0

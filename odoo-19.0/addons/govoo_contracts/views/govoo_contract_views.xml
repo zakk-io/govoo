@@ -55,6 +55,7 @@
                             <field name="name"/>
                             <field name="contract_type_id"/>
                             <field name="counterparty_id"/>
+                            <field name="portal_approver_ids" widget="many2many_tags"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                         <group>
