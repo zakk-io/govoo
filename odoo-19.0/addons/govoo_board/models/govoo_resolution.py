@@ -24,7 +24,7 @@ class GovooResolution(models.Model):
     company_id = fields.Many2one(
         comodel_name='res.company',
         string='Company',
-        related='meeting_id.company_id',
+        compute='_compute_company_id',
         store=True,
         readonly=True,
     )
@@ -136,6 +136,19 @@ class GovooResolution(models.Model):
                     'be used. Store the executed resolution document '
                     'separately instead.'
                 ))
+
+    @api.depends('meeting_id.company_id')
+    def _compute_company_id(self):
+        """Meeting-linked resolutions take the meeting's company; standalone
+        written resolutions (meeting_id null -- nullable per
+        docs/spec/modules/govoo_board.md) fall back to the acting user's
+        company. A plain `related='meeting_id.company_id'` field left this
+        False whenever meeting_id was unset, which then failed the
+        multi-company ir.rule (govoo_resolution_comp_rule: company_id in
+        company_ids) for every user with no configured group able to fix
+        it -- surfaced as a generic Access Error that named no group."""
+        for rec in self:
+            rec.company_id = rec.meeting_id.company_id if rec.meeting_id else self.env.company
 
     def _compute_access_url(self):
         super()._compute_access_url()
