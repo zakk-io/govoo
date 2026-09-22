@@ -1,6 +1,7 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
 from odoo.tests import tagged
+from odoo.tests.common import new_test_user
 
 from .common import GovooContractsTestBase
 
@@ -79,6 +80,28 @@ class TestTemplateClauseLibrary(GovooContractsTestBase):
         self.assertEqual(contract.template_id, self.template)
         self.assertEqual(contract.contract_type_id, self.contract_type)
         self.assertEqual(contract.counterparty_id, self.counterparty)
+
+    def test_contract_manager_can_use_the_generate_wizard(self):
+        """Regression test: the wizard (govoo.contract.generate.wizard) is
+        a separate model from govoo.contract.template, with its own
+        ir.model.access.csv requirement. Every other test in this file
+        calls action_generate_contract() directly on the template, which
+        bypasses the wizard entirely and would never have caught a
+        missing access-rights row for the wizard model itself (found
+        manually in the UI as a Contract Manager: "Access Error -- no
+        group currently allows this operation")."""
+        manager = new_test_user(
+            self.env, login='test_contract_manager_wizard',
+            groups='govoo_base.group_govoo_contract_manager',
+            company_id=self.company.id,
+        )
+        wizard = self.env['govoo.contract.generate.wizard'].with_user(manager).create({
+            'template_id': self.template.id,
+            'counterparty_id': self.counterparty.id,
+        })
+        action = wizard.action_generate()
+        contract = self.env['govoo.contract'].browse(action['res_id'])
+        self.assertEqual(contract.template_id, self.template)
 
     def test_report_renders(self):
         """A minimal render-doesn't-crash check, same spirit as the
