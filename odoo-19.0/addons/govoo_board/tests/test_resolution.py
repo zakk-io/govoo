@@ -2,6 +2,7 @@
 
 from odoo.exceptions import ValidationError
 from odoo.tests import tagged
+from odoo.tests.common import new_test_user
 
 from .common import GovooBoardTestBase
 
@@ -285,6 +286,24 @@ class GovooResolutionTC(GovooBoardTestBase):
                 lambda a: a.activity_type_id == self.env.ref('mail.mail_activity_data_todo'),
             ),
         )
+
+    def test_standalone_written_resolution_gets_company_id(self):
+        """Regression test: a written resolution with no meeting_id (nullable
+        per docs/spec/modules/govoo_board.md) must still get a company_id,
+        or the multi-company ir.rule (company_id in company_ids) blocks its
+        creation for every user -- found manually in the UI as the Company
+        Secretary: a generic "Access Error" naming no group to fix, because
+        the failure was a record rule, not a missing ir.model.access row."""
+        secretary = new_test_user(
+            self.env, login='test_secretary_standalone_resolution',
+            groups='govoo_base.group_govoo_secretary',
+            company_id=self.company.id,
+        )
+        resolution = self.env['govoo.resolution'].with_user(secretary).create({
+            'title': 'Written Resolution With No Meeting',
+            'resolution_type': 'written',
+        })
+        self.assertEqual(resolution.company_id, self.company)
 
     def test_sign_request_allowed_when_legally_confirmed(self):
         """Once confirmed, sign_request_id can be set."""
