@@ -36,10 +36,17 @@ class GovooMeeting(models.Model):
             ('committee', 'Committee Meeting'),
             ('agm', 'Annual General Meeting'),
             ('egm', 'Extraordinary General Meeting'),
+            ('executive', 'Executive Management Meeting'),
+            ('departmental', 'Departmental Meeting'),
         ],
         string='Meeting Type',
         required=True,
         tracking=True,
+        help='Issue #202: "executive" and "departmental" meetings are '
+             'confidentiality-partitioned by committee_id.member_ids -- '
+             'see govoo_meeting_confidential_comp_rule -- unlike board/'
+             'committee/agm/egm meetings, which remain visible to every '
+             'internal governance user as before.',
     )
     calendar_event_id = fields.Many2one(
         comodel_name='calendar.event',
