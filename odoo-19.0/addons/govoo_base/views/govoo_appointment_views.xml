@@ -12,6 +12,7 @@
                 <field name="committee_id"/>
                 <field name="date_appointed"/>
                 <field name="date_resigned"/>
+                <field name="end_date"/>
                 <field name="state"/>
                 <field name="company_id" groups="base.group_multi_company"/>
             </list>
@@ -37,6 +38,8 @@
                         <group>
                             <field name="date_appointed"/>
                             <field name="date_resigned"/>
+                            <field name="end_date"/>
+                            <field name="reminder_lead_months"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                     </group>
