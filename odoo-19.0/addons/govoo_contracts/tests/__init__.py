@@ -14,3 +14,4 @@ from . import test_renewal_termination_workflow
 from . import test_retention_alignment
 from . import test_dashboards
 from . import test_financial_linkage
+from . import test_end_to_end_board_approval_demo
