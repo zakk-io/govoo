@@ -44,6 +44,49 @@
         <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
     </record>
 
+    <!-- Issue #202: confidentiality partitioning for "executive" and
+         "departmental" meetings. Board/Committee/AGM/EGM meetings are
+         unaffected (the OR branch below always matches them, so this
+         adds no restriction beyond the existing company-scope rules
+         above). These are global rules (no `groups` field) rather than
+         rules scoped to group_govoo_user: two rules sharing the same
+         group are OR'ed together by Odoo, which would have silently
+         defeated this restriction by widening access instead of
+         narrowing it. A global rule is instead ANDed with the
+         company-scope rules above for every non-superuser, including
+         Board Administrator and Auditor, consistent with their
+         documented narrow/read-only remit elsewhere in this module.
+         Company Secretary is explicitly exempted via has_group() in the
+         domain itself (not a second overlapping rule, for the same
+         OR-combination reason) because Secretary already holds full CRUD
+         on every meeting/minutes/agenda item and organizes confidential
+         meetings too.
+         [CONFIRM] partitioning axis: reuses committee_id.member_ids, the
+         exact mechanism already used by the Director Portal scoping
+         rules below, rather than inventing a new "department" model;
+         no such model exists in the codebase, and a govoo.committee
+         record (e.g. "Executive Management", "Finance Department") can
+         already represent either concept. Confirm with the business
+         whether this reuse matches their intended data model before
+         relying on it long-term. -->
+    <record id="govoo_meeting_confidential_comp_rule" model="ir.rule">
+        <field name="name">Meeting: confidential type committee scope</field>
+        <field name="model_id" ref="model_govoo_meeting"/>
+        <field name="domain_force">[] if user.has_group('govoo_base.group_govoo_secretary') else ['|', ('meeting_type', 'not in', ['executive', 'departmental']), ('committee_id.member_ids.partner_id', '=', user.partner_id.id)]</field>
+    </record>
+
+    <record id="govoo_agenda_item_confidential_comp_rule" model="ir.rule">
+        <field name="name">Agenda Item: confidential type committee scope</field>
+        <field name="model_id" ref="model_govoo_agenda_item"/>
+        <field name="domain_force">[] if user.has_group('govoo_base.group_govoo_secretary') else ['|', ('meeting_id.meeting_type', 'not in', ['executive', 'departmental']), ('meeting_id.committee_id.member_ids.partner_id', '=', user.partner_id.id)]</field>
+    </record>
+
+    <record id="govoo_minutes_confidential_comp_rule" model="ir.rule">
+        <field name="name">Minutes: confidential type committee scope</field>
+        <field name="model_id" ref="model_govoo_minutes"/>
+        <field name="domain_force">[] if user.has_group('govoo_base.group_govoo_secretary') else ['|', ('meeting_id.meeting_type', 'not in', ['executive', 'departmental']), ('meeting_id.committee_id.member_ids.partner_id', '=', user.partner_id.id)]</field>
+    </record>
+
     <!-- Director Portal: committee-membership scoping for meetings/agenda/pack/minutes -->
     <record id="govoo_meeting_portal_rule" model="ir.rule">
         <field name="name">Meeting: Director Portal committee scope</field>
