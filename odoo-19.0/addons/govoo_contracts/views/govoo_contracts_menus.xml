@@ -2,7 +2,7 @@
 <odoo>
 
     <menuitem id="govoo_menu_contracts"
-              name="Contracts"
+              name="Contract Management"
               parent="govoo_base.govoo_menu_root"
               sequence="45"/>
 
