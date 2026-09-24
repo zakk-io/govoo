@@ -6,6 +6,26 @@
               parent="govoo_base.govoo_menu_root"
               sequence="40"/>
 
+    <!-- Issue #197: re-parent Appointments and Committees (originally
+         top-level menus defined in govoo_base/views/govoo_base_menus.xml)
+         under Board & Meetings, to declutter the main navigation. This
+         must be done here in govoo_board rather than by editing
+         govoo_base_menus.xml directly: govoo_board depends on govoo_base
+         (not the reverse), so govoo_base's own XML cannot reference
+         govoo_menu_board, which is defined here. Only `parent` and
+         `sequence` are overridden; the menuitem records, their
+         actions, and the underlying govoo.appointment/govoo.committee
+         models/views/access rules are untouched (menu placement only). -->
+    <record id="govoo_base.govoo_menu_appointments" model="ir.ui.menu">
+        <field name="parent_id" ref="govoo_menu_board"/>
+        <field name="sequence">5</field>
+    </record>
+
+    <record id="govoo_base.govoo_menu_committees" model="ir.ui.menu">
+        <field name="parent_id" ref="govoo_menu_board"/>
+        <field name="sequence">6</field>
+    </record>
+
     <menuitem id="govoo_menu_meeting"
               name="Meetings"
               parent="govoo_menu_board"
