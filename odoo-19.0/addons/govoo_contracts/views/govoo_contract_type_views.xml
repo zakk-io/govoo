@@ -10,6 +10,7 @@
                 <field name="requires_board_approval"/>
                 <field name="approval_threshold"/>
                 <field name="retention_years"/>
+                <field name="e_signature_enabled"/>
                 <field name="company_id" groups="base.group_multi_company"/>
             </list>
         </field>
@@ -32,6 +33,7 @@
                             <field name="approval_threshold"/>
                             <field name="retention_years"/>
                             <field name="renewal_notice_days"/>
+                            <field name="e_signature_enabled"/>
                         </group>
                     </group>
                 </sheet>

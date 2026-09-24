@@ -65,3 +65,16 @@ class GovooContractType(models.Model):
              'existing govoo_compliance-style mail.activity mechanism. '
              '0 (default) disables the reminder for this type.',
     )
+    e_signature_enabled = fields.Boolean(
+        string='E-Signature Enabled',
+        default=False,
+        help='Issue #199: a business-level opt-in for e-signature on '
+             'contracts of this type, separate from (and in addition to) '
+             'the BR-CM-005 legal-confirmation gate. Some organizations are '
+             'legally required to use a government procurement portal '
+             'instead of in-app e-signing, so even once e-signature is '
+             'confirmed legally valid, individual contract types must '
+             'still be able to opt out. Defaults to False: e-signature is '
+             'off until explicitly enabled for a type, on top of the '
+             'legal gate also being satisfied.',
+    )

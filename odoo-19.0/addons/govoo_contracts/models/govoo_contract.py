@@ -188,6 +188,23 @@ class GovooContract(models.Model):
         string='Sign Request',
         tracking=True,
     )
+    sign_status = fields.Selection(
+        selection=[
+            ('not_sent', 'Not Sent'),
+            ('sent', 'Sent for Signature'),
+            ('signed', 'Signed'),
+            ('declined', 'Declined'),
+            ('cancelled', 'Cancelled'),
+        ],
+        string='E-Signature Status',
+        default='not_sent',
+        required=True,
+        tracking=True,
+        help='Issue #199: tracks the e-signature lifecycle for the '
+             'document attached to Sign Request. Independent of the main '
+             'contract Status -- a contract can be sent for signature at '
+             'any point once Sign Request is set.',
+    )
     state = fields.Selection(
         selection=[
             ('draft', 'Draft'),
@@ -266,6 +283,76 @@ class GovooContract(models.Model):
                     'be used. Attach the manually signed copy as the '
                     'Executed Document instead.'
                 ))
+
+    def _check_esignature_enabled_for_type(self):
+        """Issue #199: business-level opt-in, separate from and in
+        addition to the BR-CM-005 legal-confirmation gate above. A
+        contract type with e_signature_enabled=False never offers
+        e-signature, even once e-signature is legally confirmed -- this
+        exists because some organizations are legally required to use a
+        government procurement portal instead of in-app e-signing."""
+        for rec in self:
+            if not rec.contract_type_id.e_signature_enabled:
+                raise ValidationError(_(
+                    'E-signature is not enabled for contract type "%s". '
+                    'Enable it on the contract type, or attach the '
+                    'manually signed copy as the Executed Document instead.'
+                ) % rec.contract_type_id.name)
+
+    def _check_sign_status_transition(self, target_status):
+        allowed = {
+            'not_sent': ['sent'],
+            'sent': ['signed', 'declined', 'cancelled'],
+            'declined': ['sent'],
+            'cancelled': ['sent'],
+        }
+        for rec in self:
+            if target_status not in allowed.get(rec.sign_status, []):
+                raise ValidationError(_(
+                    'Cannot change E-Signature Status from "%s" to "%s".'
+                ) % (rec.sign_status, target_status))
+
+    def action_send_for_signature(self):
+        """Issue #199: send the Sign Request document for e-signature.
+        Gated on both BR-CM-005 (legal confirmation, enforced above at
+        the field level the moment Sign Request was set) and the
+        e_signature_enabled business toggle checked here explicitly, so
+        the error message is specific to this action rather than a
+        generic constraint failure."""
+        self._check_esignature_enabled_for_type()
+        self._check_sign_status_transition('sent')
+        for rec in self:
+            if not rec.sign_request_id:
+                raise ValidationError(_(
+                    'Attach a document to Sign Request before sending it '
+                    'for signature.'
+                ))
+            if self.env['govoo.feature.flags'].is_sign_app_installed():
+                # [FOLLOW-UP] Native Sign-app integration (creating a real
+                # sign.request record via the Sign app's API) is not yet
+                # wired up -- untestable in this Community-only dev
+                # environment (docs/spec/decisions/open-decisions.md item
+                # 3/26 territory: no guessing at an unverified API
+                # surface). Falls through to the same manual-tracking
+                # status below, which works identically on Community.
+                rec.message_post(body=_(
+                    'The Sign app is installed, but native e-signature '
+                    'request creation is not yet implemented; tracking '
+                    'this send manually via E-Signature Status.'
+                ))
+            rec.sign_status = 'sent'
+
+    def action_mark_signed(self):
+        self._check_sign_status_transition('signed')
+        self.sign_status = 'signed'
+
+    def action_mark_declined(self):
+        self._check_sign_status_transition('declined')
+        self.sign_status = 'declined'
+
+    def action_cancel_signature(self):
+        self._check_sign_status_transition('cancelled')
+        self.sign_status = 'cancelled'
 
     @api.constrains('date_start', 'date_end')
     def _check_dates(self):
