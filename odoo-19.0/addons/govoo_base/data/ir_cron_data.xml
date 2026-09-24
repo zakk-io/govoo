@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Daily cron: stage succession-planning reminders for active
+         appointments approaching their End Date (issue #200), reusing
+         the govoo_contracts-style mail.activity mechanism rather than a
+         second reminder engine. -->
+    <record id="cron_send_appointment_succession_reminders" model="ir.cron">
+        <field name="name">Appointments: Send Succession-Planning Reminders</field>
+        <field name="model_id" ref="model_govoo_appointment"/>
+        <field name="state">code</field>
+        <field name="code">model.env['govoo.appointment']._cron_send_succession_reminders()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
+
+</odoo>

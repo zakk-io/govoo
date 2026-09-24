@@ -16,6 +16,7 @@ appointment (role-over-time) and committee models.
         'security/govoo_base_groups.xml',
         'security/ir.model.access.csv',
         'security/govoo_base_security.xml',
+        'data/ir_cron_data.xml',
         'views/res_partner_views.xml',
         'views/res_company_views.xml',
         'views/govoo_appointment_views.xml',
