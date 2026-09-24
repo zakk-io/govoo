@@ -82,6 +82,26 @@
                             <field name="termination_reason" invisible="state not in ('active', 'terminated')"/>
                             <field name="resolution_id"/>
                             <field name="sign_request_id"/>
+                            <field name="sign_status" widget="badge"
+                                   decoration-success="sign_status == 'signed'"
+                                   decoration-info="sign_status == 'sent'"
+                                   decoration-danger="sign_status == 'declined'"
+                                   decoration-muted="sign_status in ('not_sent', 'cancelled')"
+                                   invisible="not sign_request_id"/>
+                            <div class="d-flex gap-2" invisible="not sign_request_id">
+                                <button name="action_send_for_signature" string="Send for Signature"
+                                        type="object" class="btn-secondary"
+                                        invisible="sign_status not in ('not_sent', 'declined', 'cancelled')"/>
+                                <button name="action_mark_signed" string="Mark Signed"
+                                        type="object" class="btn-secondary"
+                                        invisible="sign_status != 'sent'"/>
+                                <button name="action_mark_declined" string="Mark Declined"
+                                        type="object" class="btn-secondary"
+                                        invisible="sign_status != 'sent'"/>
+                                <button name="action_cancel_signature" string="Cancel"
+                                        type="object" class="btn-secondary"
+                                        invisible="sign_status != 'sent'"/>
+                            </div>
                             <field name="executed_document_id" readonly="state in ('executed', 'active', 'expired', 'terminated')"/>
                         </group>
                     </group>
