@@ -177,19 +177,41 @@ class GovooBoardPack(models.Model):
             return merged.getvalue()
 
     def action_distribute(self):
-        """Distribute compiled pack to recipients via portal notification."""
+        """Distribute compiled pack to recipients via both an in-app
+        portal notification and an actual email (issue #203) -- the two
+        channels are sent together for the same distribution event, one
+        does not replace the other. Recipients with no registered email
+        block the whole distribution with a clear, actionable error
+        rather than silently skipping them (a named pain point in the
+        original request)."""
+        template = self.env.ref(
+            'govoo_board.mail_template_board_pack_distribution',
+            raise_if_not_found=False,
+        )
         for rec in self:
             if rec.state != 'compiled':
                 raise ValidationError(_('Pack must be compiled before distribution.'))
-            for dist in rec.distribution_ids:
-                if not dist.sent_date:
-                    dist.sent_date = fields.Datetime.now()
-                    # Notify recipient
-                    rec.message_post(
-                        body='Board pack is available for your review.',
-                        partner_ids=dist.partner_id.ids,
-                        subtype_xmlid='mail.mt_comment',
-                    )
+            pending = rec.distribution_ids.filtered(lambda d: not d.sent_date)
+            missing_email = pending.filtered(lambda d: not d.partner_id.email)
+            if missing_email:
+                raise ValidationError(_(
+                    'Cannot distribute: the following recipients have no '
+                    'registered email address: %s'
+                ) % ', '.join(missing_email.mapped('partner_id.name')))
+            for dist in pending:
+                dist.sent_date = fields.Datetime.now()
+                # In-app portal notification
+                rec.message_post(
+                    body='Board pack is available for your review.',
+                    partner_ids=dist.partner_id.ids,
+                    subtype_xmlid='mail.mt_comment',
+                )
+                # Actual email, linking to this recipient's own
+                # correctly-redacted portal copy rather than attaching
+                # the unredacted master document_id (see template
+                # comment for why).
+                if template:
+                    template.send_mail(dist.id, force_send=True)
             rec.state = 'distributed'
 
 

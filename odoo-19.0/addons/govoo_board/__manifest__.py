@@ -15,6 +15,7 @@ agenda, pack compilation, minutes, resolutions, and e-voting.
     'data': [
         'security/govoo_board_security.xml',
         'security/ir.model.access.csv',
+        'data/mail_template_data.xml',
         'views/govoo_agenda_item_views.xml',
         'views/govoo_meeting_views.xml',
         'views/govoo_board_pack_views.xml',

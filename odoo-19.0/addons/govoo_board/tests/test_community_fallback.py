@@ -23,5 +23,9 @@ class TestCommunityFallback(GovooBoardTestBase):
         pack = self.env['govoo.board.pack'].create({'meeting_id': meeting.id})
         pack.action_compile()
         self.assertEqual(pack.state, 'compiled')
+        # Issue #203: distribution now also sends a real email per
+        # recipient, which requires a registered address -- give the
+        # attendees one, same as any real director would have.
+        pack.distribution_ids.mapped('partner_id').write({'email': 'director@example.com'})
         pack.action_distribute()
         self.assertEqual(pack.state, 'distributed')
