@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_order_form_govoo_scores" model="ir.ui.view">
+        <field name="name">purchase.order.form.govoo.scores</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <field name="partner_ref" position="after">
+                <field name="govoo_tender_id"/>
+                <field name="govoo_technical_score" invisible="not govoo_tender_id"/>
+                <field name="govoo_financial_score" invisible="not govoo_tender_id"/>
+            </field>
+        </field>
+    </record>
+</odoo>
