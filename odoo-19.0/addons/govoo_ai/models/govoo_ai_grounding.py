@@ -66,3 +66,61 @@ class GovooAiGrounding(models.AbstractModel):
             name, arguments, self.env, enforce_scope='read',
         )
         return text
+
+    def get_govoo_schema_catalog(self):
+        """Return a compact, deterministic map of every installed 'govoo.*'
+        content model and its keyword-searchable (char/text/html) fields.
+
+        Without this, AI-F08's tool-calling loop spent most of its budget
+        calling list_models (which returns every installed model, custom
+        and standard Odoo alike -- hundreds of entries) and then
+        describe_model per guessed candidate, just to rediscover this same
+        static shape on every single query. That repeated discovery dance
+        was the main cause of hitting MAX_TOOL_LOOPS before reaching a
+        final answer (see issue #216 live-testing notes). This is computed
+        directly from ir.model/ir.model.fields -- a few dozen rows of
+        schema metadata, not row data, hence .sudo() -- and is injected
+        straight into the system prompt, so a typical query now needs one
+        search_read call instead of several rounds of guessing.
+
+        list_models/describe_model remain available as tools for anything
+        outside the 'govoo.*' namespace (e.g. res.partner).
+
+        Cached on the registry, keyed by its installed-module count --
+        the same invalidation pattern muk_mcp's own get_tool_index uses
+        (core/tool.py) -- so a module install/upgrade rebuilds it but a
+        plain search doesn't re-run this on every single request.
+        """
+        registry = self.env.registry
+        cache_key = len(registry._init_modules)
+        cached = getattr(registry, '_govoo_ai_schema_cache', None)
+        if cached is not None and cached[0] == cache_key:
+            return cached[1]
+        catalog = self._build_govoo_schema_catalog()
+        registry._govoo_ai_schema_cache = (cache_key, catalog)
+        return catalog
+
+    def _build_govoo_schema_catalog(self):
+        """Compute the schema catalog fresh (see get_govoo_schema_catalog)."""
+        IrModel = self.env['ir.model'].sudo()
+        IrField = self.env['ir.model.fields'].sudo()
+        content_models = IrModel.search([
+            ('model', 'like', 'govoo.%'),
+            ('model', 'not like', 'govoo.ai.%'),
+            ('transient', '=', False),
+        ], order='model')
+        lines = []
+        for model in content_models:
+            fields = IrField.search([
+                ('model_id', '=', model.id),
+                ('ttype', 'in', ('char', 'text', 'html')),
+                ('store', '=', True),
+            ], order='name')
+            if not fields:
+                continue
+            field_list = ', '.join(
+                '%s (%s)' % (field.name, field.field_description)
+                for field in fields
+            )
+            lines.append('- %s [%s]: %s' % (model.model, model.name, field_list))
+        return '\n'.join(lines)

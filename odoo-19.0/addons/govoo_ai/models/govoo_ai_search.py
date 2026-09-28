@@ -11,44 +11,60 @@ _logger = logging.getLogger(__name__)
 
 # Bounds the tool-calling loop so a confused model (or a provider outage
 # that keeps returning tool_calls) can't run indefinitely -- both a cost
-# control and a correctness guard. A realistic search is list_models,
-# describe_model on one or two candidates, then one or more search_read
-# calls before a final answer -- 8 round-trips gives that room without
-# being unbounded.
+# control and a correctness guard. With the schema catalog given directly
+# in the system prompt (see SYSTEM_PROMPT_TEMPLATE / _run_loop), a typical
+# search is one search_read call then a final answer; 8 round-trips leaves
+# generous headroom for a harder, multi-model query without being
+# unbounded.
 MAX_TOOL_LOOPS = 8
 
-SYSTEM_PROMPT = (
+SYSTEM_PROMPT_TEMPLATE = (
     "You are a search assistant for a corporate governance system. Use the "
-    "available tools to find records matching the user's query across "
-    "governance data (resolutions, minutes, registers, compliance "
-    "instances, contracts, policies -- whichever models are actually "
-    "installed). Almost all governance data lives on custom models whose "
-    "technical name starts with the 'govoo.' prefix (e.g. "
-    "'govoo.resolution', 'govoo.minutes', 'govoo.meeting', "
-    "'govoo.compliance.instance', 'govoo.board.pack', "
-    "'govoo.share.allotment') -- when list_models returns a long list, "
-    "look at 'govoo.*' models first and only fall back to a generic Odoo "
-    "model (like res.partner) if nothing in that namespace fits. Call "
-    "list_models to see exactly what is installed on this deployment. "
-    "Field names are custom too and not predictable from the model name "
-    "(a title field may be called 'title', not 'name') -- always call "
-    "describe_model on a candidate model FIRST to learn its real field "
-    "names before filtering search_read/read_group by any field other "
-    "than 'id'. When you filter by a keyword or phrase, put every "
-    "short title/name-like char field on the model into the same OR "
-    "condition as any long text/body/description field -- a phrase like "
-    "'Articles of Association' is much more likely to appear in a short "
-    "title field than deep in a long text field, so never filter on only "
-    "the long field. Never guess a technical model or field name that a "
-    "tool did not actually return to you. Do not write a "
+    "available tools to find records matching the user's query. Below is "
+    "the exact, current list of this deployment's governance content "
+    "models and their keyword-searchable fields -- this is ground truth "
+    "for THIS deployment, not a generic guess, so go straight to "
+    "search_read on the right model using these exact field names. Do "
+    "NOT call list_models or describe_model for anything in this list -- "
+    "that was the main cause of past searches running out of time, "
+    "because list_models returns every installed model (Odoo core and "
+    "custom alike, often hundreds) sorted alphabetically, so 'govoo.*' "
+    "content models frequently would not even appear in its default "
+    "results. Only call list_models/describe_model if the query is "
+    "clearly about something NOT in this list (e.g. a generic contact "
+    "or partner).\n\n"
+    "Governance content models on this deployment:\n"
+    "{schema_catalog}\n\n"
+    "When you filter by a keyword or phrase, put every short "
+    "title/name-like field into the same OR condition as any long "
+    "text/body/description field on that model -- a phrase like 'Articles "
+    "of Association' is much more likely to appear in a short title field "
+    "than deep in a long text field, so never filter on only the long "
+    "field. The domain argument is a flat JSON list, never a string. To "
+    "OR two conditions, put the literal string \"|\" as the FIRST element "
+    "of that same flat list, immediately followed by the two condition "
+    "lists -- for example, to match title OR text on \"credit facility\": "
+    'domain = ["|", ["title", "ilike", "credit facility"], ["text", '
+    '"ilike", "credit facility"]]. That is 3 elements in one list: the '
+    '"|" string, then each condition as its own 3-item list. If a tool '
+    "call fails, do not repeat the exact same call -- fix the domain "
+    "syntax or drop the OR and filter on one field at a time. If a model "
+    "returns no results after one or two keyword variations, that model "
+    "is probably the wrong one -- move on to a different candidate model "
+    "from the list above instead of retrying more synonyms on the same "
+    "model; a decision to amend a governance document is normally "
+    "recorded as a resolution/minutes entry, not as a copy of the "
+    "document itself. Never guess a technical model or field name that "
+    "was not actually given to you above or returned by a tool. Do not "
+    "write a "
     "narrative answer or synthesize information across records -- that is "
-    "a different "
-    "feature. When you have found the relevant records, respond with ONLY "
-    'a JSON object of this exact shape, no other text: {"matches": '
-    '[{"model": "<technical model name>", "res_id": <integer>, "reason": '
-    '"<one short sentence saying why this record matched>"}]}. If nothing '
-    'matches, respond with {"matches": []}. Never invent a model name or '
-    "record id that a tool did not actually return to you."
+    "a different feature. When you have found the relevant records, "
+    'respond with ONLY a JSON object of this exact shape, no other text: '
+    '{{"matches": [{{"model": "<technical model name>", "res_id": '
+    '<integer>, "reason": "<one short sentence saying why this record '
+    'matched>"}}]}}. If nothing matches, respond with {{"matches": []}}. '
+    "Never invent a model name or record id that a tool did not actually "
+    "return to you."
 )
 
 
@@ -156,8 +172,11 @@ class GovooAiSearch(models.AbstractModel):
         grounding = self.env['govoo.ai.grounding']
         client = self.env['govoo.ai.openai.client']
         tools = grounding.get_tool_schemas()
+        system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
+            schema_catalog=grounding.get_govoo_schema_catalog(),
+        )
         messages = [
-            {'role': 'system', 'content': SYSTEM_PROMPT},
+            {'role': 'system', 'content': system_prompt},
             {'role': 'user', 'content': query},
         ]
         model_name = None

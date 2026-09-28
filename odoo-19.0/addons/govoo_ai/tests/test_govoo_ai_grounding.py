@@ -38,3 +38,26 @@ class TestGovooAiGrounding(GovooAiTestBase):
         parsed = json.loads(result)
         self.assertIn('count', parsed)
         self.assertIsInstance(parsed['count'], int)
+
+    def test_schema_catalog_excludes_ai_infrastructure_and_wizards(self):
+        # govoo_ai's own models (config/request/suggestion/search/wizard)
+        # are always installed here, so this is a reliable negative check
+        # regardless of which other govoo_* modules are in this test run.
+        catalog = self.env['govoo.ai.grounding'].get_govoo_schema_catalog()
+        self.assertNotIn('govoo.ai.', catalog)
+
+    def test_schema_catalog_includes_resolution_title_field_if_installed(self):
+        if 'govoo.resolution' not in self.env:
+            self.skipTest('govoo_board is not installed in this test run')
+        catalog = self.env['govoo.ai.grounding'].get_govoo_schema_catalog()
+        self.assertIn('govoo.resolution', catalog)
+        self.assertIn('title', catalog)
+
+    def test_schema_catalog_is_cached_on_the_registry(self):
+        grounding = self.env['govoo.ai.grounding']
+        first = grounding.get_govoo_schema_catalog()
+        second = grounding.get_govoo_schema_catalog()
+        self.assertEqual(first, second)
+        cache_key, cached_catalog = self.env.registry._govoo_ai_schema_cache
+        self.assertEqual(cache_key, len(self.env.registry._init_modules))
+        self.assertEqual(cached_catalog, first)
