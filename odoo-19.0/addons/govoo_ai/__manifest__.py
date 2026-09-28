@@ -32,14 +32,22 @@ a deployment-level encryption key (the `GOVOO_AI_ENCRYPTION_KEY`
 environment variable, set once by whoever operates that server -- never in
 git, never in this database). Restricted to the AI Administrator group at
 the field level.
+
+AI-F08 (Semantic Search, issue #216): a bounded OpenAI tool-calling loop
+grounded in this Odoo's own data via muk_mcp's existing, permission-aware
+read tools (search_read/read_records/search_count/read_group/
+describe_model/list_models) -- muk_mcp's write tools are never reachable
+from this loop. Every claimed match is re-checked for read access before a
+suggestion is created for it; the model's own output is never trusted as
+proof of access.
     """,
     'author': 'Govoo',
     'category': 'Governance',
     'version': '19.0.1.0.0',
     'license': 'LGPL-3',
-    'depends': ['govoo_base'],
+    'depends': ['govoo_base', 'muk_mcp'],
     'external_dependencies': {
-        'python': ['cryptography'],
+        'python': ['cryptography', 'requests'],
     },
     'data': [
         'security/govoo_ai_security.xml',
@@ -48,6 +56,7 @@ the field level.
         'views/govoo_ai_config_views.xml',
         'views/govoo_ai_request_views.xml',
         'views/govoo_ai_suggestion_views.xml',
+        'views/govoo_ai_search_wizard_views.xml',
         'views/govoo_ai_menus.xml',
     ],
     'installable': True,

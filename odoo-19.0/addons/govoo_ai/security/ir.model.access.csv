@@ -5,3 +5,4 @@ access_govoo_ai_request_user,govoo.ai.request user,model_govoo_ai_request,group_
 access_govoo_ai_request_administrator,govoo.ai.request administrator,model_govoo_ai_request,group_govoo_ai_administrator,1,0,0,0
 access_govoo_ai_suggestion_user,govoo.ai.suggestion user,model_govoo_ai_suggestion,group_govoo_ai_user,1,1,0,0
 access_govoo_ai_suggestion_administrator,govoo.ai.suggestion administrator,model_govoo_ai_suggestion,group_govoo_ai_administrator,1,0,0,0
+access_govoo_ai_search_wizard_user,govoo.ai.search.wizard user,model_govoo_ai_search_wizard,group_govoo_ai_user,1,1,1,1
