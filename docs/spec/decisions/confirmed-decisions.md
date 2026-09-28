@@ -52,7 +52,36 @@ open items)
 The edition question (Enterprise vs Community + OCA) from the same original open-decisions.md
 item 1 remains genuinely open — confirming the version in code doesn't resolve it.
 
-No further entries exist below this line beyond the one above — this repository otherwise ships
+### [24] AI provider selection — partial (provider/deployment path only, not hosting region or DPA)
+- **Resolved value:** `govoo_ai`'s AI provider is **OpenAI**, via the **direct OpenAI platform API**
+  (not Azure OpenAI Service, not a self-hosted model). This resolves only the "which provider /
+  which deployment path" sub-part of open-decisions.md item 24.
+- **Confirmed by:** zakk-io (repo/product owner), in-session product decision, 2026-09-28. Not a
+  legal/counsel or NCSA sign-off — see below for what that still leaves open.
+- **Date:** 2026-09-28
+- **Spec files updated:** `decisions/open-decisions.md` items 24 and 25 (both narrowed, not closed —
+  see those entries for exactly what remains).
+- **Activation note:** N/A — no previously-inactive (`active=False`) configuration data is unlocked
+  by this entry. `govoo.ai.config.provider`/`data_region` (per
+  `docs/ai_services_layer_clagov_ai.md` §2.3) must still ship inactive/unset by default; this entry
+  only fixes which value they'll eventually hold once the remaining items below clear.
+- **What this does NOT resolve (still open, see `decisions/open-decisions.md` items 24/25):**
+  - **Hosting region / data residency.** The direct OpenAI API does not offer region pinning the way
+    Azure OpenAI Service would have — choosing this path makes the Rwanda NCSA / Law 058/2021
+    residency question (open-decisions.md item 2, and the AI-hosting half of item 25) *more*
+    pressing, not resolved. Counsel + NCSA sign-off is still required before any real client PII is
+    sent to this provider from a Rwanda deployment.
+  - **DPA / zero-retention contract terms (`AI-N01`).** No OpenAI Business/Enterprise DPA has been
+    reviewed or signed as part of this decision. Until it is, `govoo.ai.config` must ship with the
+    feature inactive for any tenant handling real (non-test) data.
+  - **Token-usage caps / pricing / metering model (item 29).** Untouched by this decision.
+  - This also supersedes the model-family suggestion in `docs/ai_services_layer_clagov_ai.md`
+    §2.4 `AI-N08` ("target current Claude models") for provider selection purposes — that addendum
+    text is left as-is (it's a verbatim record of the original client document), but the actual
+    provider is now OpenAI per this entry, not Claude, behind the same swappable service-interface
+    requirement `AI-N08` already mandates.
+
+No further entries exist below this line beyond the ones above — this repository otherwise ships
 with **zero** resolved `[CONFIRM]` items beyond the source-confirmed facts listed above. Every
 implementer inherits the obligation to populate this section only via genuine stakeholder
 confirmation, never by assumption.
