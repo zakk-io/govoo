@@ -45,6 +45,11 @@ class GovooAiOpenAiClient(models.AbstractModel):
         payload = {
             'model': model or DEFAULT_MODEL,
             'messages': messages,
+            # Low, not zero: tool-calling orchestration needs consistent
+            # tool choice and argument shape, not creative variance -- but
+            # 0 has been observed to make some models loop/repeat a bad
+            # tool call more stubbornly than a small amount of variance.
+            'temperature': 0.2,
         }
         if tools:
             payload['tools'] = tools

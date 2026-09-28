@@ -3,6 +3,7 @@
 import json
 import logging
 
+import odoo.modules.module
 from odoo import _, models
 from odoo.exceptions import UserError
 
@@ -10,23 +11,44 @@ _logger = logging.getLogger(__name__)
 
 # Bounds the tool-calling loop so a confused model (or a provider outage
 # that keeps returning tool_calls) can't run indefinitely -- both a cost
-# control and a correctness guard. Five round-trips is generous for a
-# search across a handful of governance models.
-MAX_TOOL_LOOPS = 5
+# control and a correctness guard. A realistic search is list_models,
+# describe_model on one or two candidates, then one or more search_read
+# calls before a final answer -- 8 round-trips gives that room without
+# being unbounded.
+MAX_TOOL_LOOPS = 8
 
 SYSTEM_PROMPT = (
     "You are a search assistant for a corporate governance system. Use the "
     "available tools to find records matching the user's query across "
     "governance data (resolutions, minutes, registers, compliance "
     "instances, contracts, policies -- whichever models are actually "
-    "installed). Do not write a narrative answer or synthesize information "
-    "across records -- that is a different feature. When you have found "
-    "the relevant records, respond with ONLY a JSON object of this exact "
-    'shape, no other text: {"matches": [{"model": "<technical model '
-    'name>", "res_id": <integer>, "reason": "<one short sentence saying '
-    'why this record matched>"}]}. If nothing matches, respond with '
-    '{"matches": []}. Never invent a model name or record id that a tool '
-    "did not actually return to you."
+    "installed). Almost all governance data lives on custom models whose "
+    "technical name starts with the 'govoo.' prefix (e.g. "
+    "'govoo.resolution', 'govoo.minutes', 'govoo.meeting', "
+    "'govoo.compliance.instance', 'govoo.board.pack', "
+    "'govoo.share.allotment') -- when list_models returns a long list, "
+    "look at 'govoo.*' models first and only fall back to a generic Odoo "
+    "model (like res.partner) if nothing in that namespace fits. Call "
+    "list_models to see exactly what is installed on this deployment. "
+    "Field names are custom too and not predictable from the model name "
+    "(a title field may be called 'title', not 'name') -- always call "
+    "describe_model on a candidate model FIRST to learn its real field "
+    "names before filtering search_read/read_group by any field other "
+    "than 'id'. When you filter by a keyword or phrase, put every "
+    "short title/name-like char field on the model into the same OR "
+    "condition as any long text/body/description field -- a phrase like "
+    "'Articles of Association' is much more likely to appear in a short "
+    "title field than deep in a long text field, so never filter on only "
+    "the long field. Never guess a technical model or field name that a "
+    "tool did not actually return to you. Do not write a "
+    "narrative answer or synthesize information across records -- that is "
+    "a different "
+    "feature. When you have found the relevant records, respond with ONLY "
+    'a JSON object of this exact shape, no other text: {"matches": '
+    '[{"model": "<technical model name>", "res_id": <integer>, "reason": '
+    '"<one short sentence saying why this record matched>"}]}. If nothing '
+    'matches, respond with {"matches": []}. Never invent a model name or '
+    "record id that a tool did not actually return to you."
 )
 
 
@@ -66,6 +88,16 @@ class GovooAiSearch(models.AbstractModel):
             matches, model_name, token_usage = self._run_loop(config, query)
         except Exception:
             request.write({'status': 'failed'})
+            # The re-raise below will otherwise take the whole transaction
+            # down with it (Odoo's HTTP dispatch rolls back on any uncaught
+            # exception), silently losing this audit-trail row. Commit it
+            # now so a failed request is never invisible after the fact.
+            # Skipped under the test harness: TransactionCase forbids a
+            # direct commit/rollback on its own savepoint-backed cursor,
+            # and tests never go through the real HTTP dispatch rollback
+            # this guards against.
+            if not odoo.modules.module.current_test:
+                self.env.cr.commit()
             raise
         suggestions = self.env['govoo.ai.suggestion']
         for match in matches:
@@ -132,7 +164,11 @@ class GovooAiSearch(models.AbstractModel):
         total_tokens = 0
         for _iteration in range(MAX_TOOL_LOOPS):
             response = client.chat_completion(
-                api_key=config.api_key,
+                # sudo(): api_key is restricted to AI Administrators (an AI
+                # User must never read the raw secret) but the orchestration
+                # itself has to use it, on the user's behalf, to call the
+                # provider.
+                api_key=config.sudo().api_key,
                 messages=messages,
                 tools=tools,
             )
