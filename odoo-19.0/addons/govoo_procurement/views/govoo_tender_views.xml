@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_govoo_tender_list" model="ir.ui.view">
+        <field name="name">govoo.tender.list</field>
+        <field name="model">govoo.tender</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="tender_category_id"/>
+                <field name="evaluation_stage"/>
+                <field name="bid_count"/>
+                <field name="awarded_bid_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_govoo_tender_form" model="ir.ui.view">
+        <field name="name">govoo.tender.form</field>
+        <field name="model">govoo.tender</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_start_technical_evaluation" string="Start Technical Evaluation" type="object"
+                            class="btn-primary" invisible="evaluation_stage != 'pre_evaluation'"/>
+                    <button name="action_start_financial_evaluation" string="Start Financial Evaluation" type="object"
+                            class="btn-primary" invisible="evaluation_stage != 'technical_evaluation'"/>
+                    <button name="action_award" string="Award" type="object"
+                            class="btn-primary" invisible="evaluation_stage != 'financial_evaluation'"/>
+                    <field name="evaluation_stage" widget="statusbar"
+                           statusbar_visible="pre_evaluation,technical_evaluation,financial_evaluation,awarded"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object" name="action_view_bids" class="oe_stat_button" icon="fa-list-alt">
+                            <field name="bid_count" widget="statinfo" string="Vendor Bids"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="e.g. RFQ-2026-0001 IT Services Tender"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="tender_category_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="evaluation_meeting_id"/>
+                            <field name="evaluation_minutes_id"/>
+                            <field name="awarded_bid_id" invisible="evaluation_stage != 'financial_evaluation' and evaluation_stage != 'awarded'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Vendor Bids" name="bids">
+                            <field name="bid_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="partner_id"/>
+                                    <field name="state"/>
+                                    <field name="amount_total"/>
+                                    <field name="govoo_technical_score"/>
+                                    <field name="govoo_financial_score"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_govoo_tender" model="ir.actions.act_window">
+        <field name="name">Tenders</field>
+        <field name="res_model">govoo.tender</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_govoo_tender"
+              name="Tenders"
+              parent="purchase.menu_purchase_root"
+              action="action_govoo_tender"
+              sequence="6"/>
+</odoo>

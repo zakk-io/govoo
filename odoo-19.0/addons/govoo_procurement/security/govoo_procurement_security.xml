@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Only one new model, govoo.tender, is introduced by this module
+             (issue #205); purchase.order/res.partner just gain extra
+             fields, whose access rights and company-scoped record rules
+             are already native to Purchase. This group exists for role
+             clarity ("Procurement Officer" in the user story) and grants
+             the native Purchase access an internal governance user would
+             otherwise lack. -->
+        <record id="group_govoo_procurement_officer" model="res.groups">
+            <field name="name">Procurement Officer</field>
+            <field name="sequence">40</field>
+            <field name="privilege_id" ref="govoo_base.res_groups_privilege_governance"/>
+            <field name="implied_ids" eval="[
+                (4, ref('govoo_base.group_govoo_user')),
+                (4, ref('purchase.group_purchase_user')),
+            ]"/>
+        </record>
+
+        <record id="govoo_tender_company_rule" model="ir.rule">
+            <field name="name">Tender: multi-company</field>
+            <field name="model_id" ref="model_govoo_tender"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+    </data>
+</odoo>

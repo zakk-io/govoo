@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_govoo_tender_procurement_officer,govoo.tender procurement officer,model_govoo_tender,group_govoo_procurement_officer,1,1,1,1
+access_govoo_tender_user,govoo.tender governance user,model_govoo_tender,govoo_base.group_govoo_user,1,0,0,0
