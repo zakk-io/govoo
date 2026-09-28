@@ -50,6 +50,10 @@ services:
       ODOO_DB_USER: ${POSTGRES_USER:-odoo}
       ODOO_DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       ODOO_ADMIN_PASSWD: ${ODOO_ADMIN_PASSWD:?Set ODOO_ADMIN_PASSWD in .env}
+      # govoo_ai: encrypts govoo.ai.config.api_key at rest (issue #215).
+      # Deployment-level secret -- unique per client server, never in git,
+      # never stored in the Odoo database itself.
+      GOVOO_AI_ENCRYPTION_KEY: ${GOVOO_AI_ENCRYPTION_KEY:?Set GOVOO_AI_ENCRYPTION_KEY in .env}
     volumes:
       - odoo-data:/var/lib/odoo
       - ./odoo-19.0:/opt/odoo
