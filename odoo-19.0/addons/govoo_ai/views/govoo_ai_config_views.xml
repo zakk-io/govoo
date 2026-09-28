@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_govoo_ai_config_list" model="ir.ui.view">
+        <field name="name">govoo.ai.config.list</field>
+        <field name="model">govoo.ai.config</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active"/>
+                <field name="provider"/>
+                <field name="monthly_token_cap"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_govoo_ai_config_form" model="ir.ui.view">
+        <field name="name">govoo.ai.config.form</field>
+        <field name="model">govoo.ai.config</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="not active">
+                        AI is enabled for this company. Every call is logged and every output
+                        requires human review before it affects any real record.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active"/>
+                            <field name="provider"/>
+                            <field name="api_key" widget="password"
+                                   groups="govoo_ai.group_govoo_ai_administrator"/>
+                            <field name="data_region"/>
+                        </group>
+                        <group>
+                            <field name="monthly_token_cap"/>
+                        </group>
+                    </group>
+                    <group string="Feature Flags">
+                        <group>
+                            <field name="ai_f01"/>
+                            <field name="ai_f04"/>
+                            <field name="ai_f05"/>
+                            <field name="ai_f07"/>
+                            <field name="ai_f08"/>
+                            <field name="ai_f09"/>
+                        </group>
+                        <group>
+                            <field name="ai_f10"/>
+                            <field name="ai_f11"/>
+                            <field name="ai_f12"/>
+                            <field name="ai_f13"/>
+                            <field name="ai_f14"/>
+                            <field name="ai_f15"/>
+                            <field name="ai_f16"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_govoo_ai_config" model="ir.actions.act_window">
+        <field name="name">AI Configuration</field>
+        <field name="res_model">govoo.ai.config</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

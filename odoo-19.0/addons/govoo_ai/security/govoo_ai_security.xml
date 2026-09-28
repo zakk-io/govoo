@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="group_govoo_ai_user" model="res.groups">
+            <field name="name">AI User</field>
+            <field name="sequence">50</field>
+            <field name="privilege_id" ref="govoo_base.res_groups_privilege_governance"/>
+            <field name="implied_ids" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+            <field name="comment">May invoke enabled AI features, subject to per-company/per-feature flags. Cannot change govoo.ai.config.</field>
+        </record>
+
+        <record id="group_govoo_ai_administrator" model="res.groups">
+            <field name="name">AI Administrator</field>
+            <field name="sequence">51</field>
+            <field name="privilege_id" ref="govoo_base.res_groups_privilege_governance"/>
+            <field name="implied_ids" eval="[(4, ref('group_govoo_ai_user'))]"/>
+            <field name="comment">Configures govoo.ai.config: enables AI per company, sets the monthly token cap and per-feature flags. Does not grant read/write on the AI request log or suggestion queue beyond an AI User's own.</field>
+        </record>
+
+        <!-- Multi-company isolation (AGENTS.md hard rule) -->
+        <record id="govoo_ai_config_company_rule" model="ir.rule">
+            <field name="name">AI Config: multi-company</field>
+            <field name="model_id" ref="model_govoo_ai_config"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <record id="govoo_ai_request_company_rule" model="ir.rule">
+            <field name="name">AI Request: multi-company</field>
+            <field name="model_id" ref="model_govoo_ai_request"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <record id="govoo_ai_suggestion_company_rule" model="ir.rule">
+            <field name="name">AI Suggestion: multi-company</field>
+            <field name="model_id" ref="model_govoo_ai_suggestion"/>
+            <field name="domain_force">[('request_id.company_id', 'in', company_ids)]</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="govoo_ai_menu_root"
+              name="AI"
+              parent="govoo_base.govoo_menu_root"
+              sequence="85"
+              groups="govoo_ai.group_govoo_ai_user"/>
+
+    <menuitem id="govoo_ai_menu_suggestion"
+              name="Suggestions"
+              parent="govoo_ai_menu_root"
+              action="action_govoo_ai_suggestion"
+              sequence="10"/>
+
+    <menuitem id="govoo_ai_menu_request"
+              name="Request Log"
+              parent="govoo_ai_menu_root"
+              action="action_govoo_ai_request"
+              sequence="20"/>
+
+    <menuitem id="govoo_ai_menu_config"
+              name="Configuration"
+              parent="govoo_ai_menu_root"
+              action="action_govoo_ai_config"
+              sequence="30"
+              groups="govoo_ai.group_govoo_ai_administrator"/>
+</odoo>
