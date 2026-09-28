@@ -17,6 +17,14 @@
             <field name="comment">Configures govoo.ai.config: enables AI per company, sets the monthly token cap and per-feature flags. Does not grant read/write on the AI request log or suggestion queue beyond an AI User's own.</field>
         </record>
 
+        <!-- Business decision: the Company Secretary role always has AI
+             access, regardless of who holds it. Extends the existing
+             govoo_base group rather than a per-user grant, so this also
+             covers every future Company Secretary automatically. -->
+        <record id="govoo_base.group_govoo_secretary" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('group_govoo_ai_user'))]"/>
+        </record>
+
         <!-- Multi-company isolation (AGENTS.md hard rule) -->
         <record id="govoo_ai_config_company_rule" model="ir.rule">
             <field name="name">AI Config: multi-company</field>
