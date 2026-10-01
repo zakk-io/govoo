@@ -111,16 +111,61 @@ class GovooAiGrounding(models.AbstractModel):
         ], order='model')
         lines = []
         for model in content_models:
-            fields = IrField.search([
+            text_fields = IrField.search([
                 ('model_id', '=', model.id),
                 ('ttype', 'in', ('char', 'text', 'html')),
                 ('store', '=', True),
             ], order='name')
-            if not fields:
+            # Separately surfaced even when the model already has text
+            # fields: a person/party link (e.g. govoo.minutes.apologies_ids)
+            # is exactly what a "who attended / who was absent / who
+            # signed" query needs to actually filter on, instead of the
+            # model free-associating an answer from unrelated text it did
+            # retrieve (a real hallucination seen in live testing --
+            # confidently claiming a named person's attendance status from
+            # a record that never mentions them).
+            party_fields = IrField.search([
+                ('model_id', '=', model.id),
+                ('ttype', 'in', ('many2one', 'many2many', 'one2many')),
+                ('relation', 'in', ('res.partner', 'res.users')),
+                ('store', '=', True),
+            ], order='name')
+            if text_fields:
+                field_list = ', '.join(
+                    '%s (%s)' % (field.name, field.field_description)
+                    for field in text_fields
+                )
+                line = '- %s [%s]: %s' % (model.model, model.name, field_list)
+                if party_fields:
+                    party_list = ', '.join(
+                        '%s -> %s' % (field.name, field.relation)
+                        for field in party_fields
+                    )
+                    line += '; person/party links: %s' % party_list
+                lines.append(line)
                 continue
-            field_list = ', '.join(
-                '%s (%s)' % (field.name, field.field_description)
-                for field in fields
+            # A model with no keyword-searchable field of its own (e.g. a
+            # board pack, which is just a meeting + an attachment) is
+            # otherwise invisible here, and the model has no way to guess
+            # it needs to look it up through a related model instead of
+            # concluding it does not exist. List its many2one links so a
+            # query about it can be answered as a two-step lookup: find
+            # the related record's id first, then filter this model by
+            # that foreign key.
+            relations = IrField.search([
+                ('model_id', '=', model.id),
+                ('ttype', '=', 'many2one'),
+                ('store', '=', True),
+            ], order='name')
+            if not relations:
+                continue
+            relation_list = ', '.join(
+                '%s -> %s' % (field.name, field.relation)
+                for field in relations
             )
-            lines.append('- %s [%s]: %s' % (model.model, model.name, field_list))
+            lines.append(
+                '- %s [%s]: (no text field of its own; look up via a '
+                'related model first, then filter by its foreign key) %s'
+                % (model.model, model.name, relation_list)
+            )
         return '\n'.join(lines)

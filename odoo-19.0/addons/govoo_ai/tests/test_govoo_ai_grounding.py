@@ -53,6 +53,21 @@ class TestGovooAiGrounding(GovooAiTestBase):
         self.assertIn('govoo.resolution', catalog)
         self.assertIn('title', catalog)
 
+    def test_schema_catalog_lists_relation_only_models_via_their_fk(self):
+        if 'govoo.board.pack' not in self.env:
+            self.skipTest('govoo_board is not installed in this test run')
+        catalog = self.env['govoo.ai.grounding'].get_govoo_schema_catalog()
+        self.assertIn('govoo.board.pack', catalog)
+        self.assertIn('meeting_id -> govoo.meeting', catalog)
+
+    def test_schema_catalog_lists_person_party_links_alongside_text_fields(self):
+        if 'govoo.minutes' not in self.env:
+            self.skipTest('govoo_board is not installed in this test run')
+        catalog = self.env['govoo.ai.grounding'].get_govoo_schema_catalog()
+        self.assertIn('govoo.minutes', catalog)
+        self.assertIn('apologies_ids -> res.partner', catalog)
+        self.assertIn('attendance_ids -> res.partner', catalog)
+
     def test_schema_catalog_is_cached_on_the_registry(self):
         grounding = self.env['govoo.ai.grounding']
         first = grounding.get_govoo_schema_catalog()

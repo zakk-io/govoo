@@ -35,20 +35,54 @@ SYSTEM_PROMPT_TEMPLATE = (
     "or partner).\n\n"
     "Governance content models on this deployment:\n"
     "{schema_catalog}\n\n"
+    "Some models above are marked as having no text field of their own "
+    "(e.g. a board pack, which is just a meeting plus an attachment). For "
+    "those, do a two-step lookup: first search_read the related model "
+    "named after the '->' (e.g. govoo.meeting) by its own text field to "
+    "get its id, then search_read the original model filtered by its "
+    "foreign key equal to that id, e.g. domain = [[\"meeting_id\", \"=\", "
+    "42]]. This is normal and expected, not a sign the record does not "
+    "exist. Models may also list 'person/party links' (a field name "
+    "pointing to res.partner or res.users) -- to filter by a named "
+    "person on one of those fields, use dot notation directly in the "
+    "domain: [[\"apologies_ids.name\", \"ilike\", \"Robert Nkurunziza\"]]. "
+    "If the query asks about a specific person's role in a record (e.g. "
+    "attended, was absent, signed, approved) and the model has no "
+    "person/party link field that matches that role, you cannot confirm "
+    "that fact -- do not guess at it from unrelated text.\n\n"
     "When you filter by a keyword or phrase, put every short "
     "title/name-like field into the same OR condition as any long "
     "text/body/description field on that model -- a phrase like 'Articles "
     "of Association' is much more likely to appear in a short title field "
     "than deep in a long text field, so never filter on only the long "
-    "field. The domain argument is a flat JSON list, never a string. To "
-    "OR two conditions, put the literal string \"|\" as the FIRST element "
-    "of that same flat list, immediately followed by the two condition "
+    "field. The domain argument is ALWAYS a flat JSON list of 3-element "
+    "condition lists [field, operator, value] -- it is NEVER a string, "
+    'and NEVER a dict/object like {{"field": {{"ilike": "value"}}}} (that is '
+    "not valid Odoo domain syntax and will always fail). To OR two "
+    "conditions, put the literal string \"|\" as the FIRST element of "
+    "that same flat list, immediately followed by the two condition "
     "lists -- for example, to match title OR text on \"credit facility\": "
     'domain = ["|", ["title", "ilike", "credit facility"], ["text", '
     '"ilike", "credit facility"]]. That is 3 elements in one list: the '
-    '"|" string, then each condition as its own 3-item list. If a tool '
-    "call fails, do not repeat the exact same call -- fix the domain "
-    "syntax or drop the OR and filter on one field at a time. If a model "
+    '"|" string, then each condition as its own 3-item list. For a '
+    'single condition with no OR, domain is ALWAYS still a list '
+    'containing that one 3-item list -- never the bare condition by '
+    'itself: domain = [["title", "ilike", "credit facility"]] is correct, '
+    'domain = ["title", "ilike", "credit facility"] is WRONG and will '
+    "always fail, on ANY field including dot-notation ones like "
+    '"apologies_ids.name". Before every search_read call, check that '
+    "domain is a list whose items are themselves lists (or the strings "
+    '"|"/"&"). STOP after the first search_read result for a given '
+    "model+domain, success or empty -- do not call it again with only "
+    "'fields' or 'limit' changed, and do not retry a call that just "
+    "failed with the exact same domain. A confirmed empty result IS a "
+    'complete answer: either try a genuinely different domain/model, or '
+    'answer {{"matches": []}} right away. Likewise, a non-empty result '
+    "is also immediately usable -- this feature returns a LIST of "
+    "matches, so if a search_read already found one or more genuinely "
+    "relevant records, include them in the final answer rather than "
+    "continuing to search for a single 'best' one; do not keep narrowing "
+    "down once you have confirmed matches in hand. If a model "
     "returns no results after one or two keyword variations, that model "
     "is probably the wrong one -- move on to a different candidate model "
     "from the list above instead of retrying more synonyms on the same "
@@ -64,7 +98,16 @@ SYSTEM_PROMPT_TEMPLATE = (
     '<integer>, "reason": "<one short sentence saying why this record '
     'matched>"}}]}}. If nothing matches, respond with {{"matches": []}}. '
     "Never invent a model name or record id that a tool did not actually "
-    "return to you."
+    "return to you. The 'reason' is held to the same standard: it must "
+    "describe only a fact you can point to in an actual field value a "
+    "tool returned for that exact record (e.g. its title contains the "
+    "phrase, or its apologies_ids actually includes that person's name) "
+    "-- never a specific claim (who did what, an outcome, a date, an "
+    "amount) that you inferred, assumed, or generalized from a different "
+    "record or from the model's general subject matter. A record that is "
+    "merely topically related but does not confirm the exact fact the "
+    "user asked about is not a match -- leave it out rather than write a "
+    "reason that overstates what was actually retrieved."
 )
 
 
