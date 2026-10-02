@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="govoo_ai.AiChatWidget">
+        <div class="o_govoo_ai_chat_widget" t-if="state.visible">
+            <div class="o_govoo_ai_chat_panel" t-if="state.open">
+                <div class="o_govoo_ai_chat_header">
+                    <span class="o_govoo_ai_chat_title">Governance Q&amp;A</span>
+                    <button class="o_govoo_ai_chat_close" t-on-click="closeChat" aria-label="Close">×</button>
+                </div>
+                <div class="o_govoo_ai_chat_messages" t-ref="messages">
+                    <div t-if="!state.messages.length" class="o_govoo_ai_chat_empty">
+                        Ask a question about your governance records.
+                    </div>
+                    <t t-foreach="state.messages" t-as="message" t-key="message_index">
+                        <div t-attf-class="o_govoo_ai_chat_bubble o_govoo_ai_chat_bubble_{{message.role}}{{message.found === false ? ' o_govoo_ai_chat_bubble_notfound' : ''}}">
+                            <t t-if="message.role === 'user'">
+                                <t t-esc="message.text"/>
+                            </t>
+                            <t t-else="">
+                                <t t-foreach="formatText(message.text)" t-as="block" t-key="block_index">
+                                    <ul t-if="block.type === 'list'">
+                                        <li t-foreach="block.items" t-as="item" t-key="item_index">
+                                            <t t-foreach="item" t-as="run" t-key="run_index">
+                                                <strong t-if="run.bold" t-esc="run.text"/>
+                                                <t t-else="" t-esc="run.text"/>
+                                            </t>
+                                        </li>
+                                    </ul>
+                                    <p t-else="">
+                                        <t t-foreach="block.runs" t-as="run" t-key="run_index">
+                                            <strong t-if="run.bold" t-esc="run.text"/>
+                                            <t t-else="" t-esc="run.text"/>
+                                        </t>
+                                    </p>
+                                </t>
+                                <div class="o_govoo_ai_chat_citations" t-if="message.citations and message.citations.length">
+                                    <button
+                                        t-foreach="message.citations"
+                                        t-as="citation"
+                                        t-key="citation.suggestion_id"
+                                        class="o_govoo_ai_chat_citation_chip"
+                                        t-on-click="() => this.openCitation(citation)"
+                                        t-esc="citation.model"
+                                    />
+                                </div>
+                            </t>
+                        </div>
+                    </t>
+                    <div class="o_govoo_ai_chat_bubble o_govoo_ai_chat_bubble_assistant o_govoo_ai_chat_typing" t-if="state.loading">
+                        <span/><span/><span/>
+                    </div>
+                </div>
+                <div class="o_govoo_ai_chat_suggestions" t-if="!state.messages.length">
+                    <button
+                        t-foreach="suggestedQuestions"
+                        t-as="question"
+                        t-key="question"
+                        class="o_govoo_ai_chat_chip"
+                        t-on-click="() => this.onChipClick(question)"
+                        t-esc="question"
+                    />
+                </div>
+                <div class="o_govoo_ai_chat_disclaimer">
+                    AI-generated, grounded in your own records. Not legal advice.
+                </div>
+                <div class="o_govoo_ai_chat_input_row">
+                    <textarea
+                        t-ref="input"
+                        class="o_govoo_ai_chat_input"
+                        placeholder="Ask a governance question..."
+                        t-model="state.input"
+                        t-on-keydown="onInputKeydown"
+                    />
+                    <button
+                        class="o_govoo_ai_chat_send"
+                        t-on-click="sendMessage"
+                        t-att-disabled="state.loading or !state.input.trim()"
+                    >Send</button>
+                </div>
+            </div>
+            <button class="o_govoo_ai_chat_fab" t-on-click="onIconClick" aria-label="Governance AI">AI</button>
+        </div>
+    </t>
+
+</templates>

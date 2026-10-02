@@ -1,6 +1,7 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
 import json
+from unittest import mock
 
 from odoo.exceptions import UserError
 from odoo.tests import tagged
@@ -68,6 +69,14 @@ class TestGovooAiGrounding(GovooAiTestBase):
         self.assertIn('apologies_ids -> res.partner', catalog)
         self.assertIn('attendance_ids -> res.partner', catalog)
 
+    def test_schema_catalog_lists_selection_field_values(self):
+        if 'govoo.resolution' not in self.env:
+            self.skipTest('govoo_board is not installed in this test run')
+        catalog = self.env['govoo.ai.grounding'].get_govoo_schema_catalog()
+        self.assertIn('govoo.resolution', catalog)
+        self.assertIn('status/type fields', catalog)
+        self.assertIn('state (Status): draft, open, passed, failed, withdrawn', catalog)
+
     def test_schema_catalog_is_cached_on_the_registry(self):
         grounding = self.env['govoo.ai.grounding']
         first = grounding.get_govoo_schema_catalog()
@@ -76,3 +85,78 @@ class TestGovooAiGrounding(GovooAiTestBase):
         cache_key, cached_catalog = self.env.registry._govoo_ai_schema_cache
         self.assertEqual(cache_key, len(self.env.registry._init_modules))
         self.assertEqual(cached_catalog, first)
+
+    def test_is_match_readable_true_for_an_existing_readable_record(self):
+        partner = self.env['res.partner'].create({'name': 'Findable'})
+        self.assertTrue(
+            self.env['govoo.ai.grounding'].is_match_readable('res.partner', partner.id)
+        )
+
+    def test_is_match_readable_false_for_unknown_model(self):
+        self.assertFalse(
+            self.env['govoo.ai.grounding'].is_match_readable('not.a.real.model', 1)
+        )
+
+    def test_is_match_readable_false_for_nonexistent_id(self):
+        self.assertFalse(
+            self.env['govoo.ai.grounding'].is_match_readable('res.partner', 999999999)
+        )
+
+    def test_dispatch_tool_call_runs_a_whitelisted_tool(self):
+        call = {
+            'id': 'call_1',
+            'function': {
+                'name': 'search_count',
+                'arguments': json.dumps({'model': 'res.partner', 'domain': []}),
+            },
+        }
+        message = self.env['govoo.ai.grounding'].dispatch_tool_call(call)
+        self.assertEqual(message['role'], 'tool')
+        self.assertEqual(message['tool_call_id'], 'call_1')
+        self.assertIn('count', json.loads(message['content']))
+
+    def test_dispatch_tool_call_reports_a_failure_as_tool_content_not_an_exception(self):
+        call = {'id': 'call_2', 'function': {'name': 'create_records', 'arguments': '{}'}}
+        message = self.env['govoo.ai.grounding'].dispatch_tool_call(call)
+        self.assertIn('error', json.loads(message['content']))
+
+    def test_run_tool_loop_returns_final_content_once_there_are_no_tool_calls(self):
+        config = self._make_active_config()
+        response = {
+            'model': 'gpt-4o-mini',
+            'choices': [{'message': {'content': 'final answer'}}],
+            'usage': {'total_tokens': 7},
+        }
+        with mock.patch.object(
+            type(self.env['govoo.ai.openai.client']), 'chat_completion', side_effect=[response],
+        ):
+            content, model_name, tokens = self.env['govoo.ai.grounding'].run_tool_loop(
+                config, [{'role': 'system', 'content': 'x'}, {'role': 'user', 'content': 'y'}],
+            )
+        self.assertEqual(content, 'final answer')
+        self.assertEqual(model_name, 'openai:gpt-4o-mini')
+        self.assertEqual(tokens, 7)
+
+    def test_run_tool_loop_raises_when_it_never_converges(self):
+        config = self._make_active_config()
+        tool_call_response = {
+            'model': 'gpt-4o-mini',
+            'choices': [{'message': {'tool_calls': [{
+                'id': 'c1',
+                'function': {
+                    'name': 'search_count',
+                    'arguments': json.dumps({'model': 'res.partner', 'domain': []}),
+                },
+            }]}}],
+            'usage': {'total_tokens': 1},
+        }
+        with mock.patch.object(
+            type(self.env['govoo.ai.openai.client']), 'chat_completion',
+            side_effect=lambda **kw: tool_call_response,
+        ):
+            with self.assertRaises(UserError):
+                self.env['govoo.ai.grounding'].run_tool_loop(
+                    config,
+                    [{'role': 'system', 'content': 'x'}, {'role': 'user', 'content': 'y'}],
+                    max_loops=2,
+                )

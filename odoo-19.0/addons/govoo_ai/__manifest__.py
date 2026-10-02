@@ -40,6 +40,12 @@ describe_model/list_models) -- muk_mcp's write tools are never reachable
 from this loop. Every claimed match is re-checked for read access before a
 suggestion is created for it; the model's own output is never trusted as
 proof of access.
+
+AI-F09 (Governance Q&A, issue #217): a conversational narrative-answer loop
+built on the same grounding bridge as AI-F08, adding mandatory citations and
+an explicit "not found" path (never a fabricated answer). Entry point is a
+persistent floating chat widget (OWL), visible only to users in the AI User
+group and on the backend webclient only (never the public website layout).
     """,
     'author': 'Govoo',
     'category': 'Governance',
@@ -59,6 +65,11 @@ proof of access.
         'views/govoo_ai_search_wizard_views.xml',
         'views/govoo_ai_menus.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'govoo_ai/static/src/ai_chat_widget/**/*',
+        ],
+    },
     'installable': True,
     'application': False,
     'auto_install': False,
