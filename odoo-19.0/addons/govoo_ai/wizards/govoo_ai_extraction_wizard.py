@@ -76,14 +76,23 @@ class GovooAiExtractionWizard(models.TransientModel):
         """Turn a direct file upload into a real ir.attachment and select
         it -- so someone new to Odoo doesn't need to already know that
         "Document" expects an attachment that has to exist somewhere
-        first; they can just pick a file here instead."""
+        first; they can just pick a file here instead.
+
+        Deliberately does NOT clear `document`/`document_filename`
+        afterward: the upload widget's only visible confirmation that
+        anything happened is showing the chosen file's name, and clearing
+        it immediately made a successful upload look identical to no
+        upload at all -- a real reported bug (clicking repeatedly,
+        thinking it wasn't working, because nothing ever visibly
+        changed). Leaving them set costs nothing (TransientModel rows are
+        garbage-collected) and gives the same filename-shown confirmation
+        every other Binary upload field in Odoo gives.
+        """
         if self.document:
             self.attachment_id = self.env['ir.attachment'].create({
                 'name': self.document_filename or _('Uploaded document'),
                 'datas': self.document,
             })
-        self.document = False
-        self.document_filename = False
 
     @api.model
     def _open_for(self, target_model, target_res_id, attachment_id=False):

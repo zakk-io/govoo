@@ -185,7 +185,11 @@ class TestGovooAiExtractionWizard(GovooAiTestBase):
         wizard._onchange_document()
         self.assertTrue(wizard.attachment_id)
         self.assertEqual(wizard.attachment_id.name, 'scanned_letter.png')
-        self.assertFalse(wizard.document)  # cleared after creating the attachment
+        # Deliberately still set -- the widget's only visible confirmation
+        # that the upload succeeded is showing the chosen filename; see
+        # _onchange_document's docstring for the bug this fixes.
+        self.assertTrue(wizard.document)
+        self.assertEqual(wizard.document_filename, 'scanned_letter.png')
 
     def test_extract_then_apply_creates_a_new_record(self):
         response = _extraction_response({
