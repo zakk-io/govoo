@@ -272,3 +272,90 @@ class TestGovooAiExtractionWizard(GovooAiTestBase):
         wizard.action_apply()  # must not raise despite the blank optional field
         appointment = self.env['govoo.appointment'].browse(wizard.created_record_ref.id)
         self.assertFalse(appointment.date_resigned)
+
+
+@tagged('post_install', '-at_install', 'govoo_ai')
+class TestGovooAiExtractionAutofill(GovooAiTestBase):
+    """Issue #233: a document-field onchange auto-fills the record's own
+    fields when AI-F07 is enabled -- no separate "Scan Document" click."""
+
+    def _patch_chat_completion(self, side_effect):
+        return mock.patch.object(
+            type(self.env['govoo.ai.openai.client']),
+            'chat_completion',
+            side_effect=side_effect,
+        )
+
+    def test_appointment_document_autofills_when_enabled(self):
+        self._make_active_config(cap=100000, enabled_features=('ai_f07',))
+        partner = self.env['res.partner'].create({'name': 'Jane Doe'})
+        attachment = self.env['ir.attachment'].create({
+            'name': 'letter.png', 'datas': _FAKE_PNG, 'mimetype': 'image/png',
+        })
+        response = _extraction_response({
+            'partner_id': 'Jane Doe', 'role': 'director', 'date_appointed': '2026-03-01',
+        })
+        appointment = self.env['govoo.appointment'].new({})
+        appointment.appointment_document_id = attachment
+        with self._patch_chat_completion(side_effect=[response]):
+            result = appointment._onchange_appointment_document_id()
+        self.assertEqual(appointment.partner_id, partner)
+        self.assertEqual(appointment.role, 'director')
+        self.assertEqual(str(appointment.date_appointed), '2026-03-01')
+        self.assertIn('AI pre-filled', result['warning']['message'])
+
+    def test_appointment_document_flags_an_unresolved_relation(self):
+        self._make_active_config(cap=100000, enabled_features=('ai_f07',))
+        attachment = self.env['ir.attachment'].create({
+            'name': 'letter.png', 'datas': _FAKE_PNG, 'mimetype': 'image/png',
+        })
+        response = _extraction_response({
+            'partner_id': 'Someone Not In The System', 'role': 'director',
+        })
+        appointment = self.env['govoo.appointment'].new({})
+        appointment.appointment_document_id = attachment
+        with self._patch_chat_completion(side_effect=[response]):
+            result = appointment._onchange_appointment_document_id()
+        self.assertFalse(appointment.partner_id)
+        self.assertEqual(appointment.role, 'director')
+        self.assertIn('Could not confidently set', result['warning']['message'])
+        self.assertIn('Someone Not In The System', result['warning']['message'])
+
+    def test_appointment_document_is_a_noop_when_disabled(self):
+        # No active config at all -- AI-F07 is off.
+        attachment = self.env['ir.attachment'].create({
+            'name': 'letter.png', 'datas': _FAKE_PNG, 'mimetype': 'image/png',
+        })
+        appointment = self.env['govoo.appointment'].new({})
+        appointment.appointment_document_id = attachment
+        with self._patch_chat_completion(side_effect=AssertionError('must not call the provider')):
+            result = appointment._onchange_appointment_document_id()
+        self.assertIsNone(result)
+        self.assertFalse(appointment.partner_id)
+        self.assertFalse(self.env['govoo.ai.request'].search([('feature', '=', 'ai_f07')]))
+
+    def test_contract_document_autofills_when_enabled(self):
+        self._make_active_config(cap=100000, enabled_features=('ai_f07',))
+        attachment = self.env['ir.attachment'].create({
+            'name': 'executed.png', 'datas': _FAKE_PNG, 'mimetype': 'image/png',
+        })
+        response = _extraction_response({'renewal_type': 'auto', 'renewal_date': '2028-01-01'})
+        contract = self.env['govoo.contract'].new({})
+        contract.executed_document_id = attachment
+        with self._patch_chat_completion(side_effect=[response]):
+            result = contract._onchange_executed_document_id()
+        self.assertEqual(contract.renewal_type, 'auto')
+        self.assertEqual(str(contract.renewal_date), '2028-01-01')
+        self.assertIn('AI pre-filled', result['warning']['message'])
+
+    def test_contract_document_is_a_noop_when_disabled(self):
+        attachment = self.env['ir.attachment'].create({
+            'name': 'executed.png', 'datas': _FAKE_PNG, 'mimetype': 'image/png',
+        })
+        contract = self.env['govoo.contract'].new({})
+        contract.executed_document_id = attachment
+        with self._patch_chat_completion(side_effect=AssertionError('must not call the provider')):
+            result = contract._onchange_executed_document_id()
+        self.assertIsNone(result)
+        self.assertEqual(contract.renewal_type, 'fixed')  # untouched default
+        self.assertFalse(contract.renewal_date)

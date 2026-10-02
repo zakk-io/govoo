@@ -5,7 +5,7 @@ import json
 import logging
 
 import odoo.modules.module
-from odoo import _, models
+from odoo import _, fields, models
 from odoo.exceptions import AccessError, UserError
 
 _logger = logging.getLogger(__name__)
@@ -227,6 +227,87 @@ class GovooAiExtraction(models.AbstractModel):
             'output_ref': 'govoo.ai.suggestion,%s' % suggestion.id,
         })
         return suggestion
+
+    def apply_to_record(self, record, attachment_id):
+        """Run extraction for ``record``'s own model and pre-fill
+        ``record``'s own in-memory fields directly from the result --
+        used by each of the 6 target models' own document-field onchange
+        (issue #233) so uploading/selecting a document auto-populates the
+        form, with no separate "Scan Document" click and no popup wizard.
+
+        Writes nothing to the database beyond the normal
+        govoo.ai.request/govoo.ai.suggestion audit trail created by
+        run() -- record's fields are only set on the in-memory,
+        not-yet-saved record, exactly the same human-review gate (AI-N03)
+        every other AI-F* feature already provides via its own explicit
+        Apply/Accept step; here the "review" is simply looking at the
+        pre-filled form before clicking Save.
+
+        A relation field is only ever auto-filled on an exact, unique
+        name match (AI-N02/AI-N04, same discipline as the wizard's
+        _best_effort_match) -- anything else is left for the human,
+        named in the returned warning.
+
+        Returns an onchange-style ``{'title', 'message'}`` dict
+        summarizing what was filled and what needs manual attention, or
+        ``None`` if AI-F07 is disabled for this company, ``record``'s
+        model is not a configured extraction target, or nothing in the
+        document matched any known field -- in every one of those cases
+        the caller's onchange does nothing further (the document field
+        itself still gets set by the caller, same as it always did).
+        """
+        target_model = record._name
+        if target_model not in EXTRACTION_FIELD_MAP:
+            return None
+        config = self.env['govoo.ai.config'].search(
+            [('company_id', '=', self.env.company.id)], limit=1,
+        )
+        if not config or not config.is_feature_enabled('ai_f07'):
+            return None
+        target_res_id = record.id if isinstance(record.id, int) else False
+        suggestion = self.run(target_model, attachment_id, target_res_id=target_res_id)
+        extracted = json.loads(suggestion.extracted_values or '{}')
+        filled, unresolved = [], []
+        for field_spec in EXTRACTION_FIELD_MAP[target_model]:
+            name = field_spec['name']
+            if name not in extracted:
+                continue
+            value = extracted[name]
+            if field_spec['type'] == 'many2one':
+                matches = self.env[field_spec['relation']].search(
+                    [('name', '=ilike', value)], limit=2,
+                )
+                if len(matches) == 1:
+                    record[name] = matches.id
+                    filled.append(field_spec['label'])
+                else:
+                    unresolved.append('%s ("%s")' % (field_spec['label'], value))
+                continue
+            try:
+                if field_spec['type'] == 'date':
+                    record[name] = fields.Date.from_string(value)
+                elif field_spec['type'] == 'integer':
+                    record[name] = int(value)
+                elif field_spec['type'] == 'monetary':
+                    record[name] = float(value)
+                else:
+                    record[name] = value
+            except (TypeError, ValueError):
+                unresolved.append(field_spec['label'])
+                continue
+            filled.append(field_spec['label'])
+        if not filled and not unresolved:
+            return None
+        message_parts = []
+        if filled:
+            message_parts.append(_(
+                'AI pre-filled: %s. Review before saving.'
+            ) % ', '.join(filled))
+        if unresolved:
+            message_parts.append(_(
+                'Could not confidently set: %s. Please fill in manually.'
+            ) % ', '.join(unresolved))
+        return {'title': _('AI Extraction'), 'message': '\n'.join(message_parts)}
 
     def _build_system_prompt(self, target_model):
         lines = []
