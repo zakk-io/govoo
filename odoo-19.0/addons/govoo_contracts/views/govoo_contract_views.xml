@@ -78,6 +78,7 @@
                             <field name="date_start"/>
                             <field name="date_end"/>
                             <field name="renewal_type"/>
+                            <field name="renewal_date" invisible="renewal_type != 'auto'"/>
                             <field name="retention_until" readonly="1"/>
                             <field name="termination_reason" invisible="state not in ('active', 'terminated')"/>
                             <field name="resolution_id"/>
@@ -102,7 +103,11 @@
                                         type="object" class="btn-secondary"
                                         invisible="sign_status != 'sent'"/>
                             </div>
-                            <field name="executed_document_id" readonly="state in ('executed', 'active', 'expired', 'terminated')"/>
+                            <field name="executed_document_id"
+                                   readonly="executed_document_id and state in ('executed', 'active', 'expired', 'terminated')"/>
+                            <field name="executed_document_upload" filename="executed_document_upload_filename"
+                                   readonly="executed_document_id and state in ('executed', 'active', 'expired', 'terminated')"/>
+                            <field name="executed_document_upload_filename" invisible="1"/>
                         </group>
                     </group>
                     <group string="Clauses">

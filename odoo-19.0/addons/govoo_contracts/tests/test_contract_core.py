@@ -1,5 +1,7 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
+import base64
+
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
 from odoo.tests.common import new_test_user
@@ -94,6 +96,38 @@ class TestContractCore(GovooContractsTestBase):
             contract.write({'executed_document_id': attachment_2.id})
         with self.assertRaises(UserError):
             contract.write({'executed_document_id': False})
+
+    def test_executed_document_can_be_set_for_the_first_time_while_executed(self):
+        """BR-CM-004's write-once lock only applies once a document is
+        already attached -- a contract that reached Executed without one
+        yet (e.g. it was approved on the strength of a resolution, and the
+        signed copy is uploaded afterward) must still be able to attach it
+        for the first time. The view's readonly attribute on
+        executed_document_id previously blocked this unconditionally from
+        'executed' onward, regardless of whether a document was already
+        set -- stricter than this actual business rule."""
+        attachment = self.env['ir.attachment'].create({
+            'name': 'signed-after-the-fact.pdf', 'raw': b'v1',
+        })
+        contract = self._make_contract()
+        contract.action_submit()
+        contract.action_approve()
+        contract.action_execute()
+        self.assertFalse(contract.executed_document_id)
+        contract.write({'executed_document_id': attachment.id})
+        self.assertEqual(contract.executed_document_id, attachment)
+
+    def test_uploading_a_file_creates_and_selects_the_executed_document(self):
+        contract = self._make_contract()
+        contract.executed_document_upload = base64.b64encode(b'file bytes')
+        contract.executed_document_upload_filename = 'signed_contract.pdf'
+        contract._onchange_executed_document_upload()
+        self.assertTrue(contract.executed_document_id)
+        self.assertEqual(contract.executed_document_id.name, 'signed_contract.pdf')
+        # Deliberately still set -- see _onchange_executed_document_upload's
+        # docstring for the "looks broken" bug this avoids repeating.
+        self.assertTrue(contract.executed_document_upload)
+        self.assertEqual(contract.executed_document_upload_filename, 'signed_contract.pdf')
 
     def test_executed_document_editable_before_executed(self):
         """The write-once lock only applies from 'executed' onward -- it

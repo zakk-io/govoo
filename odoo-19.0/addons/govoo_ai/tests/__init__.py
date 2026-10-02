@@ -2,6 +2,7 @@
 
 from . import (
     test_govoo_ai_config,
+    test_govoo_ai_extraction,
     test_govoo_ai_grounding,
     test_govoo_ai_openai_client,
     test_govoo_ai_qa,
