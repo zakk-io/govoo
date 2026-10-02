@@ -77,6 +77,33 @@ class TestGovooAiGrounding(GovooAiTestBase):
         self.assertIn('status/type fields', catalog)
         self.assertIn('state (Status): draft, open, passed, failed, withdrawn', catalog)
 
+    def test_schema_catalog_lists_selection_values_for_a_related_selection_field(self):
+        # Regression: govoo.register.director.role/state are `related=`
+        # Selection fields (pulled from govoo.appointment) -- Odoo leaves
+        # ir.model.fields.selection as the literal string '[]' on the
+        # related model's own field row, so a naive ast.literal_eval of
+        # that column found nothing and silently dropped role/state from
+        # the catalog entirely. That gap let the AI conflate the Company
+        # Secretary (role='secretary') with an actual director when asked
+        # "who are our current directors" (live-testing finding).
+        if 'govoo.register.director' not in self.env:
+            self.skipTest('govoo_secretarial is not installed in this test run')
+        catalog = self.env['govoo.ai.grounding'].get_govoo_schema_catalog()
+        self.assertIn('govoo.register.director', catalog)
+        self.assertIn('status/type fields', catalog)
+        self.assertIn(
+            'role (Role): director, secretary, chair, md, committee_member', catalog,
+        )
+        self.assertIn('state (Status): active, resigned', catalog)
+
+    def test_schema_catalog_lists_date_fields_alongside_text_fields(self):
+        if 'govoo.compliance.instance' not in self.env:
+            self.skipTest('govoo_compliance is not installed in this test run')
+        catalog = self.env['govoo.ai.grounding'].get_govoo_schema_catalog()
+        self.assertIn('govoo.compliance.instance', catalog)
+        self.assertIn('date fields', catalog)
+        self.assertIn('due_date (Due Date)', catalog)
+
     def test_schema_catalog_is_cached_on_the_registry(self):
         grounding = self.env['govoo.ai.grounding']
         first = grounding.get_govoo_schema_catalog()

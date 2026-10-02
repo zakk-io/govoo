@@ -1,6 +1,5 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
-import ast
 import json
 import logging
 
@@ -237,6 +236,18 @@ class GovooAiGrounding(models.AbstractModel):
                 ('ttype', '=', 'selection'),
                 ('store', '=', True),
             ], order='name')
+            # Also always surfaced: Date/Datetime fields. A label like
+            # "period" on govoo.compliance.instance is the month an
+            # obligation *covers* (e.g. "2026-09" for a return filed in
+            # October), not the month it's *due* -- without an explicit
+            # due_date field listed, a "due this month" question has no
+            # way to tell those apart and silently filters on the wrong
+            # one (a real failure seen in live testing).
+            date_fields = IrField.search([
+                ('model_id', '=', model.id),
+                ('ttype', 'in', ('date', 'datetime')),
+                ('store', '=', True),
+            ], order='name')
             if text_fields:
                 field_list = ', '.join(
                     '%s (%s)' % (field.name, field.field_description)
@@ -249,9 +260,15 @@ class GovooAiGrounding(models.AbstractModel):
                         for field in party_fields
                     )
                     line += '; person/party links: %s' % party_list
-                status_list = self._format_selection_fields(selection_fields)
+                status_list = self._format_selection_fields(model.model, selection_fields)
                 if status_list:
                     line += '; status/type fields: %s' % status_list
+                if date_fields:
+                    date_list = ', '.join(
+                        '%s (%s)' % (field.name, field.field_description)
+                        for field in date_fields
+                    )
+                    line += '; date fields: %s' % date_list
                 lines.append(line)
                 continue
             # A model with no keyword-searchable field of its own (e.g. a
@@ -278,26 +295,44 @@ class GovooAiGrounding(models.AbstractModel):
                 'related model first, then filter by its foreign key) %s'
                 % (model.model, model.name, relation_list)
             )
-            status_list = self._format_selection_fields(selection_fields)
+            status_list = self._format_selection_fields(model.model, selection_fields)
             if status_list:
                 line += '; status/type fields: %s' % status_list
             lines.append(line)
         return '\n'.join(lines)
 
-    def _format_selection_fields(self, selection_fields):
+    def _format_selection_fields(self, model_name, selection_fields):
         """Render Selection fields as 'name (Label): value1, value2, ...',
         using the literal stored values a domain filter must match -- not
-        just their human-readable labels. Skips a field whose selection
-        isn't a static list (e.g. computed via a method) rather than
-        guessing at values that may not even be real.
+        just their human-readable labels.
+
+        Resolves options through the live ORM field's own
+        _description_selection(), not ir.model.fields.selection directly:
+        for a `related=` Selection field (e.g.
+        govoo.register.director.role, related to
+        govoo.appointment.role), Odoo leaves ir.model.fields.selection as
+        an empty '[]' on the related model's own field row -- the literal
+        list only ever lives on the source field. Reading it straight off
+        ir.model.fields silently produced a model with no status/type
+        fields in the catalog at all, which is exactly what let the AI
+        earlier conflate the Company Secretary (role='secretary') with
+        the actual directors when asked "who are our current directors,"
+        since it had no field value to tell the two roles apart.
+        _description_selection() is what Odoo itself calls to resolve a
+        field's selection for the UI, so it works the same for related
+        and computed Selection fields as for a plain static list.
         """
         parts = []
+        model_fields = self.env[model_name]._fields
         for field in selection_fields:
-            try:
-                options = ast.literal_eval(field.selection or '[]')
-            except (ValueError, SyntaxError):
+            live_field = model_fields.get(field.name)
+            if live_field is None:
                 continue
-            if not isinstance(options, list) or not options:
+            try:
+                options = live_field._description_selection(self.env)
+            except Exception:
+                continue
+            if not options:
                 continue
             values = ', '.join(str(value) for value, _label in options)
             parts.append('%s (%s): %s' % (field.name, field.field_description, values))

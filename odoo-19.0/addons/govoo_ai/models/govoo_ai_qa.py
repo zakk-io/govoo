@@ -4,7 +4,7 @@ import json
 import logging
 
 import odoo.modules.module
-from odoo import _, api, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
@@ -22,6 +22,13 @@ SYSTEM_PROMPT_TEMPLATE = (
     "never a plausible-sounding guess (AI-N04). If nothing in the data "
     "available to you supports an answer, say so plainly -- 'not found' "
     "is always a better answer than a wrong one.\n\n"
+    "Today's date is {today} (year-month {year_month}). You have no "
+    "other way of knowing the current date -- never assume it from your "
+    "own training data, which is almost certainly stale and from a "
+    "different year. Use this exact date to resolve any relative time "
+    "reference in the question (this month, this week, overdue, "
+    "upcoming, next, last, since, within N days, ...) into an actual "
+    "date, year-month, or date range before filtering on a date field.\n\n"
     "Below is the exact, current list of this deployment's governance "
     "content models and their keyword-searchable fields -- ground truth "
     "for THIS deployment, not a generic guess. Do NOT call list_models or "
@@ -46,7 +53,23 @@ SYSTEM_PROMPT_TEMPLATE = (
     "exact field with one of those exact values, never by filtering on an "
     "unrelated field and assuming the status from context. If a model has "
     "no status/type field listed for the status being asked about, you "
-    "cannot confirm it.\n\n"
+    "cannot confirm it. When several retrieved records share a status/type "
+    "field but have DIFFERENT values on it (e.g. one person's role is "
+    "'secretary' while others are 'director' or 'chair'), never collapse "
+    "them all under one generic label in the answer -- state each "
+    "record's own actual value, since conflating a distinct value (like "
+    "the Company Secretary) into a broader question's label (like "
+    "'directors') is itself a factual error, not a simplification. "
+    "Models may also list 'date fields' with their "
+    "labels (e.g. due_date (Due Date), period (Period)) -- a question "
+    "about when something is DUE, overdue, or upcoming MUST filter on "
+    "the field whose label actually says 'due' or similar, never on a "
+    "field like 'period' just because it looks date-shaped: period is "
+    "often the month an obligation COVERS, not the month it is due in, "
+    "and the two can be different months for the same record. If a "
+    "model has no date field whose label matches what the question is "
+    "actually asking about (due vs. filed vs. covered), say so rather "
+    "than guessing which date field is the right one.\n\n"
     "The domain argument is ALWAYS a flat JSON list of 3-element "
     "condition lists [field, operator, value] -- never a string, never a "
     'dict/object like {{"field": {{"ilike": "value"}}}}, and a single '
@@ -197,7 +220,10 @@ class GovooAiQa(models.AbstractModel):
             govoo.ai.grounding.run_tool_loop).
         """
         grounding = self.env['govoo.ai.grounding']
+        today = fields.Date.context_today(self)
         system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
+            today=today.isoformat(),
+            year_month=today.strftime('%Y-%m'),
             schema_catalog=grounding.get_govoo_schema_catalog(),
         )
         trimmed_history = [

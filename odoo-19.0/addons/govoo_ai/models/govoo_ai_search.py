@@ -4,14 +4,22 @@ import json
 import logging
 
 import odoo.modules.module
-from odoo import _, models
+from odoo import _, fields, models
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT_TEMPLATE = (
     "You are a search assistant for a corporate governance system. Use the "
-    "available tools to find records matching the user's query. Below is "
+    "available tools to find records matching the user's query.\n\n"
+    "Today's date is {today} (year-month {year_month}). You have no "
+    "other way of knowing the current date -- never assume it from your "
+    "own training data, which is almost certainly stale and from a "
+    "different year. Use this exact date to resolve any relative time "
+    "reference in the query (this month, this week, overdue, upcoming, "
+    "next, last, since, within N days, ...) into an actual date, "
+    "year-month, or date range before filtering on a date field.\n\n"
+    "Below is "
     "the exact, current list of this deployment's governance content "
     "models and their keyword-searchable fields -- this is ground truth "
     "for THIS deployment, not a generic guess, so go straight to "
@@ -51,7 +59,16 @@ SYSTEM_PROMPT_TEMPLATE = (
     "outcome, or category (open, overdue, passed, draft, ...) MUST filter "
     "on that exact field with one of those exact values, never on an "
     "unrelated field. If a model has no status/type field for the status "
-    "being asked about, you cannot confirm it.\n\n"
+    "being asked about, you cannot confirm it. Models may also list "
+    "'date fields' with their labels (e.g. due_date (Due Date), period "
+    "(Period)) -- a query about when something is DUE, overdue, or "
+    "upcoming MUST filter on the field whose label actually says 'due' "
+    "or similar, never on a field like 'period' just because it looks "
+    "date-shaped: period is often the month an obligation COVERS, not "
+    "the month it is due in, and the two can be different months for "
+    "the same record. If no listed date field's label matches what is "
+    "actually being asked (due vs. filed vs. covered), do not guess "
+    "which one to use.\n\n"
     "When you filter by a keyword or phrase, put every short "
     "title/name-like field into the same OR condition as any long "
     "text/body/description field on that model -- a phrase like 'Articles "
@@ -198,7 +215,10 @@ class GovooAiSearch(models.AbstractModel):
             govoo.ai.grounding.run_tool_loop).
         """
         grounding = self.env['govoo.ai.grounding']
+        today = fields.Date.context_today(self)
         system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
+            today=today.isoformat(),
+            year_month=today.strftime('%Y-%m'),
             schema_catalog=grounding.get_govoo_schema_catalog(),
         )
         messages = [
