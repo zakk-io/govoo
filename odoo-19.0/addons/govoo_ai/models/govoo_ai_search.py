@@ -4,23 +4,22 @@ import json
 import logging
 
 import odoo.modules.module
-from odoo import _, models
+from odoo import _, fields, models
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
-# Bounds the tool-calling loop so a confused model (or a provider outage
-# that keeps returning tool_calls) can't run indefinitely -- both a cost
-# control and a correctness guard. With the schema catalog given directly
-# in the system prompt (see SYSTEM_PROMPT_TEMPLATE / _run_loop), a typical
-# search is one search_read call then a final answer; 8 round-trips leaves
-# generous headroom for a harder, multi-model query without being
-# unbounded.
-MAX_TOOL_LOOPS = 8
-
 SYSTEM_PROMPT_TEMPLATE = (
     "You are a search assistant for a corporate governance system. Use the "
-    "available tools to find records matching the user's query. Below is "
+    "available tools to find records matching the user's query.\n\n"
+    "Today's date is {today} (year-month {year_month}). You have no "
+    "other way of knowing the current date -- never assume it from your "
+    "own training data, which is almost certainly stale and from a "
+    "different year. Use this exact date to resolve any relative time "
+    "reference in the query (this month, this week, overdue, upcoming, "
+    "next, last, since, within N days, ...) into an actual date, "
+    "year-month, or date range before filtering on a date field.\n\n"
+    "Below is "
     "the exact, current list of this deployment's governance content "
     "models and their keyword-searchable fields -- this is ground truth "
     "for THIS deployment, not a generic guess, so go straight to "
@@ -54,7 +53,22 @@ SYSTEM_PROMPT_TEMPLATE = (
     "govoo.agenda.item's short 'title' field first -- it names the exact "
     "topic for a specific meeting -- rather than searching the long "
     "free-text body of govoo.minutes, which is harder to match reliably "
-    "and only needed if no agenda item covers the topic.\n\n"
+    "and only needed if no agenda item covers the topic. Models may also "
+    "list 'status/type fields' with their exact stored values (e.g. state "
+    "(Status): draft, open, passed, failed) -- a query about status, "
+    "outcome, or category (open, overdue, passed, draft, ...) MUST filter "
+    "on that exact field with one of those exact values, never on an "
+    "unrelated field. If a model has no status/type field for the status "
+    "being asked about, you cannot confirm it. Models may also list "
+    "'date fields' with their labels (e.g. due_date (Due Date), period "
+    "(Period)) -- a query about when something is DUE, overdue, or "
+    "upcoming MUST filter on the field whose label actually says 'due' "
+    "or similar, never on a field like 'period' just because it looks "
+    "date-shaped: period is often the month an obligation COVERS, not "
+    "the month it is due in, and the two can be different months for "
+    "the same record. If no listed date field's label matches what is "
+    "actually being asked (due vs. filed vs. covered), do not guess "
+    "which one to use.\n\n"
     "When you filter by a keyword or phrase, put every short "
     "title/name-like field into the same OR condition as any long "
     "text/body/description field on that model -- a phrase like 'Articles "
@@ -163,9 +177,10 @@ class GovooAiSearch(models.AbstractModel):
             if not odoo.modules.module.current_test:
                 self.env.cr.commit()
             raise
+        grounding = self.env['govoo.ai.grounding']
         suggestions = self.env['govoo.ai.suggestion']
         for match in matches:
-            if not self._match_is_readable(match['model'], match['res_id']):
+            if not grounding.is_match_readable(match['model'], match['res_id']):
                 # AI-N02: the model's own JSON output is not proof of
                 # access. A hallucinated or out-of-scope model/res_id pair
                 # is silently dropped rather than surfaced -- this is the
@@ -193,86 +208,25 @@ class GovooAiSearch(models.AbstractModel):
         })
         return suggestions
 
-    def _match_is_readable(self, model_name, res_id):
-        """Return whether the current user may read the claimed match.
-
-        The model's own JSON output naming a model/res_id is never trusted
-        on its own -- this re-checks existence and read access exactly as
-        Odoo would for that user browsing the UI (AI-N02).
-        """
-        if model_name not in self.env:
-            return False
-        record = self.env[model_name].browse(res_id)
-        if not record.exists():
-            return False
-        try:
-            record.check_access('read')
-        except Exception:
-            return False
-        return True
-
     def _run_loop(self, config, query):
         """Drive the bounded tool-calling loop and return (matches, model_name, tokens).
 
-        :raise UserError: if the model does not converge within
-            MAX_TOOL_LOOPS round-trips.
+        :raise UserError: if the model does not converge in time (see
+            govoo.ai.grounding.run_tool_loop).
         """
         grounding = self.env['govoo.ai.grounding']
-        client = self.env['govoo.ai.openai.client']
-        tools = grounding.get_tool_schemas()
+        today = fields.Date.context_today(self)
         system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
+            today=today.isoformat(),
+            year_month=today.strftime('%Y-%m'),
             schema_catalog=grounding.get_govoo_schema_catalog(),
         )
         messages = [
             {'role': 'system', 'content': system_prompt},
             {'role': 'user', 'content': query},
         ]
-        model_name = None
-        total_tokens = 0
-        for _iteration in range(MAX_TOOL_LOOPS):
-            response = client.chat_completion(
-                # sudo(): api_key is restricted to AI Administrators (an AI
-                # User must never read the raw secret) but the orchestration
-                # itself has to use it, on the user's behalf, to call the
-                # provider.
-                api_key=config.sudo().api_key,
-                messages=messages,
-                tools=tools,
-            )
-            model_name = 'openai:%s' % response.get('model', '')
-            total_tokens += (response.get('usage') or {}).get('total_tokens', 0)
-            choice = response['choices'][0]['message']
-            tool_calls = choice.get('tool_calls')
-            if not tool_calls:
-                return (
-                    self._parse_matches(choice.get('content')),
-                    model_name,
-                    total_tokens,
-                )
-            messages.append(choice)
-            for call in tool_calls:
-                messages.append(self._dispatch_tool_call(grounding, call))
-        raise UserError(_(
-            'The AI search did not finish in time. Try a more specific query.'
-        ))
-
-    def _dispatch_tool_call(self, grounding, call):
-        """Execute one requested tool call and format it as a tool-role message."""
-        name = call['function']['name']
-        try:
-            arguments = json.loads(call['function'].get('arguments') or '{}')
-        except ValueError:
-            arguments = {}
-        try:
-            result = grounding.call_tool(name, arguments)
-        except Exception as exc:
-            _logger.info('Grounding tool %s failed: %s', name, exc)
-            result = json.dumps({'error': str(exc)})
-        return {
-            'role': 'tool',
-            'tool_call_id': call['id'],
-            'content': result if isinstance(result, str) else json.dumps(result, default=str),
-        }
+        content, model_name, total_tokens = grounding.run_tool_loop(config, messages)
+        return self._parse_matches(content), model_name, total_tokens
 
     def _parse_matches(self, content):
         """Parse the model's final JSON content into a list of match dicts.
