@@ -1,5 +1,7 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
+import base64
+
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
 from odoo.tests.common import new_test_user
@@ -114,6 +116,18 @@ class TestContractCore(GovooContractsTestBase):
         self.assertFalse(contract.executed_document_id)
         contract.write({'executed_document_id': attachment.id})
         self.assertEqual(contract.executed_document_id, attachment)
+
+    def test_uploading_a_file_creates_and_selects_the_executed_document(self):
+        contract = self._make_contract()
+        contract.executed_document_upload = base64.b64encode(b'file bytes')
+        contract.executed_document_upload_filename = 'signed_contract.pdf'
+        contract._onchange_executed_document_upload()
+        self.assertTrue(contract.executed_document_id)
+        self.assertEqual(contract.executed_document_id.name, 'signed_contract.pdf')
+        # Deliberately still set -- see _onchange_executed_document_upload's
+        # docstring for the "looks broken" bug this avoids repeating.
+        self.assertTrue(contract.executed_document_upload)
+        self.assertEqual(contract.executed_document_upload_filename, 'signed_contract.pdf')
 
     def test_executed_document_editable_before_executed(self):
         """The write-once lock only applies from 'executed' onward -- it

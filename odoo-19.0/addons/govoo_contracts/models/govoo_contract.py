@@ -176,6 +176,12 @@ class GovooContract(models.Model):
              'an amendment or renewal must attach a new document, never '
              'edit this one in place.',
     )
+    executed_document_upload = fields.Binary(
+        string='Upload a File',
+        help='Choose a file from your computer -- it will be attached and '
+             'selected as the Executed Document above automatically.',
+    )
+    executed_document_upload_filename = fields.Char()
     resolution_id = fields.Many2one(
         comodel_name='govoo.resolution',
         string='Board Resolution',
@@ -227,6 +233,30 @@ class GovooContract(models.Model):
         required=True,
         tracking=True,
     )
+
+    @api.onchange('executed_document_upload')
+    def _onchange_executed_document_upload(self):
+        """Turn a direct file upload into a real ir.attachment and select
+        it as Executed Document -- so attaching the signed copy doesn't
+        require already knowing it has to exist as an ir.attachment
+        somewhere first (e.g. via the chatter) before it can be picked
+        from the plain Many2one search box.
+
+        Deliberately does NOT clear executed_document_upload/_filename
+        afterward -- the exact same "looks broken" bug found and fixed on
+        the AI-F07 extraction wizard's own upload field (see
+        govoo_ai_extraction_wizard.py's _onchange_document): clearing it
+        immediately removed the only visible sign the upload succeeded,
+        so clicking again (repeatedly, since nothing ever appeared to
+        change) queued up several native file-picker dialogs. Leaving it
+        set costs one redundant copy of the file in this record's own
+        column, which is a small, acceptable price for reliable feedback.
+        """
+        if self.executed_document_upload:
+            self.executed_document_id = self.env['ir.attachment'].create({
+                'name': self.executed_document_upload_filename or _('Executed document'),
+                'datas': self.executed_document_upload,
+            })
 
     @api.depends('obligation_ids')
     def _compute_obligation_count(self):
