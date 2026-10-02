@@ -103,7 +103,8 @@
                                         type="object" class="btn-secondary"
                                         invisible="sign_status != 'sent'"/>
                             </div>
-                            <field name="executed_document_id" readonly="state in ('executed', 'active', 'expired', 'terminated')"/>
+                            <field name="executed_document_id"
+                                   readonly="executed_document_id and state in ('executed', 'active', 'expired', 'terminated')"/>
                         </group>
                     </group>
                     <group string="Clauses">
