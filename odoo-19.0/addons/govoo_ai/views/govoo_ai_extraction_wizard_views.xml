@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_govoo_ai_extraction_wizard_form" model="ir.ui.view">
+        <field name="name">govoo.ai.extraction.wizard.form</field>
+        <field name="model">govoo.ai.extraction.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Extract Data from Document</h1>
+                    </div>
+                    <group invisible="state != 'draft'">
+                        <field name="target_model"/>
+                        <field name="attachment_id"/>
+                        <field name="target_res_id"
+                               help="Leave at 0 to propose a brand-new record. Set automatically when opened from an existing record's 'Scan Document' button."/>
+                    </group>
+                    <footer invisible="state != 'draft'">
+                        <button name="action_extract" string="Extract" type="object" class="btn-primary"/>
+                    </footer>
+                    <group string="Review Proposed Values" invisible="state != 'extracted'">
+                        <field name="line_ids" nolabel="1">
+                            <list editable="bottom">
+                                <field name="field_label" readonly="1"/>
+                                <field name="field_type" column_invisible="1"/>
+                                <field name="char_value" readonly="field_type == 'many2one'"/>
+                                <field name="partner_value_id"/>
+                                <field name="share_class_value_id"/>
+                            </list>
+                        </field>
+                    </group>
+                    <div class="alert alert-warning" role="alert" invisible="state == 'draft'">
+                        AI-generated from the uploaded document. Review every value before applying --
+                        a field left blank will not be set. Not legal advice.
+                    </div>
+                    <footer invisible="state != 'extracted'">
+                        <button name="action_apply" string="Apply" type="object" class="btn-primary"/>
+                        <button string="Close" special="cancel" class="btn-secondary"/>
+                    </footer>
+                    <group invisible="state != 'applied'">
+                        <div class="alert alert-success" role="alert">
+                            The record has been created/updated from the reviewed values.
+                        </div>
+                    </group>
+                    <footer invisible="state != 'applied'">
+                        <button name="action_open_record" string="Open Record" type="object" class="btn-primary"/>
+                        <button string="Close" special="cancel" class="btn-secondary"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_govoo_ai_extraction_wizard" model="ir.actions.act_window">
+        <field name="name">Extract Data from Document</field>
+        <field name="res_model">govoo.ai.extraction.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

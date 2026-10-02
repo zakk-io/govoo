@@ -6,3 +6,5 @@ access_govoo_ai_request_administrator,govoo.ai.request administrator,model_govoo
 access_govoo_ai_suggestion_user,govoo.ai.suggestion user,model_govoo_ai_suggestion,group_govoo_ai_user,1,1,1,0
 access_govoo_ai_suggestion_administrator,govoo.ai.suggestion administrator,model_govoo_ai_suggestion,group_govoo_ai_administrator,1,0,0,0
 access_govoo_ai_search_wizard_user,govoo.ai.search.wizard user,model_govoo_ai_search_wizard,group_govoo_ai_user,1,1,1,1
+access_govoo_ai_extraction_wizard_user,govoo.ai.extraction.wizard user,model_govoo_ai_extraction_wizard,group_govoo_ai_user,1,1,1,1
+access_govoo_ai_extraction_wizard_line_user,govoo.ai.extraction.wizard.line user,model_govoo_ai_extraction_wizard_line,group_govoo_ai_user,1,1,1,1

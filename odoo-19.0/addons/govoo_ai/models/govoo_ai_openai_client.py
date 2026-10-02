@@ -34,8 +34,18 @@ class GovooAiOpenAiClient(models.AbstractModel):
     _name = 'govoo.ai.openai.client'
     _description = 'OpenAI Chat Completions Client'
 
-    def chat_completion(self, api_key, messages, tools=None, model=None):
+    def chat_completion(self, api_key, messages, tools=None, model=None, response_format=None):
         """Call the Chat Completions API and return the parsed JSON response.
+
+        ``messages`` is passed through verbatim, uninspected -- a caller can
+        already send OpenAI's native vision content shape (``{"type":
+        "image_url", "image_url": {"url": "data:..."}}``) without this
+        client needing any multimodal-specific code (AI-F07 relies on this).
+
+        ``response_format`` is an optional passthrough (e.g. ``{'type':
+        'json_object'}``) for a caller that needs reliable structured
+        output -- default ``None`` preserves AI-F08/AI-F09's existing
+        prompt-discipline-only behavior exactly.
 
         :raise UserError: if ``api_key`` is empty, the request fails to
             reach the provider, or the provider returns a non-200 status.
@@ -58,6 +68,8 @@ class GovooAiOpenAiClient(models.AbstractModel):
         }
         if tools:
             payload['tools'] = tools
+        if response_format:
+            payload['response_format'] = response_format
         try:
             response = requests.post(
                 OPENAI_CHAT_COMPLETIONS_URL,

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- AI-F07 "Scan Document" smart buttons: one per extraction target
+         (see EXTRACTION_FIELD_MAP in models/govoo_ai_extraction.py), added
+         by inheriting the target module's own form view from here rather
+         than editing that module's view file. govoo_secretarial/
+         govoo_shares/govoo_contracts/govoo_base stay unaware of AI
+         features; govoo_ai depends on them, never the reverse. -->
+
+    <record id="govoo_appointment_view_form_ai_extraction" model="ir.ui.view">
+        <field name="name">govoo.appointment.form.ai.extraction</field>
+        <field name="model">govoo.appointment</field>
+        <field name="inherit_id" ref="govoo_base.govoo_appointment_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[1]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_open_ai_extraction_wizard" string="Scan Document"
+                            type="object" class="oe_stat_button" icon="fa-magic"
+                            groups="govoo_ai.group_govoo_ai_user"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="govoo_register_beneficial_owner_view_form_ai_extraction" model="ir.ui.view">
+        <field name="name">govoo.register.beneficial.owner.form.ai.extraction</field>
+        <field name="model">govoo.register.beneficial.owner</field>
+        <field name="inherit_id" ref="govoo_secretarial.govoo_register_beneficial_owner_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/widget[@name='web_ribbon']" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_open_ai_extraction_wizard" string="Scan Document"
+                            type="object" class="oe_stat_button" icon="fa-magic"
+                            groups="govoo_ai.group_govoo_ai_user"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="govoo_register_charge_view_form_ai_extraction" model="ir.ui.view">
+        <field name="name">govoo.register.charge.form.ai.extraction</field>
+        <field name="model">govoo.register.charge</field>
+        <field name="inherit_id" ref="govoo_secretarial.govoo_register_charge_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[1]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_open_ai_extraction_wizard" string="Scan Document"
+                            type="object" class="oe_stat_button" icon="fa-magic"
+                            groups="govoo_ai.group_govoo_ai_user"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="govoo_share_allotment_view_form_ai_extraction" model="ir.ui.view">
+        <field name="name">govoo.share.allotment.form.ai.extraction</field>
+        <field name="model">govoo.share.allotment</field>
+        <field name="inherit_id" ref="govoo_shares.govoo_share_allotment_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[1]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_open_ai_extraction_wizard" string="Scan Document"
+                            type="object" class="oe_stat_button" icon="fa-magic"
+                            groups="govoo_ai.group_govoo_ai_user"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="govoo_share_transfer_view_form_ai_extraction" model="ir.ui.view">
+        <field name="name">govoo.share.transfer.form.ai.extraction</field>
+        <field name="model">govoo.share.transfer</field>
+        <field name="inherit_id" ref="govoo_shares.govoo_share_transfer_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[1]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_open_ai_extraction_wizard" string="Scan Document"
+                            type="object" class="oe_stat_button" icon="fa-magic"
+                            groups="govoo_ai.group_govoo_ai_user"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="govoo_contract_view_form_ai_extraction" model="ir.ui.view">
+        <field name="name">govoo.contract.form.ai.extraction</field>
+        <field name="model">govoo.contract</field>
+        <field name="inherit_id" ref="govoo_contracts.govoo_contract_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_ai_extraction_wizard" string="Scan Document"
+                        type="object" class="oe_stat_button" icon="fa-magic"
+                        groups="govoo_ai.group_govoo_ai_user"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

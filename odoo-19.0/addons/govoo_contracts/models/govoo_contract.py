@@ -140,6 +140,13 @@ class GovooContract(models.Model):
         required=True,
         tracking=True,
     )
+    renewal_date = fields.Date(
+        string='Renewal Date',
+        tracking=True,
+        help='The date this contract is due to renew, where applicable '
+             '(issue #198) -- distinct from End Date, which is when the '
+             'current term expires.',
+    )
     retention_until = fields.Date(
         string='Retention Until',
         compute='_compute_retention_until',
