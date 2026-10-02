@@ -29,18 +29,21 @@ class GovooAiExtractionWizard(models.TransientModel):
     )
     target_res_id = fields.Integer(
         string='Existing Record ID',
-        help='Set when extracting onto a record the user is already '
-             'editing (e.g. backfilling a contract\'s dates) -- a smart '
-             'button passes this in automatically. Left at 0, Apply '
-             'proposes a brand-new record instead.',
+        help='Set this to the existing record\'s id to extract onto a '
+             'record you are already editing (e.g. backfilling a '
+             'contract\'s dates) instead of proposing a new one. Most of '
+             'the time this manual wizard is not needed at all: '
+             'uploading a document directly into the record\'s own '
+             'document field already extracts automatically when AI-F07 '
+             'is enabled -- this wizard is the fallback for when it is '
+             'not, or for an explicit redo. Left at 0, Apply proposes a '
+             'brand-new record instead.',
     )
     attachment_id = fields.Many2one(
         comodel_name='ir.attachment',
         string='Document',
         required=True,
-        help='Already filled in when opened from an existing record\'s '
-             '"Scan Document" button. Otherwise, upload a file below and '
-             'it will be filled in automatically.',
+        help='Upload a file below and it will be filled in automatically.',
     )
     document = fields.Binary(
         string='Upload a File',
@@ -93,24 +96,6 @@ class GovooAiExtractionWizard(models.TransientModel):
                 'name': self.document_filename or _('Uploaded document'),
                 'datas': self.document,
             })
-
-    @api.model
-    def _open_for(self, target_model, target_res_id, attachment_id=False):
-        """Build the act_window dict a target model's own "Scan Document"
-        smart button returns -- shared so each of the six target models'
-        own (tiny) button method doesn't repeat this shape."""
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Extract Data from Document'),
-            'res_model': self._name,
-            'view_mode': 'form',
-            'target': 'new',
-            'context': {
-                'default_target_model': target_model,
-                'default_target_res_id': target_res_id,
-                'default_attachment_id': attachment_id or False,
-            },
-        }
 
     def action_extract(self):
         self.ensure_one()

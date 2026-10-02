@@ -2,19 +2,20 @@
 
 from odoo import _, api, fields, models
 
-# One "Scan Document" button method, upload field pair, and document-field
-# onchange per AI-F07 extraction target (see EXTRACTION_FIELD_MAP in
-# govoo_ai_extraction.py), added here via _inherit rather than editing
-# govoo_base/govoo_secretarial/govoo_shares/govoo_contracts' own model
-# files -- those modules stay unaware that AI features exist; govoo_ai is
-# the one depending on them, never the other way. Each class only differs
-# in which of that model's own document fields it targets.
+# One upload field pair and document-field onchange per AI-F07 extraction
+# target (see EXTRACTION_FIELD_MAP in govoo_ai_extraction.py), added here
+# via _inherit rather than editing govoo_base/govoo_secretarial/
+# govoo_shares/govoo_contracts' own model files -- those modules stay
+# unaware that AI features exist; govoo_ai is the one depending on them,
+# never the other way. Each class only differs in which of that model's
+# own document fields it targets.
 #
 # Issue #233: the document-field onchange is what makes extraction run
 # automatically the moment a document is uploaded or selected (when
-# AI-F07 is enabled) -- no separate "Scan Document" click needed. The
-# button/wizard stay available as the fallback when AI-F07 is disabled,
-# and as an explicit redo path.
+# AI-F07 is enabled) -- no "Scan Document" button needed (removed: it
+# became redundant once upload itself triggers extraction). The "AI >
+# Extract from Document" menu's wizard remains as the fallback for the
+# disabled case, or as an explicit redo.
 #
 # govoo.contract is the one exception to the upload-field pattern below:
 # its executed_document_upload/_filename fields and their own
@@ -79,12 +80,6 @@ class GovooAppointmentAiExtraction(models.Model):
         _extraction_onchange('appointment_document_id'),
     )
 
-    def action_open_ai_extraction_wizard(self):
-        self.ensure_one()
-        return self.env['govoo.ai.extraction.wizard']._open_for(
-            self._name, self.id, self.appointment_document_id.id,
-        )
-
 
 class GovooRegisterBeneficialOwnerAiExtraction(models.Model):
     _inherit = 'govoo.register.beneficial.owner'
@@ -101,12 +96,6 @@ class GovooRegisterBeneficialOwnerAiExtraction(models.Model):
     _onchange_evidence_document_id = api.onchange('evidence_document_id')(
         _extraction_onchange('evidence_document_id'),
     )
-
-    def action_open_ai_extraction_wizard(self):
-        self.ensure_one()
-        return self.env['govoo.ai.extraction.wizard']._open_for(
-            self._name, self.id, self.evidence_document_id.id,
-        )
 
 
 class GovooRegisterChargeAiExtraction(models.Model):
@@ -125,12 +114,6 @@ class GovooRegisterChargeAiExtraction(models.Model):
         _extraction_onchange('charge_document_id'),
     )
 
-    def action_open_ai_extraction_wizard(self):
-        self.ensure_one()
-        return self.env['govoo.ai.extraction.wizard']._open_for(
-            self._name, self.id, self.charge_document_id.id,
-        )
-
 
 class GovooShareAllotmentAiExtraction(models.Model):
     _inherit = 'govoo.share.allotment'
@@ -147,12 +130,6 @@ class GovooShareAllotmentAiExtraction(models.Model):
     _onchange_certificate_document_id = api.onchange('certificate_document_id')(
         _extraction_onchange('certificate_document_id'),
     )
-
-    def action_open_ai_extraction_wizard(self):
-        self.ensure_one()
-        return self.env['govoo.ai.extraction.wizard']._open_for(
-            self._name, self.id, self.certificate_document_id.id,
-        )
 
 
 class GovooShareTransferAiExtraction(models.Model):
@@ -171,12 +148,6 @@ class GovooShareTransferAiExtraction(models.Model):
         _extraction_onchange('transfer_instrument_id'),
     )
 
-    def action_open_ai_extraction_wizard(self):
-        self.ensure_one()
-        return self.env['govoo.ai.extraction.wizard']._open_for(
-            self._name, self.id, self.transfer_instrument_id.id,
-        )
-
 
 class GovooContractAiExtraction(models.Model):
     _inherit = 'govoo.contract'
@@ -187,9 +158,3 @@ class GovooContractAiExtraction(models.Model):
     _onchange_executed_document_id = api.onchange('executed_document_id')(
         _extraction_onchange('executed_document_id'),
     )
-
-    def action_open_ai_extraction_wizard(self):
-        self.ensure_one()
-        return self.env['govoo.ai.extraction.wizard']._open_for(
-            self._name, self.id, self.executed_document_id.id,
-        )
