@@ -107,3 +107,32 @@ class GovooAiSuggestion(models.Model):
 
     def action_reject(self):
         self._mark_reviewed('rejected')
+
+    def action_open_target(self):
+        """Open the suggestion's target record in a form view.
+
+        Used by search-style features (e.g. AI-F08) where the suggestion
+        itself is the result, not a draft to accept into a record. Relies
+        on the model's own access control -- opening a record the user
+        cannot read fails exactly as it would from any other Odoo link.
+
+        :raise ValidationError: if target_model/target_res_id name no
+            record (empty, unknown model, or already deleted).
+        """
+        self.ensure_one()
+        if not self.target_model or not self.target_res_id:
+            raise ValidationError(_('This suggestion has no target record to open.'))
+        if self.target_model not in self.env:
+            raise ValidationError(_('Unknown model: %s') % self.target_model)
+        record = self.env[self.target_model].browse(self.target_res_id)
+        if not record.exists():
+            raise ValidationError(_(
+                '%(model)s(%(id)s) no longer exists.'
+            ) % {'model': self.target_model, 'id': self.target_res_id})
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': self.target_model,
+            'res_id': self.target_res_id,
+            'views': [(False, 'form')],
+            'target': 'current',
+        }

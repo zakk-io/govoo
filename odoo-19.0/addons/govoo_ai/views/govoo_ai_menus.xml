@@ -6,6 +6,12 @@
               sequence="85"
               groups="govoo_ai.group_govoo_ai_user"/>
 
+    <menuitem id="govoo_ai_menu_search"
+              name="Search"
+              parent="govoo_ai_menu_root"
+              action="action_govoo_ai_search_wizard"
+              sequence="5"/>
+
     <menuitem id="govoo_ai_menu_suggestion"
               name="Suggestions"
               parent="govoo_ai_menu_root"
