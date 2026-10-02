@@ -176,6 +176,17 @@ class TestGovooAiExtractionWizard(GovooAiTestBase):
             side_effect=side_effect,
         )
 
+    def test_uploading_a_file_creates_and_selects_an_attachment(self):
+        wizard = self.env['govoo.ai.extraction.wizard'].new({
+            'target_model': 'govoo.appointment',
+        })
+        wizard.document = _FAKE_PNG
+        wizard.document_filename = 'scanned_letter.png'
+        wizard._onchange_document()
+        self.assertTrue(wizard.attachment_id)
+        self.assertEqual(wizard.attachment_id.name, 'scanned_letter.png')
+        self.assertFalse(wizard.document)  # cleared after creating the attachment
+
     def test_extract_then_apply_creates_a_new_record(self):
         response = _extraction_response({
             'partner_id': 'Jane Doe',

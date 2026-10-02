@@ -5,7 +5,7 @@ import json
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
-from ..models.govoo_ai_extraction import EXTRACTION_FIELD_MAP
+from ..models.govoo_ai_extraction import EXTRACTION_FIELD_MAP, EXTRACTION_TARGET_LABELS
 
 
 class GovooAiExtractionWizard(models.TransientModel):
@@ -21,7 +21,9 @@ class GovooAiExtractionWizard(models.TransientModel):
     _description = 'Extract Data from Document (AI-F07)'
 
     target_model = fields.Selection(
-        selection=lambda self: [(name, name) for name in EXTRACTION_FIELD_MAP],
+        selection=lambda self: [
+            (name, EXTRACTION_TARGET_LABELS.get(name, name)) for name in EXTRACTION_FIELD_MAP
+        ],
         string='Extract Into',
         required=True,
     )
@@ -36,7 +38,16 @@ class GovooAiExtractionWizard(models.TransientModel):
         comodel_name='ir.attachment',
         string='Document',
         required=True,
+        help='Already filled in when opened from an existing record\'s '
+             '"Scan Document" button. Otherwise, upload a file below and '
+             'it will be filled in automatically.',
     )
+    document = fields.Binary(
+        string='Upload a File',
+        help='Choose a PDF or image file -- it will be attached and '
+             'selected as the Document above automatically.',
+    )
+    document_filename = fields.Char()
     state = fields.Selection(
         selection=[
             ('draft', 'Draft'),
@@ -54,9 +65,25 @@ class GovooAiExtractionWizard(models.TransientModel):
         inverse_name='wizard_id',
     )
     created_record_ref = fields.Reference(
-        selection=lambda self: [(name, name) for name in EXTRACTION_FIELD_MAP],
+        selection=lambda self: [
+            (name, EXTRACTION_TARGET_LABELS.get(name, name)) for name in EXTRACTION_FIELD_MAP
+        ],
         readonly=True,
     )
+
+    @api.onchange('document')
+    def _onchange_document(self):
+        """Turn a direct file upload into a real ir.attachment and select
+        it -- so someone new to Odoo doesn't need to already know that
+        "Document" expects an attachment that has to exist somewhere
+        first; they can just pick a file here instead."""
+        if self.document:
+            self.attachment_id = self.env['ir.attachment'].create({
+                'name': self.document_filename or _('Uploaded document'),
+                'datas': self.document,
+            })
+        self.document = False
+        self.document_filename = False
 
     @api.model
     def _open_for(self, target_model, target_res_id, attachment_id=False):

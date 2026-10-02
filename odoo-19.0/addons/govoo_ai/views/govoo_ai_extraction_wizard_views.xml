@@ -11,6 +11,8 @@
                     </div>
                     <group invisible="state != 'draft'">
                         <field name="target_model"/>
+                        <field name="document" filename="document_filename"/>
+                        <field name="document_filename" invisible="1"/>
                         <field name="attachment_id"/>
                         <field name="target_res_id"
                                help="Leave at 0 to propose a brand-new record. Set automatically when opened from an existing record's 'Scan Document' button."/>

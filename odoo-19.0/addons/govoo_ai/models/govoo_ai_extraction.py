@@ -102,6 +102,19 @@ EXTRACTION_FIELD_MAP = {
     ],
 }
 
+# Human-friendly labels for EXTRACTION_FIELD_MAP's technical model names,
+# shown in the wizard's "Extract Into" dropdown instead of a raw name like
+# "govoo.register.beneficial.owner" -- someone new to Odoo has no reason
+# to already know these technical names.
+EXTRACTION_TARGET_LABELS = {
+    'govoo.appointment': 'Director / Officer Appointment',
+    'govoo.register.beneficial.owner': 'Register of Beneficial Owners',
+    'govoo.register.charge': 'Register of Charges',
+    'govoo.share.allotment': 'Share Allotment',
+    'govoo.share.transfer': 'Share Transfer',
+    'govoo.contract': 'Contract (Dates Only)',
+}
+
 
 class GovooAiExtraction(models.AbstractModel):
     """AI-F07 orchestration: OCR/vision extraction of statutory-register,
