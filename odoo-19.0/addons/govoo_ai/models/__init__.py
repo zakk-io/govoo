@@ -2,6 +2,8 @@
 
 from . import (
     govoo_ai_config,
+    govoo_ai_extraction,
+    govoo_ai_extraction_targets,
     govoo_ai_grounding,
     govoo_ai_openai_client,
     govoo_ai_qa,

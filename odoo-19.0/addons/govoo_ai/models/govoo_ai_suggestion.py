@@ -42,6 +42,16 @@ class GovooAiSuggestion(models.Model):
              'producing feature (e.g. AI-F08/AI-F09) should never leave '
              'this empty for a grounded answer.',
     )
+    extracted_values = fields.Text(
+        string='Extracted Values',
+        help='AI-F07 only: a JSON-serialized {field_name: value} dict '
+             'proposed for target_model, for review before any real '
+             'record is created from it. Relation fields carry the '
+             'extracted text (e.g. a name), never a guessed id -- '
+             'resolving that to a real record is the reviewing human\'s '
+             'own confirmation, not something trusted from the model\'s '
+             'own output (AI-N02/AI-N04).',
+    )
     state = fields.Selection(
         selection=[
             ('pending', 'Pending'),

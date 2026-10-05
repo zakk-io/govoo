@@ -46,14 +46,26 @@ built on the same grounding bridge as AI-F08, adding mandatory citations and
 an explicit "not found" path (never a fabricated answer). Entry point is a
 persistent floating chat widget (OWL), visible only to users in the AI User
 group and on the backend webclient only (never the public website layout).
+
+AI-F07 (Data Extraction, issues #218 + #198): a single-shot OpenAI vision
+call -- not a tool-calling loop, there is nothing to retrieve, only a
+document to read -- that extracts a hard-allowlisted set of fields from an
+uploaded scanned/executed document (a board appointment letter, a share
+certificate, a charge instrument, an executed contract) into a
+govoo.ai.suggestion a named human must review, correct, and explicitly
+apply before any real register/cap-table/contract record is created or
+updated -- never auto-committed. Depends on govoo_secretarial, govoo_shares
+and govoo_contracts, since (unlike AI-F08/AI-F09's generic introspection)
+this feature needs compile-time knowledge of exact field names on those
+modules' specific models.
     """,
     'author': 'Govoo',
     'category': 'Governance',
     'version': '19.0.1.0.0',
     'license': 'LGPL-3',
-    'depends': ['govoo_base', 'muk_mcp'],
+    'depends': ['govoo_base', 'govoo_secretarial', 'govoo_shares', 'govoo_contracts', 'muk_mcp'],
     'external_dependencies': {
-        'python': ['cryptography', 'requests'],
+        'python': ['cryptography', 'requests', 'fitz'],
     },
     'data': [
         'security/govoo_ai_security.xml',
@@ -63,6 +75,8 @@ group and on the backend webclient only (never the public website layout).
         'views/govoo_ai_request_views.xml',
         'views/govoo_ai_suggestion_views.xml',
         'views/govoo_ai_search_wizard_views.xml',
+        'views/govoo_ai_extraction_wizard_views.xml',
+        'views/govoo_ai_extraction_buttons.xml',
         'views/govoo_ai_menus.xml',
     ],
     'assets': {
