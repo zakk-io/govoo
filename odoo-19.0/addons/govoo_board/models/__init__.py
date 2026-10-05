@@ -6,5 +6,6 @@ from . import (
     govoo_meeting,
     govoo_minutes,
     govoo_resolution,
+    govoo_resolution_voter,
     govoo_vote,
 )
