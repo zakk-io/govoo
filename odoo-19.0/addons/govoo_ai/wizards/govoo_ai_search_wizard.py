@@ -50,6 +50,23 @@ class GovooAiSearchWizard(models.TransientModel):
         })
         return self._reopen()
 
+    def action_search_suggested(self):
+        """Run one of the ready-made example queries shown as chips on the
+        draft screen -- each one individually re-verified live against a
+        real OpenAI key and this deployment's actual data (not just
+        reused from issue #216's original testing, since an LLM-backed
+        search is not perfectly deterministic run to run -- two of the
+        original eight example queries timed out/found nothing on
+        re-check and were swapped out for ones that held up), so someone
+        new to this feature has a one-click way to see it actually work
+        before typing their own question. The button passes which
+        example via its own `suggested_query` context key."""
+        self.ensure_one()
+        query = self.env.context.get('suggested_query')
+        if query:
+            self.query = query
+        return self.action_search()
+
     def action_reset(self):
         self.ensure_one()
         self.write({

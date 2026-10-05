@@ -13,6 +13,25 @@
                         <field name="query" nolabel="1" placeholder="e.g. When did we last amend the Articles of Association?"
                                readonly="state == 'done'"/>
                     </group>
+                    <div class="d-flex flex-wrap gap-2 mb-3" invisible="state != 'draft'">
+                        <span class="text-muted align-self-center me-1">Try asking:</span>
+                        <button name="action_search_suggested" type="object"
+                                class="btn btn-outline-secondary btn-sm rounded-pill"
+                                string="When did we last amend the Articles of Association?"
+                                context="{'suggested_query': 'When did we last amend the Articles of Association?'}"/>
+                        <button name="action_search_suggested" type="object"
+                                class="btn btn-outline-secondary btn-sm rounded-pill"
+                                string="What's our RSSB monthly contribution compliance status?"
+                                context="{'suggested_query': &quot;What's our RSSB monthly contribution compliance status?&quot;}"/>
+                        <button name="action_search_suggested" type="object"
+                                class="btn btn-outline-secondary btn-sm rounded-pill"
+                                string="Find the minutes where Robert Nkurunziza was recorded absent"
+                                context="{'suggested_query': 'Find the minutes where Robert Nkurunziza was recorded absent'}"/>
+                        <button name="action_search_suggested" type="object"
+                                class="btn btn-outline-secondary btn-sm rounded-pill"
+                                string="Show me the share allotment for Kigali Growth Partners"
+                                context="{'suggested_query': 'Show me the share allotment for Kigali Growth Partners'}"/>
+                    </div>
                     <footer invisible="state != 'draft'">
                         <button name="action_search" string="Search" type="object" class="btn-primary"/>
                     </footer>
