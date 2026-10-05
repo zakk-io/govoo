@@ -49,7 +49,7 @@
                     <field name="unreachable_voter_count" invisible="1"/>
                     <div class="alert alert-warning" role="alert" invisible="not unreachable_voter_count">
                         <field name="unreachable_voter_count"/> eligible voter(s) could not be notified by email
-                        (no portal account yet) -- see the Voting Notifications tab below.
+                        (no usable email on file to auto-create portal access) -- see the Voting Notifications tab below.
                     </div>
                     <group>
                         <group>

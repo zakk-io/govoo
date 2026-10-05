@@ -76,9 +76,9 @@ class GovooResolution(models.Model):
     unreachable_voter_count = fields.Integer(
         string='Voters Without Portal Access',
         compute='_compute_unreachable_voter_count',
-        help='Eligible voters who were skipped when the voting-invite '
-             'email was sent (issue #234) because they have no portal '
-             'account yet -- not auto-provisioned, flagged here instead.',
+        help='Eligible voters portal access could not be auto-created for '
+             '(issue #234) because they have no usable email on file -- '
+             'everyone else is auto-enrolled and notified automatically.',
     )
     requires_my_vote = fields.Boolean(
         string='Requires My Vote',
@@ -347,10 +347,12 @@ class GovooResolution(models.Model):
         eligible voter (see _get_eligible_voters) gets the same two-channel
         notification govoo_board_pack.py's action_distribute() uses for
         board packs -- an in-app message_post plus an actual email. A
-        voter with no portal account yet is still recorded (so the gap is
-        visible via unreachable_voter_count) but is skipped, not emailed
-        and not auto-provisioned -- that was an explicit choice, not an
-        oversight.
+        voter with no portal account yet is auto-granted one first (see
+        govoo.resolution.voter.action_grant_portal_access -- Odoo's own
+        "Grant Portal Access" flow, so they also get the standard
+        set-your-password invite email) and still gets the voting-invite
+        email right after; only a voter with no usable email at all stays
+        flagged instead (visible via unreachable_voter_count).
         """
         self._validate_state_transition('open')
         for rec in self:
@@ -372,6 +374,8 @@ class GovooResolution(models.Model):
                 (0, 0, {'partner_id': partner.id, 'voter_type': voter_type})
                 for partner, voter_type in rec._get_eligible_voters()
             ]
+            for voter in rec.voter_notification_ids.filtered(lambda v: not v.has_portal_access):
+                voter.action_grant_portal_access()
             for voter in rec.voter_notification_ids.filtered('has_portal_access'):
                 rec.message_post(
                     body=_('A resolution is open for your vote: %s') % rec.title,

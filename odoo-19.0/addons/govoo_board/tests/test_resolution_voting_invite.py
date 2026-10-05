@@ -9,8 +9,10 @@ from .common import GovooBoardTestBase
 class TestResolutionVotingInvite(GovooBoardTestBase):
     """Resolution voting-invite emails (issue #234): action_open notifies
     eligible voters via the same two-channel pattern as board pack
-    distribution (message_post + a real email), skipping and flagging
-    voters with no portal account rather than auto-provisioning one."""
+    distribution (message_post + a real email), auto-granting portal
+    access first (via Odoo's own "Grant Portal Access" flow) for anyone
+    who doesn't have it yet but has a usable email -- only a voter with
+    no usable email at all stays flagged instead."""
 
     def _give_portal_access(self, partner, login, group_xmlid):
         return self.env['res.users'].create({
@@ -64,7 +66,8 @@ class TestResolutionVotingInvite(GovooBoardTestBase):
         meeting = self._make_meeting()
         resolution = self._make_resolution(meeting)
         self._give_portal_access(self.partner_a, 'test_voter_with_access', 'govoo_base.group_govoo_director_portal')
-        # partner_b/c/d deliberately get no res.users record.
+        # partner_b/c/d deliberately get no res.users record AND no email,
+        # so auto-grant has nothing to work with and they stay flagged.
 
         mail_count_before = self.env['mail.mail'].search_count([])
         resolution.action_open()
@@ -111,9 +114,14 @@ class TestResolutionVotingInvite(GovooBoardTestBase):
 
         resolution.action_open()
 
-        self.assertEqual(resolution.voter_notification_ids.partner_id, shareholder)
-        self.assertEqual(resolution.voter_notification_ids.voter_type, 'shareholder')
-        self.assertTrue(resolution.voter_notification_ids.notified_date)
+        # assertIn rather than exact-equality: this runs against the
+        # shared dev company, which already has other real shareholders
+        # on file -- this test only asserts our own fixture's voter row
+        # is correct, not that it is the only eligible one.
+        notif = resolution.voter_notification_ids.filtered(lambda v: v.partner_id == shareholder)
+        self.assertTrue(notif)
+        self.assertEqual(notif.voter_type, 'shareholder')
+        self.assertTrue(notif.notified_date)
 
     def test_director_and_shareholder_both_eligible_on_agm_resolution(self):
         """An AGM-linked ordinary resolution is eligible to both the
@@ -166,3 +174,73 @@ class TestResolutionVotingInvite(GovooBoardTestBase):
         )
         self.assertIn('/my/votes/', director_notif.portal_url)
         self.assertNotIn('/my/holdings/votes/', director_notif.portal_url)
+
+    def test_director_voter_without_access_gets_one_auto_created(self):
+        """A voter with a usable email but no res.users yet is
+        auto-granted portal access (via Odoo's own "Grant Portal Access"
+        flow) rather than just being skipped."""
+        meeting = self._make_meeting()
+        resolution = self._make_resolution(meeting)
+        self.partner_a.email = 'director.a@example.com'
+        self.assertFalse(self.env['res.users'].search([('partner_id', '=', self.partner_a.id)]))
+
+        resolution.action_open()
+
+        notif_a = resolution.voter_notification_ids.filtered(lambda v: v.partner_id == self.partner_a)
+        self.assertTrue(notif_a.has_portal_access)
+        self.assertTrue(notif_a.notified_date)
+        user = self.env['res.users'].search([('partner_id', '=', self.partner_a.id)])
+        self.assertTrue(user)
+        self.assertTrue(user.has_group('govoo_base.group_govoo_director_portal'))
+
+    def test_shareholder_voter_auto_granted_gets_shareholder_group(self):
+        """Same auto-grant, but a shareholder-type voter must land in the
+        shareholder portal group, not the director one."""
+        shareholder = self._make_shareholder('Auto Grant Shareholder', 300)
+        shareholder.email = 'shareholder.autogrant@example.com'
+        resolution = self.env['govoo.resolution'].create({
+            'title': 'Written Resolution Auto Grant',
+            'resolution_type': 'ordinary',
+        })
+
+        resolution.action_open()
+
+        user = self.env['res.users'].search([('partner_id', '=', shareholder.id)])
+        self.assertTrue(user)
+        self.assertTrue(user.has_group('govoo_base.group_govoo_shareholder_portal'))
+
+    def test_voter_without_any_email_is_still_flagged_not_auto_created(self):
+        """No usable email means there's nothing to auto-grant with --
+        this is the one remaining case that stays flagged."""
+        meeting = self._make_meeting()
+        resolution = self._make_resolution(meeting)
+        self.assertFalse(self.partner_b.email)
+
+        resolution.action_open()
+
+        notif_b = resolution.voter_notification_ids.filtered(lambda v: v.partner_id == self.partner_b)
+        self.assertFalse(notif_b.has_portal_access)
+        self.assertFalse(self.env['res.users'].search([('partner_id', '=', self.partner_b.id)]))
+        # All 4 directors (a/b/c/d) have no email in this test, unlike
+        # test_voter_with_portal_access_is_emailed_and_voter_without_is_flagged
+        # which gives partner_a access first -- so all 4 stay unreachable here.
+        self.assertEqual(resolution.unreachable_voter_count, 4)
+
+    def test_auto_granted_voter_also_receives_the_voting_invite_email(self):
+        """Granting access and sending the voting-invite email both
+        happen in the same action_open() call -- a newly-granted voter
+        should not need a second action to get their link."""
+        meeting = self._make_meeting()
+        resolution = self._make_resolution(meeting)
+        self.partner_a.email = 'director.a2@example.com'
+        mail_count_before = self.env['mail.mail'].search_count([])
+
+        resolution.action_open()
+
+        mail_count_after = self.env['mail.mail'].search_count([])
+        self.assertGreater(
+            mail_count_after, mail_count_before,
+            'Auto-granting access should not skip sending the actual voting-invite email.',
+        )
+        notif_a = resolution.voter_notification_ids.filtered(lambda v: v.partner_id == self.partner_a)
+        self.assertTrue(notif_a.notified_date)
