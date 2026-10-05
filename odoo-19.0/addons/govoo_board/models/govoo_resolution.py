@@ -68,6 +68,18 @@ class GovooResolution(models.Model):
         string='Votes',
         compute='_compute_vote_count',
     )
+    voter_notification_ids = fields.One2many(
+        comodel_name='govoo.resolution.voter',
+        inverse_name='resolution_id',
+        string='Voting Notifications',
+    )
+    unreachable_voter_count = fields.Integer(
+        string='Voters Without Portal Access',
+        compute='_compute_unreachable_voter_count',
+        help='Eligible voters who were skipped when the voting-invite '
+             'email was sent (issue #234) because they have no portal '
+             'account yet -- not auto-provisioned, flagged here instead.',
+    )
     requires_my_vote = fields.Boolean(
         string='Requires My Vote',
         compute='_compute_requires_my_vote',
@@ -167,10 +179,57 @@ class GovooResolution(models.Model):
             return self.meeting_id.quorum_met
         return True
 
+    def _get_eligible_voters(self):
+        """Return [(partner, voter_type)] -- 'director' or 'shareholder'
+        -- for this resolution, consolidating the eligibility logic
+        otherwise duplicated across govoo_portal's director.py/
+        shareholder.py controllers and govoo_vote.create()'s own
+        weight-sourcing (issue #234). Used to decide who gets the
+        voting-invite email in action_open(); a partner eligible both
+        ways (e.g. a director who also holds shares) is only returned
+        once, as 'director' -- the more specific relationship for a
+        meeting-linked resolution.
+        """
+        self.ensure_one()
+        voters = {}
+        # Shareholder branch: same gating govoo_vote.create() already uses
+        # to decide whether to source vote weight from holdings at all.
+        is_shareholder_eligible_type = self.resolution_type in ('ordinary', 'special')
+        is_shareholder_meeting_context = (
+            not self.meeting_id or self.meeting_id.meeting_type in ('agm', 'egm')
+        )
+        if is_shareholder_eligible_type and is_shareholder_meeting_context:
+            company_id = self.company_id.id or self.env.company.id
+            holdings = self.env['govoo.share.holding'].search([
+                ('company_id', '=', company_id),
+                ('quantity', '>', 0),
+            ])
+            for partner in holdings.partner_id:
+                voters[partner.id] = (partner, 'shareholder')
+        # Director branch: active, non-secretary appointees of the
+        # meeting's own committee -- only meaningful for a meeting-linked
+        # resolution.
+        if self.meeting_id:
+            appointments = self.env['govoo.appointment'].search([
+                ('committee_id', '=', self.meeting_id.committee_id.id),
+                ('role', '!=', 'secretary'),
+                ('state', '=', 'active'),
+            ])
+            for partner in appointments.partner_id:
+                voters[partner.id] = (partner, 'director')
+        return list(voters.values())
+
     @api.depends('vote_ids')
     def _compute_vote_count(self):
         for rec in self:
             rec.vote_count = len(rec.vote_ids)
+
+    @api.depends('voter_notification_ids.has_portal_access')
+    def _compute_unreachable_voter_count(self):
+        for rec in self:
+            rec.unreachable_voter_count = len(
+                rec.voter_notification_ids.filtered(lambda v: not v.has_portal_access)
+            )
 
     @api.depends_context('uid')
     @api.depends('state', 'vote_ids.voter_id')
@@ -282,12 +341,26 @@ class GovooResolution(models.Model):
                 )
 
     def action_open(self):
-        """Open resolution for voting; notify eligible voters."""
+        """Open resolution for voting; notify eligible voters.
+
+        Issue #234: in addition to the existing internal activity, every
+        eligible voter (see _get_eligible_voters) gets the same two-channel
+        notification govoo_board_pack.py's action_distribute() uses for
+        board packs -- an in-app message_post plus an actual email. A
+        voter with no portal account yet is still recorded (so the gap is
+        visible via unreachable_voter_count) but is skipped, not emailed
+        and not auto-provisioned -- that was an explicit choice, not an
+        oversight.
+        """
         self._validate_state_transition('open')
         for rec in self:
             if not rec.resolution_type:
                 raise ValidationError(_('Resolution type must be set before opening.'))
         self.write({'state': 'open'})
+        template = self.env.ref(
+            'govoo_board.mail_template_resolution_voting_invite',
+            raise_if_not_found=False,
+        )
         for rec in self:
             # Create activity for eligible voters notification
             rec.activity_schedule(
@@ -295,6 +368,19 @@ class GovooResolution(models.Model):
                 summary='Vote on resolution: %s' % rec.title,
                 user_id=self.env.user.id,
             )
+            rec.voter_notification_ids = [
+                (0, 0, {'partner_id': partner.id, 'voter_type': voter_type})
+                for partner, voter_type in rec._get_eligible_voters()
+            ]
+            for voter in rec.voter_notification_ids.filtered('has_portal_access'):
+                rec.message_post(
+                    body=_('A resolution is open for your vote: %s') % rec.title,
+                    partner_ids=voter.partner_id.ids,
+                    subtype_xmlid='mail.mt_comment',
+                )
+                if template:
+                    template.send_mail(voter.id, force_send=True)
+                voter.notified_date = fields.Datetime.now()
 
     def action_tally(self):
         """Tally votes and set result (BR-BOARD-005): quorum + majority

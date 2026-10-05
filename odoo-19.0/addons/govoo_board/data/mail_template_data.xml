@@ -38,5 +38,37 @@
             </field>
         </record>
 
+        <!-- Issue #234: sent to each eligible voter when a resolution
+             opens for voting, in addition to the existing in-app
+             activity/notification. Links to the voter's own correct
+             casting route, director or shareholder, rather than a
+             single generic link, since govoo.resolution has no one route
+             that works for both (see govoo.resolution.voter.portal_url). -->
+        <record id="mail_template_resolution_voting_invite" model="mail.template">
+            <field name="name">Resolution: Voting Invite</field>
+            <field name="model_id" ref="model_govoo_resolution_voter"/>
+            <field name="subject">Your vote is requested: {{ object.resolution_id.title }}</field>
+            <field name="partner_to">{{ object.partner_id.id }}</field>
+            <field name="lang">{{ object.partner_id.lang }}</field>
+            <field name="description">Sent to each eligible voter when a resolution opens for voting (issue #234)</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+<div>
+    <p>
+        Hello <t t-out="object.partner_id.name or ''">Voter</t>,<br/><br/>
+        A resolution is now open for voting: <strong t-out="object.resolution_id.title or ''">Resolution</strong>.
+    </p>
+    <div style="text-align: center; padding: 16px 0px 16px 0px;">
+        <a t-attf-href="{{ object.portal_url }}"
+           style="padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-color: #875A7B; border: 1px solid #875A7B; border-radius: 3px">
+            Cast Your Vote</a>
+    </div>
+    <p>
+        This link opens the resolution so you can record your vote.
+    </p>
+</div>
+            </field>
+        </record>
+
     </data>
 </odoo>

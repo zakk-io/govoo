@@ -46,6 +46,11 @@
                             <field name="vote_count" widget="statinfo" string="Votes"/>
                         </button>
                     </div>
+                    <field name="unreachable_voter_count" invisible="1"/>
+                    <div class="alert alert-warning" role="alert" invisible="not unreachable_voter_count">
+                        <field name="unreachable_voter_count"/> eligible voter(s) could not be notified by email
+                        (no portal account yet) -- see the Voting Notifications tab below.
+                    </div>
                     <group>
                         <group>
                             <field name="title"/>
@@ -72,6 +77,16 @@
                                     <field name="weight" options="{'hide_trailing_zeros': True}"/>
                                     <field name="is_conflicted"/>
                                     <field name="timestamp"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Voting Notifications" name="voter_notifications">
+                            <field name="voter_notification_ids" readonly="1">
+                                <list>
+                                    <field name="partner_id"/>
+                                    <field name="voter_type"/>
+                                    <field name="has_portal_access"/>
+                                    <field name="notified_date"/>
                                 </list>
                             </field>
                         </page>
