@@ -38,3 +38,7 @@ access_govoo_resolution_voter_user,govoo.resolution.voter.user,model_govoo_resol
 access_govoo_resolution_voter_secretary,govoo.resolution.voter.secretary,model_govoo_resolution_voter,govoo_base.group_govoo_secretary,1,1,1,1
 access_govoo_resolution_voter_admin,govoo.resolution.voter.admin,model_govoo_resolution_voter,govoo_base.group_govoo_admin,1,0,0,0
 access_govoo_resolution_voter_auditor,govoo.resolution.voter.auditor,model_govoo_resolution_voter,govoo_base.group_govoo_auditor,1,0,0,0
+access_govoo_governance_config_user,govoo.governance.config.user,model_govoo_governance_config,govoo_base.group_govoo_user,1,0,0,0
+access_govoo_governance_config_secretary,govoo.governance.config.secretary,model_govoo_governance_config,govoo_base.group_govoo_secretary,1,1,1,0
+access_govoo_governance_config_admin,govoo.governance.config.admin,model_govoo_governance_config,govoo_base.group_govoo_admin,1,1,1,0
+access_govoo_governance_config_auditor,govoo.governance.config.auditor,model_govoo_governance_config,govoo_base.group_govoo_auditor,1,0,0,0

@@ -260,6 +260,7 @@ class GovooMeeting(models.Model):
 
     def action_schedule(self):
         self._validate_state_transition('scheduled')
+        alarm = self.env.ref('govoo_board.alarm_meeting_email_1_day', raise_if_not_found=False)
         for rec in self:
             if not rec.calendar_event_id and rec.date:
                 stop = rec.date_end or rec.date
@@ -269,6 +270,12 @@ class GovooMeeting(models.Model):
                     'stop': stop,
                     'partner_ids': [(6, 0, rec.attendee_ids.ids)],
                     'user_id': self.env.user.id,
+                    # Issue #236: without an alarm, Odoo's own calendar
+                    # reminder engine never fires for this event -- there
+                    # was previously no "your meeting is in N days"
+                    # notification of any kind for board/committee
+                    # meetings.
+                    'alarm_ids': [(6, 0, alarm.ids)] if alarm else False,
                 })
                 rec.calendar_event_id = event
         self.write({'state': 'scheduled'})

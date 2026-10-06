@@ -147,10 +147,40 @@ class GovooContractObligation(models.Model):
         """Daily: transition overdue obligations to 'overdue' -- same
         mechanism as govoo_compliance.cron._cron_escalate_late, called
         from govoo.contract.cron (issue #173) rather than a second cron
-        engine."""
+        engine.
+
+        Issue #236: this previously produced zero notification of any
+        kind (not even an internal activity or chatter note) -- Company
+        Secretaries and the obligation's own responsible person (if set)
+        now get a real email + chatter note per newly-overdue obligation.
+        """
         today = fields.Date.context_today(self)
         obligations = self.search([
             ('state', '=', 'open'),
             ('due_date', '<', today),
         ])
         obligations.write({'state': 'overdue'})
+        if obligations:
+            template = self.env.ref(
+                'govoo_contracts.mail_template_contract_obligation_overdue',
+                raise_if_not_found=False,
+            )
+            for obligation in obligations:
+                secretaries = self.env['res.users'].get_governance_secretary_partners(
+                    extra_partner=obligation.responsible_id.partner_id,
+                )
+                for partner in secretaries:
+                    obligation.message_post(
+                        body=_('Contract obligation is now overdue: %s') % obligation.name,
+                        partner_ids=partner.ids,
+                        subtype_xmlid='mail.mt_comment',
+                    )
+                    if template:
+                        template.send_mail(
+                            obligation.id,
+                            email_values={
+                                'email_to': partner.email,
+                                'recipient_ids': [(6, 0, partner.ids)],
+                            },
+                            force_send=True,
+                        )

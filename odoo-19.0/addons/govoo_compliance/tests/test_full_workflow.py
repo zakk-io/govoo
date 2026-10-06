@@ -3,6 +3,7 @@
 from datetime import date, timedelta
 
 from odoo.tests import tagged
+from odoo.tests.common import new_test_user
 
 from .common import GovooComplianceTestBase
 
@@ -71,3 +72,41 @@ class TestComplianceFullWorkflow(GovooComplianceTestBase):
         })
         instance.action_file()
         self.assertEqual(instance.state, 'filed')
+
+    def test_reminder_and_escalation_also_email_company_secretaries(self):
+        """Issue #236: both _cron_send_reminders and _cron_escalate_late
+        previously only ever produced an internal activity/chatter note
+        that reached no one -- every active Company Secretary now also
+        gets a real email for each."""
+        secretary = new_test_user(
+            self.env, login='test_compliance_reminder_secretary',
+            groups='govoo_base.group_govoo_secretary',
+            company_id=self.company.id,
+            email='secretary.compliance.reminder.test@example.com',
+        )
+        obligation = self.env['govoo.compliance.obligation'].create({
+            'name': 'Email Reminder Filing',
+            'authority': 'RDB',
+            'frequency': 'annual',
+            'basis': 'fixed_date',
+            'fixed_day': 1,
+            'fixed_month': 1,
+            'lead_time_days': 30,
+            'active': True,
+            'company_id': self.company.id,
+        })
+        self.env['govoo.compliance.cron']._cron_generate_instances()
+        instance = self.env['govoo.compliance.instance'].search([
+            ('obligation_id', '=', obligation.id),
+            ('company_id', '=', self.company.id),
+        ], limit=1)
+
+        instance.due_date = date.today() + timedelta(days=10)
+        mail_count_before = self.env['mail.mail'].search_count([])
+        self.env['govoo.compliance.cron']._cron_send_reminders()
+        self.assertGreater(self.env['mail.mail'].search_count([]), mail_count_before)
+
+        instance.due_date = date.today() - timedelta(days=1)
+        mail_count_before = self.env['mail.mail'].search_count([])
+        self.env['govoo.compliance.cron']._cron_escalate_late()
+        self.assertGreater(self.env['mail.mail'].search_count([]), mail_count_before)

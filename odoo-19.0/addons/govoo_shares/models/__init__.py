@@ -7,4 +7,5 @@ from . import (
     govoo_share_class,
     govoo_share_holding,
     govoo_share_transfer,
+    govoo_shares_cron,
 )

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="govoo_governance_config_view_form" model="ir.ui.view">
+        <field name="name">govoo.governance.config.form</field>
+        <field name="model">govoo.governance.config</field>
+        <field name="arch" type="xml">
+            <form string="Governance Configuration">
+                <sheet>
+                    <group>
+                        <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                    </group>
+                    <group string="Statutory Deadlines (days)">
+                        <group>
+                            <field name="charge_registration_deadline_days"/>
+                            <field name="beneficial_owner_declaration_deadline_days"/>
+                        </group>
+                        <group>
+                            <field name="certificate_issuance_deadline_days"/>
+                            <field name="transfer_registration_deadline_days"/>
+                        </group>
+                    </group>
+                    <group string="Board Governance">
+                        <field name="e_signature_legally_confirmed"/>
+                        <field name="minutes_retention_default_years"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_govoo_governance_config" model="ir.actions.server">
+        <field name="name">Governance Settings</field>
+        <field name="model_id" ref="model_govoo_governance_config"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_governance_config()</field>
+    </record>
+
+</odoo>

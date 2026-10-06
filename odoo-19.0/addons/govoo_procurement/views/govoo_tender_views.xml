@@ -45,6 +45,8 @@
                         <group>
                             <field name="tender_category_id"/>
                             <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="submission_deadline"/>
+                            <field name="reminder_lead_days" invisible="not submission_deadline"/>
                         </group>
                         <group>
                             <field name="evaluation_meeting_id"/>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Issue #236: sent to Procurement Officers and Company
+             Secretaries once a tender's reminder_lead_days window is
+             entered. -->
+        <record id="mail_template_tender_submission_reminder" model="mail.template">
+            <field name="name">Tender: Submission Deadline Reminder</field>
+            <field name="model_id" ref="model_govoo_tender"/>
+            <field name="subject">Tender "{{ object.name }}" submission deadline approaching</field>
+            <field name="description">Sent to Procurement Officers and Company Secretaries when a tender nears its submission deadline (issue #236)</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+<div>
+    <p>
+        Hello,<br/><br/>
+        Tender <strong t-out="object.name or ''">Tender</strong> is approaching its
+        submission deadline (<t t-out="object.submission_deadline or ''">date</t>).
+    </p>
+    <div style="text-align: center; padding: 16px 0px 16px 0px;">
+        <a t-attf-href="/odoo/govoo.tender/{{ object.id }}"
+           style="padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-color: #875A7B; border: 1px solid #875A7B; border-radius: 3px">
+            View Tender</a>
+    </div>
+</div>
+            </field>
+        </record>
+
+    </data>
+</odoo>

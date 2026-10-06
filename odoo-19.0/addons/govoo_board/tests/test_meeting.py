@@ -59,6 +59,18 @@ class GovooMeetingTC(GovooBoardTestBase):
         meeting.action_hold()
         self.assertEqual(meeting.state, 'held')
 
+    def test_scheduling_attaches_a_reminder_alarm(self):
+        """Issue #236: action_schedule() previously created a
+        calendar.event with no alarm at all, so Odoo's own calendar
+        reminder engine never fired for board/committee meetings."""
+        meeting = self._make_meeting()
+        meeting.action_schedule()
+        self.assertTrue(meeting.calendar_event_id)
+        self.assertIn(
+            self.env.ref('govoo_board.alarm_meeting_email_1_day'),
+            meeting.calendar_event_id.alarm_ids,
+        )
+
     def test_close_blocked_by_open_resolution(self):
         """Cannot close meeting with non-terminal resolutions."""
         meeting = self._make_meeting()

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Issue #236: sent to every active Company Secretary alongside
+             each existing internal reminder in govoo_compliance_cron.py,
+             which never reached anyone as an actual email before. -->
+
+        <record id="mail_template_compliance_due_reminder" model="mail.template">
+            <field name="name">Compliance: Due Date Reminder</field>
+            <field name="model_id" ref="model_govoo_compliance_instance"/>
+            <field name="subject">Compliance due soon: {{ object.obligation_id.name }}</field>
+            <field name="description">Sent to Company Secretaries (and the instance's own responsible user) when it nears its due date (issue #236)</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+<div>
+    <p>
+        Hello,<br/><br/>
+        Compliance obligation <strong t-out="object.obligation_id.name or ''">Obligation</strong>
+        [<t t-out="object.period or ''">period</t>] is due
+        (<t t-out="object.due_date or ''">date</t>) soon.
+    </p>
+    <div style="text-align: center; padding: 16px 0px 16px 0px;">
+        <a t-attf-href="/odoo/govoo.compliance.instance/{{ object.id }}"
+           style="padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-color: #875A7B; border: 1px solid #875A7B; border-radius: 3px">
+            View Compliance Instance</a>
+    </div>
+</div>
+            </field>
+        </record>
+
+        <record id="mail_template_compliance_overdue" model="mail.template">
+            <field name="name">Compliance: Overdue</field>
+            <field name="model_id" ref="model_govoo_compliance_instance"/>
+            <field name="subject">Compliance is now overdue: {{ object.obligation_id.name }}</field>
+            <field name="description">Sent to Company Secretaries when a compliance instance transitions to late (issue #236)</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+<div>
+    <p>
+        Hello,<br/><br/>
+        Compliance obligation <strong t-out="object.obligation_id.name or ''">Obligation</strong>
+        [<t t-out="object.period or ''">period</t>] is now <strong>overdue</strong>
+        (was due <t t-out="object.due_date or ''">date</t>). Filing is required as soon
+        as possible.
+    </p>
+    <div style="text-align: center; padding: 16px 0px 16px 0px;">
+        <a t-attf-href="/odoo/govoo.compliance.instance/{{ object.id }}"
+           style="padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-color: #875A7B; border: 1px solid #875A7B; border-radius: 3px">
+            View Compliance Instance</a>
+    </div>
+</div>
+            </field>
+        </record>
+
+    </data>
+</odoo>

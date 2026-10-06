@@ -5,6 +5,7 @@ from datetime import timedelta
 from odoo.exceptions import ValidationError
 from odoo.fields import Date
 from odoo.tests import tagged
+from odoo.tests.common import new_test_user
 
 from .common import GovooContractsTestBase
 
@@ -69,6 +70,25 @@ class TestObligationMilestoneTracking(GovooContractsTestBase):
         self.env['govoo.contract.obligation']._cron_escalate_overdue()
         self.assertEqual(obligation.state, 'overdue')
 
+    def test_cron_escalates_overdue_obligation_also_emails_secretaries(self):
+        """Issue #236: this previously produced zero notification of any
+        kind -- Company Secretaries now get a real email."""
+        secretary = new_test_user(
+            self.env, login='test_obligation_overdue_secretary',
+            groups='govoo_base.group_govoo_secretary',
+            company_id=self.company.id,
+            email='secretary.obligation.overdue.test@example.com',
+        )
+        contract = self._make_contract()
+        self.env['govoo.contract.obligation'].create({
+            'contract_id': contract.id,
+            'name': 'Overdue item',
+            'due_date': Date.today() - timedelta(days=1),
+        })
+        mail_count_before = self.env['mail.mail'].search_count([])
+        self.env['govoo.contract.obligation']._cron_escalate_overdue()
+        self.assertGreater(self.env['mail.mail'].search_count([]), mail_count_before)
+
     def test_cron_does_not_escalate_future_obligation(self):
         contract = self._make_contract()
         obligation = self.env['govoo.contract.obligation'].create({
@@ -91,3 +111,24 @@ class TestObligationMilestoneTracking(GovooContractsTestBase):
         })
         self.env['govoo.contract.cron']._cron_send_obligation_reminders()
         self.assertTrue(obligation.activity_ids)
+
+    def test_obligation_reminder_emails_secretaries_even_without_responsible(self):
+        """Issue #236: previously, no responsible_id meant no reminder of
+        any kind, silently. Company Secretaries must still be emailed."""
+        secretary = new_test_user(
+            self.env, login='test_obligation_reminder_secretary',
+            groups='govoo_base.group_govoo_secretary',
+            company_id=self.company.id,
+            email='secretary.obligation.reminder.test@example.com',
+        )
+        contract = self._make_contract()
+        obligation = self.env['govoo.contract.obligation'].create({
+            'contract_id': contract.id,
+            'name': 'No responsible item',
+            'due_date': Date.today() + timedelta(days=3),
+            'lead_time_days': 7,
+        })
+        mail_count_before = self.env['mail.mail'].search_count([])
+        self.env['govoo.contract.cron']._cron_send_obligation_reminders()
+        self.assertFalse(obligation.activity_ids)
+        self.assertGreater(self.env['mail.mail'].search_count([]), mail_count_before)

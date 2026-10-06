@@ -1,7 +1,11 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
+import logging
+
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
+
+_logger = logging.getLogger(__name__)
 
 _STAGE_ORDER = ['pre_evaluation', 'technical_evaluation', 'financial_evaluation', 'awarded']
 
@@ -84,6 +88,23 @@ class GovooTender(models.Model):
         tracking=True,
         copy=False,
     )
+    submission_deadline = fields.Date(
+        string='Submission Deadline',
+        tracking=True,
+        help='Issue #236: when bids for this tender must be submitted by. '
+             'Ordinary per-tender operational data (like a contract\'s own '
+             'End Date), not a legal threshold, so it needs no [CONFIRM] '
+             'gate -- unlike the statutory deadlines elsewhere in that '
+             'issue.',
+    )
+    reminder_lead_days = fields.Integer(
+        string='Reminder Lead Time (Days)',
+        default=3,
+        tracking=True,
+        help='How many days before Submission Deadline to remind the '
+             'Procurement Officer(s) and Company Secretaries. No reminder '
+             'is staged if Submission Deadline is not set.',
+    )
 
     @api.depends('bid_ids')
     def _compute_bid_count(self):
@@ -126,6 +147,59 @@ class GovooTender(models.Model):
                     _('Select the awarded bid before marking this tender as Awarded.')
                 )
         self.write({'evaluation_stage': 'awarded'})
+
+    @api.model
+    def _cron_send_submission_deadline_reminders(self):
+        """Issue #236: a tender's bid-submission deadline previously had
+        no reminder of any kind -- there wasn't even a deadline field.
+        Recipients are the active Procurement Officers (the role actually
+        running the tender) plus every active Company Secretary
+        (oversight), deduplicated.
+        """
+        today = fields.Date.context_today(self)
+        tenders = self.search([
+            ('evaluation_stage', '=', 'pre_evaluation'),
+            ('submission_deadline', '!=', False),
+        ])
+        template = self.env.ref(
+            'govoo_procurement.mail_template_tender_submission_reminder',
+            raise_if_not_found=False,
+        )
+        for tender in tenders:
+            lead_days = tender.reminder_lead_days or 0
+            if lead_days <= 0:
+                continue
+            days_to_deadline = (tender.submission_deadline - today).days
+            if 0 < days_to_deadline <= lead_days:
+                officers = self.env['res.users'].sudo().search([
+                    ('group_ids', 'in', self.env.ref(
+                        'govoo_procurement.group_govoo_procurement_officer',
+                    ).id),
+                    ('active', '=', True),
+                ]).mapped('partner_id').filtered('email')
+                secretaries = self.env['res.users'].get_governance_secretary_partners()
+                recipients = officers | secretaries
+                for partner in recipients:
+                    tender.message_post(
+                        body=_('Tender "%s" submission deadline is in %d days.') % (
+                            tender.name, days_to_deadline,
+                        ),
+                        partner_ids=partner.ids,
+                        subtype_xmlid='mail.mt_comment',
+                    )
+                    if template:
+                        template.send_mail(
+                            tender.id,
+                            email_values={
+                                'email_to': partner.email,
+                                'recipient_ids': [(6, 0, partner.ids)],
+                            },
+                            force_send=True,
+                        )
+                _logger.info(
+                    'Procurement: staged submission deadline reminder for '
+                    'tender "%s" (%d days to deadline).', tender.name, days_to_deadline,
+                )
 
     def action_view_bids(self):
         self.ensure_one()

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="cron_send_charge_registration_reminders" model="ir.cron">
+            <field name="name">Secretarial: Send Charge Registration Reminders</field>
+            <field name="model_id" ref="model_govoo_secretarial_cron"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_send_charge_registration_reminders()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+        </record>
+
+        <record id="cron_send_beneficial_owner_declaration_reminders" model="ir.cron">
+            <field name="name">Secretarial: Send Beneficial Owner Declaration Reminders</field>
+            <field name="model_id" ref="model_govoo_secretarial_cron"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_send_beneficial_owner_declaration_reminders()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+        </record>
+
+    </data>
+</odoo>
