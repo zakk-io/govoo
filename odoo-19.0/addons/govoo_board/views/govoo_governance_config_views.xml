@@ -7,13 +7,6 @@
         <field name="arch" type="xml">
             <form string="Governance Configuration">
                 <sheet>
-                    <div class="alert alert-info" role="alert">
-                        Every value below is an unconfirmed legal threshold
-                        (marked [CONFIRM] in the code and in
-                        docs/spec/decisions/open-decisions.md). Leave a
-                        deadline at 0 to keep its reminder disabled until the
-                        real figure is confirmed with legal counsel.
-                    </div>
                     <group>
                         <field name="company_id" groups="base.group_multi_company" readonly="1"/>
                     </group>
