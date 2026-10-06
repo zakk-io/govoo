@@ -56,4 +56,15 @@
               action="govoo_vote_action"
               sequence="50"/>
 
+    <!-- Issue #238: Governance Settings lives under the shared Configuration
+         tab (govoo_base.govoo_menu_configuration), not under Board &
+         Meetings; it covers govoo_secretarial/govoo_shares parameters too,
+         not just board ones. -->
+    <menuitem id="govoo_menu_governance_config"
+              name="Governance Settings"
+              parent="govoo_base.govoo_menu_configuration"
+              action="action_govoo_governance_config"
+              sequence="20"
+              groups="govoo_base.group_govoo_secretary,govoo_base.group_govoo_admin"/>
+
 </odoo>

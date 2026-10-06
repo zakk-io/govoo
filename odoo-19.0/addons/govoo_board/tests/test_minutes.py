@@ -97,13 +97,23 @@ class TestGovooMinutesRetention(GovooBoardTestBase):
     is covered in govoo_rw's own tests, which do depend on govoo_board."""
 
     def test_retention_until_falls_back_to_ten_years_without_govoo_rw(self):
-        """Without govoo_rw installed, retention_until defaults to 10 years."""
+        """Without an active govoo_rw retention rule, retention_until
+        defaults to 10 years. Guards against govoo_rw actually being
+        installed (as it is in this shared dev database, with its own
+        seeded 'minutes' rule) by deactivating any such rule first --
+        govoo_board's own suite is written to run with govoo_rw absent,
+        so this reproduces that condition regardless of the DB it runs
+        against."""
+        if 'govoo.rw.retention' in self.env:
+            self.env['govoo.rw.retention'].search([
+                ('retention_category', '=', 'minutes'),
+                ('company_id', '=', self.company.id),
+            ]).write({'active': False})
         meeting = self._make_meeting()
         minutes = self.env['govoo.minutes'].create({
             'meeting_id': meeting.id,
             'body': '<p>Minutes.</p>',
         })
-        self.assertTrue('govoo.rw.retention' not in self.env)
         expected = minutes.create_date.date().replace(
             year=minutes.create_date.year + 10,
         )

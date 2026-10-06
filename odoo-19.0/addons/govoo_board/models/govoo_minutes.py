@@ -88,6 +88,13 @@ class GovooMinutes(models.Model):
         'minutes' rule for the company.
         """
         has_govoo_rw = 'govoo.rw.retention' in self.env
+        # [CONFIRM] open-decisions.md item 13 (10-year statutory retention vs.
+        # data-subject erasure rights). Admin-editable via Configuration >
+        # Governance Settings (issue #238); _DEFAULT_RETENTION_YEARS remains
+        # the hardcoded default-of-defaults for a brand-new install.
+        fallback_years = int(self.env['ir.config_parameter'].sudo().get_param(
+            'govoo_board.minutes_retention_default_years', _DEFAULT_RETENTION_YEARS,
+        ))
         for rec in self:
             if not rec.create_date:
                 rec.retention_until = False
@@ -108,10 +115,10 @@ class GovooMinutes(models.Model):
                     'No active govoo.rw.retention rule found for category '
                     '"minutes" in company %s; falling back to the %s-year '
                     'default for minutes id %s.',
-                    rec.company_id.id, _DEFAULT_RETENTION_YEARS, rec.id or 'new',
+                    rec.company_id.id, fallback_years, rec.id or 'new',
                 )
                 rec.retention_until = rec.create_date.replace(
-                    year=rec.create_date.year + _DEFAULT_RETENTION_YEARS,
+                    year=rec.create_date.year + fallback_years,
                 )
 
     @api.constrains('state')
