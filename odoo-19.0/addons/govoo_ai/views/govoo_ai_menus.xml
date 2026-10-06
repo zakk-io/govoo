@@ -12,18 +12,6 @@
               action="action_govoo_ai_search_wizard"
               sequence="5"/>
 
-    <menuitem id="govoo_ai_menu_extraction"
-              name="Extract from Document"
-              parent="govoo_ai_menu_root"
-              action="action_govoo_ai_extraction_wizard"
-              sequence="7"/>
-
-    <menuitem id="govoo_ai_menu_suggestion"
-              name="Suggestions"
-              parent="govoo_ai_menu_root"
-              action="action_govoo_ai_suggestion"
-              sequence="10"/>
-
     <menuitem id="govoo_ai_menu_request"
               name="Request Log"
               parent="govoo_ai_menu_root"
