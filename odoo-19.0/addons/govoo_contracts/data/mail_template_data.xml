@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Issue #236: sent to every active Company Secretary alongside
+             each existing internal mail.activity reminder in
+             govoo_contract_cron.py / govoo_contract_obligation.py, which
+             never reached anyone as an actual email before. -->
+
+        <record id="mail_template_contract_key_date_reminder" model="mail.template">
+            <field name="name">Contract: Key Date Reminder</field>
+            <field name="model_id" ref="model_govoo_contract"/>
+            <field name="subject">Contract "{{ object.name }}" reaches its End Date soon</field>
+            <field name="description">Sent to Company Secretaries when a contract nears its End Date (issue #236)</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+<div>
+    <p>
+        Hello,<br/><br/>
+        Contract <strong t-out="object.name or ''">Contract</strong> reaches its
+        End Date (<t t-out="object.date_end or ''">date</t>) soon.
+    </p>
+    <div style="text-align: center; padding: 16px 0px 16px 0px;">
+        <a t-attf-href="/odoo/govoo.contract/{{ object.id }}"
+           style="padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-color: #875A7B; border: 1px solid #875A7B; border-radius: 3px">
+            View Contract</a>
+    </div>
+</div>
+            </field>
+        </record>
+
+        <record id="mail_template_contract_obligation_reminder" model="mail.template">
+            <field name="name">Contract Obligation: Due Date Reminder</field>
+            <field name="model_id" ref="model_govoo_contract_obligation"/>
+            <field name="subject">Contract obligation due soon: {{ object.name }}</field>
+            <field name="description">Sent to Company Secretaries (and the obligation's own responsible user) when it nears its due date (issue #236)</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+<div>
+    <p>
+        Hello,<br/><br/>
+        Contract obligation <strong t-out="object.name or ''">Obligation</strong> on
+        contract <t t-out="object.contract_id.name or ''">Contract</t> is due
+        (<t t-out="object.due_date or ''">date</t>) soon.
+    </p>
+    <div style="text-align: center; padding: 16px 0px 16px 0px;">
+        <a t-attf-href="/odoo/govoo.contract.obligation/{{ object.id }}"
+           style="padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-color: #875A7B; border: 1px solid #875A7B; border-radius: 3px">
+            View Obligation</a>
+    </div>
+</div>
+            </field>
+        </record>
+
+        <record id="mail_template_contract_obligation_overdue" model="mail.template">
+            <field name="name">Contract Obligation: Overdue</field>
+            <field name="model_id" ref="model_govoo_contract_obligation"/>
+            <field name="subject">Contract obligation is now overdue: {{ object.name }}</field>
+            <field name="description">Sent to Company Secretaries when an obligation transitions to overdue (issue #236)</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+<div>
+    <p>
+        Hello,<br/><br/>
+        Contract obligation <strong t-out="object.name or ''">Obligation</strong> on
+        contract <t t-out="object.contract_id.name or ''">Contract</t> is now
+        <strong>overdue</strong> (was due <t t-out="object.due_date or ''">date</t>).
+    </p>
+    <div style="text-align: center; padding: 16px 0px 16px 0px;">
+        <a t-attf-href="/odoo/govoo.contract.obligation/{{ object.id }}"
+           style="padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-color: #875A7B; border: 1px solid #875A7B; border-radius: 3px">
+            View Obligation</a>
+    </div>
+</div>
+            </field>
+        </record>
+
+        <record id="mail_template_contract_expired" model="mail.template">
+            <field name="name">Contract: Expired</field>
+            <field name="model_id" ref="model_govoo_contract"/>
+            <field name="subject">Contract "{{ object.name }}" has expired</field>
+            <field name="description">Sent to Company Secretaries when a fixed-term contract auto-expires (issue #236)</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+<div>
+    <p>
+        Hello,<br/><br/>
+        Fixed-term contract <strong t-out="object.name or ''">Contract</strong> has
+        passed its End Date and is now <strong>expired</strong>.
+    </p>
+    <div style="text-align: center; padding: 16px 0px 16px 0px;">
+        <a t-attf-href="/odoo/govoo.contract/{{ object.id }}"
+           style="padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-color: #875A7B; border: 1px solid #875A7B; border-radius: 3px">
+            View Contract</a>
+    </div>
+</div>
+            </field>
+        </record>
+
+    </data>
+</odoo>

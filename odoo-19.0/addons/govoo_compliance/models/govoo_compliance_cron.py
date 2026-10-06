@@ -3,7 +3,7 @@
 import logging
 from datetime import date
 
-from odoo import api, models
+from odoo import _, api, models
 
 _logger = logging.getLogger(__name__)
 
@@ -77,10 +77,20 @@ class GovooComplianceInstanceCron(models.AbstractModel):
 
         Creates mail.activity reminders at the obligation's lead_time_days
         offset for responsible users.
+
+        Issue #236: the activity itself still requires responsible_id (an
+        activity needs someone to assign to), but Company Secretaries are
+        notified by real email regardless of whether responsible_id is
+        set -- previously an instance with no responsible person got no
+        reminder of any kind, silently.
         """
         instances = self.env['govoo.compliance.instance'].search([
             ('state', 'in', ('upcoming', 'in_progress')),
         ])
+        template = self.env.ref(
+            'govoo_compliance.mail_template_compliance_due_reminder',
+            raise_if_not_found=False,
+        )
 
         for instance in instances:
             lead_time = instance.obligation_id.lead_time_days or 0
@@ -98,15 +108,46 @@ class GovooComplianceInstanceCron(models.AbstractModel):
                         ),
                         user_id=instance.responsible_id.id,
                     )
+                secretaries = self.env['res.users'].get_governance_secretary_partners(
+                    extra_partner=instance.responsible_id.partner_id,
+                )
+                for partner in secretaries:
+                    instance.message_post(
+                        body=_('Compliance due in %d days: %s') % (
+                            days_until, instance.obligation_id.name,
+                        ),
+                        partner_ids=partner.ids,
+                        subtype_xmlid='mail.mt_comment',
+                    )
+                    if template:
+                        template.send_mail(
+                            instance.id,
+                            email_values={
+                                'email_to': partner.email,
+                                'recipient_ids': [(6, 0, partner.ids)],
+                            },
+                            force_send=True,
+                        )
 
     @api.model
     def _cron_escalate_late(self):
-        """Daily: transition overdue instances to late, post escalation."""
+        """Daily: transition overdue instances to late, post escalation.
+
+        Issue #236: the message_post below stayed exactly as it was
+        (evidence a notification was always intended here) -- it just
+        never reached anyone, since nothing subscribes followers to a
+        freshly-generated instance. Company Secretaries now also get a
+        real email alongside it.
+        """
         today = date.today()
         instances = self.env['govoo.compliance.instance'].search([
             ('state', 'in', ('upcoming', 'in_progress')),
             ('due_date', '<', today),
         ])
+        template = self.env.ref(
+            'govoo_compliance.mail_template_compliance_overdue',
+            raise_if_not_found=False,
+        )
 
         for instance in instances:
             instance.write({'state': 'late'})
@@ -116,6 +157,21 @@ class GovooComplianceInstanceCron(models.AbstractModel):
                      'Filing is required as soon as possible.',
                 subtype_xmlid='mail.motd',
             )
+            for partner in self.env['res.users'].get_governance_secretary_partners():
+                instance.message_post(
+                    body=_('Compliance is now overdue: %s') % instance.obligation_id.name,
+                    partner_ids=partner.ids,
+                    subtype_xmlid='mail.mt_comment',
+                )
+                if template:
+                    template.send_mail(
+                        instance.id,
+                        email_values={
+                            'email_to': partner.email,
+                            'recipient_ids': [(6, 0, partner.ids)],
+                        },
+                        force_send=True,
+                    )
             _logger.warning(
                 'Compliance: Instance "%s" [%s] company "%s" is now LATE '
                 '(due %s).',

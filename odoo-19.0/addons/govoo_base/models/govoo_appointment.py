@@ -118,12 +118,22 @@ class GovooAppointment(models.Model):
         new/parallel reminder engine. Only active appointments with an
         End Date and a positive reminder lead time are considered;
         open-ended appointments (no End Date) never generate a reminder.
+
+        Issue #236: the internal to-do activity alone only ever reached
+        whoever happened to create the record (create_uid), and never as
+        an actual email -- every active Company Secretary now also gets a
+        real email + in-app chatter notification, on top of (not instead
+        of) that existing activity.
         """
         today = fields.Date.context_today(self)
         appointments = self.search([
             ('state', '=', 'active'),
             ('end_date', '!=', False),
         ])
+        template = self.env.ref(
+            'govoo_base.mail_template_appointment_succession_reminder',
+            raise_if_not_found=False,
+        )
         for appointment in appointments:
             lead_months = appointment.reminder_lead_months or 0
             if lead_months <= 0:
@@ -141,6 +151,22 @@ class GovooAppointment(models.Model):
                             ),
                     user_id=appointment.create_uid.id,
                 )
+                for secretary in self.env['res.users'].get_governance_secretary_partners():
+                    appointment.message_post(
+                        body=_('Succession planning: %s\'s appointment ends in %d days.')
+                        % (appointment.partner_id.name, days_to_end),
+                        partner_ids=secretary.ids,
+                        subtype_xmlid='mail.mt_comment',
+                    )
+                    if template:
+                        template.send_mail(
+                            appointment.id,
+                            email_values={
+                                'email_to': secretary.email,
+                                'recipient_ids': [(6, 0, secretary.ids)],
+                            },
+                            force_send=True,
+                        )
 
     @api.depends('partner_id.name', 'role')
     def _compute_display_name(self):

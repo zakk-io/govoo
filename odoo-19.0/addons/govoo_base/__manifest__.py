@@ -9,7 +9,7 @@ appointment (role-over-time) and committee models.
     """,
     'author': 'Govoo',
     'category': 'Governance',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'license': 'LGPL-3',
     'depends': ['base', 'mail', 'contacts'],
     'data': [
@@ -17,6 +17,7 @@ appointment (role-over-time) and committee models.
         'security/ir.model.access.csv',
         'security/govoo_base_security.xml',
         'data/ir_cron_data.xml',
+        'data/mail_template_data.xml',
         'views/res_partner_views.xml',
         'views/res_company_views.xml',
         'views/govoo_appointment_views.xml',

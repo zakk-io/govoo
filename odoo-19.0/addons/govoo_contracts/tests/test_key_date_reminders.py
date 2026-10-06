@@ -4,6 +4,7 @@ from datetime import timedelta
 
 from odoo.fields import Date
 from odoo.tests import tagged
+from odoo.tests.common import new_test_user
 
 from .common import GovooContractsTestBase
 
@@ -32,6 +33,22 @@ class TestKeyDateReminders(GovooContractsTestBase):
         contract = self._active_contract(Date.today() + timedelta(days=10))
         self.env['govoo.contract.cron']._cron_send_key_date_reminders()
         self.assertTrue(contract.activity_ids)
+
+    def test_reminder_also_emails_company_secretaries(self):
+        """Issue #236: the internal activity alone never reached anyone
+        as a real email -- every active Company Secretary now also gets
+        one, in addition to (not instead of) the activity above."""
+        secretary = new_test_user(
+            self.env, login='test_contract_reminder_secretary',
+            groups='govoo_base.group_govoo_secretary',
+            company_id=self.company.id,
+            email='secretary.contract.reminder.test@example.com',
+        )
+        self.contract_type.renewal_notice_days = 30
+        contract = self._active_contract(Date.today() + timedelta(days=10))
+        mail_count_before = self.env['mail.mail'].search_count([])
+        self.env['govoo.contract.cron']._cron_send_key_date_reminders()
+        self.assertGreater(self.env['mail.mail'].search_count([]), mail_count_before)
 
     def test_no_reminder_outside_notice_window(self):
         self.contract_type.renewal_notice_days = 30

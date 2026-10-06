@@ -152,6 +152,28 @@ class TestGovooAppointmentSuccessionReminders(TransactionCase):
         self.env['govoo.appointment']._cron_send_succession_reminders()
         self.assertTrue(appointment.activity_ids)
 
+    def test_reminder_also_emails_company_secretaries(self):
+        """Issue #236: the internal activity alone never reached anyone
+        as a real email -- every active Company Secretary now also gets
+        one, in addition to (not instead of) the activity above."""
+        secretary = new_test_user(
+            self.env, login='test_appointment_reminder_secretary',
+            groups='govoo_base.group_govoo_secretary',
+            company_id=self.company.id,
+            email='secretary.appointment.reminder.test@example.com',
+        )
+        appointment = self._active_appointment(
+            end_date=Date.today() + timedelta(days=60),
+            reminder_lead_months=3,
+        )
+        mail_count_before = self.env['mail.mail'].search_count([])
+        self.env['govoo.appointment']._cron_send_succession_reminders()
+        self.assertTrue(appointment.activity_ids)
+        self.assertGreater(self.env['mail.mail'].search_count([]), mail_count_before)
+        self.assertTrue(appointment.message_ids.filtered(
+            lambda m: 'Succession planning' in (m.body or ''),
+        ))
+
     def test_no_reminder_outside_lead_window(self):
         appointment = self._active_appointment(
             end_date=Date.today() + timedelta(days=200),

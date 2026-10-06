@@ -7,4 +7,5 @@ from . import (
     govoo_register_director,
     govoo_register_entry,
     govoo_register_member,
+    govoo_secretarial_cron,
 )

@@ -5,6 +5,7 @@ from datetime import timedelta
 from odoo.exceptions import ValidationError
 from odoo.fields import Date
 from odoo.tests import tagged
+from odoo.tests.common import new_test_user
 
 from .common import GovooContractsTestBase
 
@@ -28,6 +29,22 @@ class TestRenewalTerminationWorkflow(GovooContractsTestBase):
         )
         self.env['govoo.contract.cron']._cron_expire_fixed_term_contracts()
         self.assertEqual(contract.state, 'expired')
+
+    def test_expiry_also_emails_company_secretaries(self):
+        """Issue #236: this previously produced zero notification of any
+        kind -- Company Secretaries now get a real email."""
+        secretary = new_test_user(
+            self.env, login='test_contract_expiry_secretary',
+            groups='govoo_base.group_govoo_secretary',
+            company_id=self.company.id,
+            email='secretary.contract.expiry.test@example.com',
+        )
+        contract = self._active_contract(
+            renewal_type='fixed', date_end=Date.today() - timedelta(days=1),
+        )
+        mail_count_before = self.env['mail.mail'].search_count([])
+        self.env['govoo.contract.cron']._cron_expire_fixed_term_contracts()
+        self.assertGreater(self.env['mail.mail'].search_count([]), mail_count_before)
 
     def test_evergreen_contract_stays_active_past_date_end(self):
         contract = self._active_contract(

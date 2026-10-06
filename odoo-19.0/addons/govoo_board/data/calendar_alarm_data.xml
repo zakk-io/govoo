@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Issue #236: govoo_meeting.action_schedule() creates a
+             calendar.event for every scheduled meeting but never attached
+             an alarm, so Odoo's own calendar reminder/alarm engine never
+             fired for board/committee meetings, even though the plumbing
+             was already there (calendar is a declared dependency with a
+             working alarm cron), just never wired up. 1 day is an
+             ordinary operational default, not a legal value, so it needs
+             no [CONFIRM] gate, unlike the statutory deadlines elsewhere
+             in this issue. Reuses core's own meeting-reminder email
+             template rather than defining a near-duplicate one. -->
+        <record id="alarm_meeting_email_1_day" model="calendar.alarm">
+            <field name="name">Governance Meeting Reminder - 1 Day (Email)</field>
+            <field name="duration" eval="1"/>
+            <field name="interval">days</field>
+            <field name="alarm_type">email</field>
+            <field name="mail_template_id" ref="calendar.calendar_template_meeting_reminder"/>
+        </record>
+
+    </data>
+</odoo>
