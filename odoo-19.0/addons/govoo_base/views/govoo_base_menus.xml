@@ -31,12 +31,16 @@
               action="govoo_committee_action"
               sequence="10"/>
 
-    <!-- Configuration (Board Administrator only) -->
+    <!-- Configuration (Board Administrator and Company Secretary; issue
+         #238 widened this from admin-only so Company Secretaries, who
+         already hold read/write access on res.company, can reach the
+         governance settings now added here, alongside AI Configuration
+         (reparented here from govoo_ai's own top-level menu). -->
     <menuitem id="govoo_menu_configuration"
               name="Configuration"
               parent="govoo_menu_root"
               sequence="90"
-              groups="govoo_base.group_govoo_admin"/>
+              groups="govoo_base.group_govoo_admin,govoo_base.group_govoo_secretary"/>
 
     <record id="action_govoo_companies" model="ir.actions.act_window">
         <field name="name">Companies</field>

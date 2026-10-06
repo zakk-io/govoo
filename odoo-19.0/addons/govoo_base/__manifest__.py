@@ -9,7 +9,7 @@ appointment (role-over-time) and committee models.
     """,
     'author': 'Govoo',
     'category': 'Governance',
-    'version': '19.0.1.0.1',
+    'version': '19.0.1.0.2',
     'license': 'LGPL-3',
     'depends': ['base', 'mail', 'contacts'],
     'data': [

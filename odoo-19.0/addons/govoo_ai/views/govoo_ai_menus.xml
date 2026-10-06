@@ -30,9 +30,13 @@
               action="action_govoo_ai_request"
               sequence="20"/>
 
+    <!-- Issue #238: moved under the shared Configuration tab
+         (govoo_base.govoo_menu_configuration) alongside the new Governance
+         Settings page, instead of sitting under the AI app's own top-level
+         menu with unrelated feature menus (Search, Extraction, etc.). -->
     <menuitem id="govoo_ai_menu_config"
-              name="Configuration"
-              parent="govoo_ai_menu_root"
+              name="AI Configuration"
+              parent="govoo_base.govoo_menu_configuration"
               action="action_govoo_ai_config"
               sequence="30"
               groups="govoo_ai.group_govoo_ai_administrator"/>
