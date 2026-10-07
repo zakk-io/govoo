@@ -18,6 +18,40 @@
     background-color: $clagov-navy-deep;
 }
 
+// The gap above/below the navy block was CSS's well-known
+// percentage-height-of-a-flex-item gotcha: #wrapwrap is "display: flex;
+// flex-direction: column" and main is its flex item with "flex: 1 0 auto",
+// which gives main a real, resolved height (confirmed live: 640px) -- but
+// that "used" height from flex-grow doesn't count as a "specified" height
+// for percentage resolution on main's own children (confirmed live:
+// min-height: 100% here computed correctly but had zero actual effect,
+// container stayed at its own content height of 373px). Fixed the reliable
+// way instead: make <main> itself a flex container (one level deeper,
+// same pattern Odoo already uses one level up for #wrapwrap/<main> to
+// achieve the sticky footer), so flex-grow -- not a percentage -- fills
+// the remaining space.
+main:has(> .oe_website_login_container) {
+    display: flex;
+    flex-direction: column;
+}
+
+.oe_website_login_container {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    // NOT align-items: center -- that overrides flex's default
+    // align-items: stretch on the cross axis (horizontal, since
+    // flex-direction is column), which is what previously let the login
+    // card keep its full width and let the "Choose a user" list-group's
+    // own internal `d-flex justify-content-between` (name vs. the "x"
+    // remove-user icon) space itself correctly. Confirmed live: adding
+    // align-items: center here was exactly what caused that row to
+    // visibly collapse ("Providence Uwasex", no gap) in an earlier pass.
+    // justify-content centers on the main axis (vertical) only, which is
+    // all that's needed here.
+    justify-content: center;
+}
+
 // Non-website fallback: web.login_layout's own card wrapper.
 .o_clagov_login .card {
     border-top: 4px solid $clagov-gold;
@@ -33,23 +67,15 @@
     border-radius: 0.25rem;
 }
 
-// The public website's top nav and every .btn-primary (including the
-// "Log in"/"Contact Us" buttons visible on this same page) are NOT driven
-// by the $o-community-color override in variables.scss. The `website`
-// module compiles its own "colour combination" (o_cc) palette at runtime,
-// independently of the backend brand variables -- confirmed live: the
-// backend already renders Clagov navy correctly (variables.scss is
-// working), but this frontend header/button still rendered the old,
-// pre-existing site colour until this rule was added. Reverse-engineering
-// and safely overriding the live palette-compilation pipeline itself
-// would be a much larger, riskier change (it drives every snippet across
-// the whole site builder); a direct, scoped override of the two concrete
-// elements every visitor actually sees achieves the same brand outcome
-// with far less risk to that system.
-// #top itself already paints navy correctly, but its child .navbar element
-// (confirmed via live computed-style check: rgb(255,255,255)) fully covers
-// it with its own white background, which is what's actually visible --
-// so the override has to target .navbar directly, not just the outer #top.
+// #top itself already paints navy correctly (its own background-color IS
+// $primary-derived), but its child .navbar element (confirmed via live
+// computed-style check: rgb(255,255,255)) fully covers it with its own
+// white background -- the o_cc "menu" colour-combination slot website uses
+// for the header is a separate slot from $primary (confirmed in website's
+// own primary_variables.scss: 'menu': 1 maps to colour slot 1, not
+// necessarily the same value $primary resolves to), so this needs its own
+// direct override rather than relying on variables.scss's $primary fix to
+// reach it.
 #top.o_header_standard .navbar {
     background-color: $clagov-navy !important;
 
@@ -59,16 +85,61 @@
     }
 }
 
-.btn-primary {
-    background-color: $clagov-gold !important;
-    border-color: $clagov-gold !important;
-    color: $clagov-navy-deep !important;
+// Generic .btn-primary now correctly resolves to Clagov navy via $primary
+// in variables.scss (Bootstrap: .btn-primary's background IS $primary, no
+// override needed here). These two are the specific CTA
+// contexts the design system calls for gold instead ("$clagov-gold --
+// secondary accent, highlights, CTAs"): the header's "Contact Us" button
+// (btn_cta class) and the login form's "Log in" button (plain .btn-primary,
+// but scoped to .oe_login_buttons so it doesn't affect .btn-primary
+// elsewhere on the site).
+.btn_cta,
+.oe_login_buttons .btn-primary {
+    background-color: $clagov-gold;
+    border-color: $clagov-gold;
+    color: $clagov-navy-deep;
 
     &:hover,
     &:focus,
     &:active {
-        background-color: darken($clagov-gold, 8%) !important;
-        border-color: darken($clagov-gold, 8%) !important;
-        color: $clagov-navy-deep !important;
+        background-color: darken($clagov-gold, 8%);
+        border-color: darken($clagov-gold, 8%);
+        color: $clagov-navy-deep;
+    }
+}
+
+// "Sign in" ghost button: Bootstrap's .border utility was already picking
+// up the cream nav-link colour (confirmed live: border-color was cream at
+// 15% opacity automatically), but 15% against navy reads as barely-there,
+// so this was indistinguishable from a plain rectangle next to the solid
+// gold CTA. Give it a clearly visible, deliberate outline instead.
+.o_nav_link_btn {
+    border-color: rgba($clagov-cream, 0.5) !important;
+
+    &:hover,
+    &:focus {
+        background-color: rgba($clagov-cream, 0.12) !important;
+        border-color: $clagov-cream !important;
+    }
+}
+
+// Footer: background lives on the outer .o_footer wrapper (confirmed live
+// -- #footer itself is transparent), same o_cc-driven pattern as the
+// header. Previously plain default Bootstrap light-grey with no brand
+// colour at all.
+.o_footer.o_colored_level {
+    background-color: $clagov-navy-deep !important;
+    border-top: 4px solid $clagov-gold;
+
+    h5, p, span, li {
+        color: $clagov-cream !important;
+    }
+
+    a {
+        color: $clagov-gold !important;
+
+        &:hover {
+            color: lighten($clagov-gold, 10%) !important;
+        }
     }
 }

@@ -11,8 +11,34 @@
 // $o-community-color drives $o-brand-primary AND $o-brand-odoo (and, from
 // there, the navbar background, the bootstrap "primary" theme-colour map,
 // stat-button/statusbar colours, link colours, required-field borders,
-// etc.). $o-brand-secondary does not derive from it and needs its own
-// override.
+// etc. on the BACKEND). $o-brand-secondary does not derive from it and
+// needs its own override.
+//
+// $o-enterprise-color is the ACTUAL root of the public website/frontend's
+// colour (header, footer, every link, .btn-primary, login page): traced by
+// grepping the compiled web.assets_frontend.min.css for the literal stray
+// hex (#714B67) and following it back through the source --
+// html_editor/static/src/scss/html_editor.variables.scss:121 sets the
+// default colour palette's 'o-color-1' to $o-enterprise-color specifically
+// (Odoo's own default website theme always uses this "Enterprise purple"
+// shade, independent of $o-community-color/$o-brand-primary, regardless of
+// edition) -- which is what website's own primary_variables.scss then
+// compiles into the --primary-rgb CSS custom property that .btn-primary,
+// $link-color, and everything else on frontend pages actually reads from.
+// Two earlier attempts at this didn't touch $o-enterprise-color at all (one
+// patched .btn-primary's background directly with !important, too broad;
+// one set plain $primary/$secondary one bundle too late, in
+// web._assets_frontend_helpers, which loads AFTER html_editor's palette
+// already consumed the old value). This one must be verified the same way
+// those were ruled out -- by grepping the recompiled CSS bundle for the old
+// hex/RGB triplet and confirming zero remaining occurrences, not just a
+// visual screenshot, since that's what caught both earlier false fixes.
+//
+// Setting $o-enterprise-color this early does not affect the backend: nothing
+// in the backend's own rendering path reads $o-enterprise-color (confirmed by
+// the same bundle-grep method against web.assets_backend); the backend's
+// `.btn-primary`/navbar correctly read $o-brand-primary/$o-brand-odoo
+// (sourced from $o-community-color above), which is a separate variable.
 
 $clagov-navy: #1F3864;
 $clagov-navy-deep: #001526;
@@ -21,3 +47,7 @@ $clagov-cream: #F5F1E8;
 
 $o-community-color: $clagov-navy;
 $o-brand-secondary: $clagov-gold;
+$o-enterprise-color: $clagov-navy;
+
+$primary: $clagov-navy;
+$secondary: $clagov-gold;
