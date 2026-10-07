@@ -2,7 +2,7 @@
 
 {
     'name': 'Govoo Theme',
-    'summary': 'Clagov brand: navy/gold design system for the Govoo backend and login',
+    'summary': 'Clagov brand: navy/gold design system for the Govoo backend and public site',
     'description': """
 Carries the Clagov brand identity (navy #1F3864 / gold #C6A15B) across the
 whole backend and the login page via SCSS variable overrides and XML view
@@ -15,7 +15,7 @@ in later without further engineering work.
     """,
     'author': 'Govoo',
     'category': 'Governance',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'license': 'LGPL-3',
     'depends': ['web', 'govoo_base'],
     'data': [
@@ -29,7 +29,7 @@ in later without further engineering work.
             'govoo_theme/static/src/scss/backend.scss',
         ],
         'web.assets_frontend': [
-            'govoo_theme/static/src/scss/login.scss',
+            'govoo_theme/static/src/scss/frontend.scss',
         ],
     },
     'installable': True,

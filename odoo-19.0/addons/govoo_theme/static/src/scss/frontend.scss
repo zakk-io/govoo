@@ -1,0 +1,74 @@
+// Part of Govoo. See LICENSE file for full copyright and licensing details.
+//
+// Issue #250: branded login background. Two selectors, not one, because
+// the `website` module (installed in this environment) inherits
+// web.login_layout at priority="20" and REPLACES its entire <t t-call>
+// subtree with its own `website.layout` call wrapping the form in
+// `.oe_website_login_container` -- that replace discards anything added
+// via xpath to the original web.login_layout markup, including a class
+// added by govoo_theme's own views/login_templates.xml. So: style
+// website's actual wrapper when website is installed (.oe_website_login_
+// container, confirmed present via live DOM check), and keep the
+// govoo_theme-added .o_clagov_login class as the fallback for an install
+// without the website module, where web.login_layout's own markup (and
+// this module's xpath onto it) survives unmodified.
+
+.o_clagov_login,
+.oe_website_login_container {
+    background-color: $clagov-navy-deep;
+}
+
+// Non-website fallback: web.login_layout's own card wrapper.
+.o_clagov_login .card {
+    border-top: 4px solid $clagov-gold;
+}
+
+// Website-wrapped path: no .card exists here (confirmed via live DOM
+// check -- the form renders as a bare .oe_login_form), so accent that
+// element directly instead.
+.oe_website_login_container .oe_login_form {
+    background-color: #fff;
+    border-top: 4px solid $clagov-gold;
+    padding: 2rem;
+    border-radius: 0.25rem;
+}
+
+// The public website's top nav and every .btn-primary (including the
+// "Log in"/"Contact Us" buttons visible on this same page) are NOT driven
+// by the $o-community-color override in variables.scss. The `website`
+// module compiles its own "colour combination" (o_cc) palette at runtime,
+// independently of the backend brand variables -- confirmed live: the
+// backend already renders Clagov navy correctly (variables.scss is
+// working), but this frontend header/button still rendered the old,
+// pre-existing site colour until this rule was added. Reverse-engineering
+// and safely overriding the live palette-compilation pipeline itself
+// would be a much larger, riskier change (it drives every snippet across
+// the whole site builder); a direct, scoped override of the two concrete
+// elements every visitor actually sees achieves the same brand outcome
+// with far less risk to that system.
+// #top itself already paints navy correctly, but its child .navbar element
+// (confirmed via live computed-style check: rgb(255,255,255)) fully covers
+// it with its own white background, which is what's actually visible --
+// so the override has to target .navbar directly, not just the outer #top.
+#top.o_header_standard .navbar {
+    background-color: $clagov-navy !important;
+
+    .nav-link,
+    .o_menu_brand {
+        color: $clagov-cream !important;
+    }
+}
+
+.btn-primary {
+    background-color: $clagov-gold !important;
+    border-color: $clagov-gold !important;
+    color: $clagov-navy-deep !important;
+
+    &:hover,
+    &:focus,
+    &:active {
+        background-color: darken($clagov-gold, 8%) !important;
+        border-color: darken($clagov-gold, 8%) !important;
+        color: $clagov-navy-deep !important;
+    }
+}
