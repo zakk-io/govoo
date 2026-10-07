@@ -1,0 +1,145 @@
+// Part of Govoo. See LICENSE file for full copyright and licensing details.
+//
+// Issue #250: branded login background. Two selectors, not one, because
+// the `website` module (installed in this environment) inherits
+// web.login_layout at priority="20" and REPLACES its entire <t t-call>
+// subtree with its own `website.layout` call wrapping the form in
+// `.oe_website_login_container` -- that replace discards anything added
+// via xpath to the original web.login_layout markup, including a class
+// added by govoo_theme's own views/login_templates.xml. So: style
+// website's actual wrapper when website is installed (.oe_website_login_
+// container, confirmed present via live DOM check), and keep the
+// govoo_theme-added .o_clagov_login class as the fallback for an install
+// without the website module, where web.login_layout's own markup (and
+// this module's xpath onto it) survives unmodified.
+
+.o_clagov_login,
+.oe_website_login_container {
+    background-color: $clagov-navy-deep;
+}
+
+// The gap above/below the navy block was CSS's well-known
+// percentage-height-of-a-flex-item gotcha: #wrapwrap is "display: flex;
+// flex-direction: column" and main is its flex item with "flex: 1 0 auto",
+// which gives main a real, resolved height (confirmed live: 640px) -- but
+// that "used" height from flex-grow doesn't count as a "specified" height
+// for percentage resolution on main's own children (confirmed live:
+// min-height: 100% here computed correctly but had zero actual effect,
+// container stayed at its own content height of 373px). Fixed the reliable
+// way instead: make <main> itself a flex container (one level deeper,
+// same pattern Odoo already uses one level up for #wrapwrap/<main> to
+// achieve the sticky footer), so flex-grow -- not a percentage -- fills
+// the remaining space.
+main:has(> .oe_website_login_container) {
+    display: flex;
+    flex-direction: column;
+}
+
+.oe_website_login_container {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    // NOT align-items: center -- that overrides flex's default
+    // align-items: stretch on the cross axis (horizontal, since
+    // flex-direction is column), which is what previously let the login
+    // card keep its full width and let the "Choose a user" list-group's
+    // own internal `d-flex justify-content-between` (name vs. the "x"
+    // remove-user icon) space itself correctly. Confirmed live: adding
+    // align-items: center here was exactly what caused that row to
+    // visibly collapse ("Providence Uwasex", no gap) in an earlier pass.
+    // justify-content centers on the main axis (vertical) only, which is
+    // all that's needed here.
+    justify-content: center;
+}
+
+// Non-website fallback: web.login_layout's own card wrapper.
+.o_clagov_login .card {
+    border-top: 4px solid $clagov-gold;
+}
+
+// Website-wrapped path: no .card exists here (confirmed via live DOM
+// check -- the form renders as a bare .oe_login_form), so accent that
+// element directly instead.
+.oe_website_login_container .oe_login_form {
+    background-color: #fff;
+    border-top: 4px solid $clagov-gold;
+    padding: 2rem;
+    border-radius: 0.25rem;
+}
+
+// #top itself already paints navy correctly (its own background-color IS
+// $primary-derived), but its child .navbar element (confirmed via live
+// computed-style check: rgb(255,255,255)) fully covers it with its own
+// white background -- the o_cc "menu" colour-combination slot website uses
+// for the header is a separate slot from $primary (confirmed in website's
+// own primary_variables.scss: 'menu': 1 maps to colour slot 1, not
+// necessarily the same value $primary resolves to), so this needs its own
+// direct override rather than relying on variables.scss's $primary fix to
+// reach it.
+#top.o_header_standard .navbar {
+    background-color: $clagov-navy !important;
+
+    .nav-link,
+    .o_menu_brand {
+        color: $clagov-cream !important;
+    }
+}
+
+// Generic .btn-primary now correctly resolves to Clagov navy via $primary
+// in variables.scss (Bootstrap: .btn-primary's background IS $primary, no
+// override needed here). These two are the specific CTA
+// contexts the design system calls for gold instead ("$clagov-gold --
+// secondary accent, highlights, CTAs"): the header's "Contact Us" button
+// (btn_cta class) and the login form's "Log in" button (plain .btn-primary,
+// but scoped to .oe_login_buttons so it doesn't affect .btn-primary
+// elsewhere on the site).
+.btn_cta,
+.oe_login_buttons .btn-primary {
+    background-color: $clagov-gold;
+    border-color: $clagov-gold;
+    color: $clagov-navy-deep;
+
+    &:hover,
+    &:focus,
+    &:active {
+        background-color: darken($clagov-gold, 8%);
+        border-color: darken($clagov-gold, 8%);
+        color: $clagov-navy-deep;
+    }
+}
+
+// "Sign in" ghost button: Bootstrap's .border utility was already picking
+// up the cream nav-link colour (confirmed live: border-color was cream at
+// 15% opacity automatically), but 15% against navy reads as barely-there,
+// so this was indistinguishable from a plain rectangle next to the solid
+// gold CTA. Give it a clearly visible, deliberate outline instead.
+.o_nav_link_btn {
+    border-color: rgba($clagov-cream, 0.5) !important;
+
+    &:hover,
+    &:focus {
+        background-color: rgba($clagov-cream, 0.12) !important;
+        border-color: $clagov-cream !important;
+    }
+}
+
+// Footer: background lives on the outer .o_footer wrapper (confirmed live
+// -- #footer itself is transparent), same o_cc-driven pattern as the
+// header. Previously plain default Bootstrap light-grey with no brand
+// colour at all.
+.o_footer.o_colored_level {
+    background-color: $clagov-navy-deep !important;
+    border-top: 4px solid $clagov-gold;
+
+    h5, p, span, li {
+        color: $clagov-cream !important;
+    }
+
+    a {
+        color: $clagov-gold !important;
+
+        &:hover {
+            color: lighten($clagov-gold, 10%) !important;
+        }
+    }
+}
