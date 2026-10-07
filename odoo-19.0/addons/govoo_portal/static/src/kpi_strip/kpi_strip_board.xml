@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-inherit="board.BoardView" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_dashboard')]/t[1]" position="before">
+            <GovooKpiStrip t-if="showGovooKpiStrip"/>
+        </xpath>
+    </t>
+
+</templates>

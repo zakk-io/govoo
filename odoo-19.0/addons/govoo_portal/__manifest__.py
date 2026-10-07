@@ -12,7 +12,7 @@ owned by other Govoo modules.
     """,
     'author': 'Govoo',
     'category': 'Governance',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.4',
     'license': 'LGPL-3',
     'depends': [
         'govoo_base',
@@ -20,6 +20,7 @@ owned by other Govoo modules.
         'govoo_shares',
         'govoo_board',
         'govoo_compliance',
+        'govoo_contracts',
         'govoo_rw',
         'govoo_evaluation',
         'portal',
@@ -30,6 +31,11 @@ owned by other Govoo modules.
         'views/portal_templates.xml',
         'views/govoo_portal_menus.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'govoo_portal/static/src/kpi_strip/**/*',
+        ],
+    },
     'installable': True,
     'application': False,
     'auto_install': False,

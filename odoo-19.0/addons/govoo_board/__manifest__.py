@@ -9,7 +9,7 @@ agenda, pack compilation, minutes, resolutions, and e-voting.
     """,
     'author': 'Govoo',
     'category': 'Governance',
-    'version': '19.0.1.0.3',
+    'version': '19.0.1.0.4',
     'license': 'LGPL-3',
     'depends': ['govoo_base', 'govoo_shares', 'calendar', 'portal'],
     'data': [
