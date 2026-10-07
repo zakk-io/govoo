@@ -1,0 +1,9 @@
+// Part of Govoo. See LICENSE file for full copyright and licensing details.
+//
+// Issue #250: most of the backend already re-themes automatically from the
+// $o-community-color / $o-brand-secondary overrides in variables.scss
+// (navbar, buttons, statusbar, badges, links, required-field borders all
+// derive from those). This file is for anything that still needs direct
+// CSS after visually verifying the variable cascade -- left empty until
+// that verification pass identifies a real gap, per the "don't add
+// untested rules speculatively" rule.

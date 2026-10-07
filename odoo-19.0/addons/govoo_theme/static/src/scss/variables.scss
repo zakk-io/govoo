@@ -1,0 +1,23 @@
+// Part of Govoo. See LICENSE file for full copyright and licensing details.
+//
+// Clagov brand tokens (issue #250 / Epic P1). Prepended into the
+// `web._assets_primary_variables` bundle (see __manifest__.py), so these
+// run BEFORE Odoo's own web/static/src/scss/primary_variables.scss and
+// every `**/*.variables.scss` file (navbar, kanban, etc.) -- each of those
+// sets its own colour with `!default`, so setting the root variables here
+// first makes every one of them resolve to the Clagov palette without
+// having to override each derived variable individually.
+//
+// $o-community-color drives $o-brand-primary AND $o-brand-odoo (and, from
+// there, the navbar background, the bootstrap "primary" theme-colour map,
+// stat-button/statusbar colours, link colours, required-field borders,
+// etc.). $o-brand-secondary does not derive from it and needs its own
+// override.
+
+$clagov-navy: #1F3864;
+$clagov-navy-deep: #001526;
+$clagov-gold: #C6A15B;
+$clagov-cream: #F5F1E8;
+
+$o-community-color: $clagov-navy;
+$o-brand-secondary: $clagov-gold;
