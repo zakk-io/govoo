@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="govoo_portal.KpiStrip">
+        <div class="o_govoo_kpi_strip" t-if="!state.loading">
+            <div t-attf-class="o_govoo_kpi_tile border-start border-4 border-{{tileMeta.overdue.color}}"
+                 t-on-click="openOverdue" role="button">
+                <i t-attf-class="fa {{tileMeta.overdue.icon}} o_govoo_kpi_icon text-{{tileMeta.overdue.color}}"/>
+                <div class="o_govoo_kpi_text">
+                    <span class="o_govoo_kpi_value"><t t-esc="state.overdueCount"/></span>
+                    <span class="o_govoo_kpi_label">Overdue Filings</span>
+                </div>
+                <i class="fa fa-angle-right o_govoo_kpi_chevron"/>
+            </div>
+            <div t-if="state.showResolutionsTile"
+                 t-attf-class="o_govoo_kpi_tile border-start border-4 border-{{tileMeta.resolutions.color}}"
+                 t-on-click="openResolutions" role="button">
+                <i t-attf-class="fa {{tileMeta.resolutions.icon}} o_govoo_kpi_icon text-{{tileMeta.resolutions.color}}"/>
+                <div class="o_govoo_kpi_text">
+                    <span class="o_govoo_kpi_value"><t t-esc="state.resolutionsCount"/></span>
+                    <span class="o_govoo_kpi_label">Open Resolutions</span>
+                </div>
+                <i class="fa fa-angle-right o_govoo_kpi_chevron"/>
+            </div>
+            <div t-attf-class="o_govoo_kpi_tile border-start border-4 border-{{tileMeta.dueSoon.color}}"
+                 t-on-click="openDueSoon" role="button">
+                <i t-attf-class="fa {{tileMeta.dueSoon.icon}} o_govoo_kpi_icon text-{{tileMeta.dueSoon.color}}"/>
+                <div class="o_govoo_kpi_text">
+                    <span class="o_govoo_kpi_value"><t t-esc="state.dueSoonCount"/></span>
+                    <span class="o_govoo_kpi_label">Compliance Due Soon</span>
+                </div>
+                <i class="fa fa-angle-right o_govoo_kpi_chevron"/>
+            </div>
+            <div t-attf-class="o_govoo_kpi_tile border-start border-4 border-{{tileMeta.meetings.color}}"
+                 t-on-click="openMeetings" role="button">
+                <i t-attf-class="fa {{tileMeta.meetings.icon}} o_govoo_kpi_icon text-{{tileMeta.meetings.color}}"/>
+                <div class="o_govoo_kpi_text">
+                    <span class="o_govoo_kpi_value"><t t-esc="state.meetingsCount"/></span>
+                    <span class="o_govoo_kpi_label">Upcoming Meetings</span>
+                </div>
+                <i class="fa fa-angle-right o_govoo_kpi_chevron"/>
+            </div>
+            <div t-attf-class="o_govoo_kpi_tile border-start border-4 border-{{tileMeta.boardPacks.color}}"
+                 t-on-click="openBoardPacks" role="button">
+                <i t-attf-class="fa {{tileMeta.boardPacks.icon}} o_govoo_kpi_icon text-{{tileMeta.boardPacks.color}}"/>
+                <div class="o_govoo_kpi_text">
+                    <span class="o_govoo_kpi_value"><t t-esc="state.boardPacksCount"/></span>
+                    <span class="o_govoo_kpi_label">Pending Board Packs</span>
+                </div>
+                <i class="fa fa-angle-right o_govoo_kpi_chevron"/>
+            </div>
+            <div t-if="state.showContractsTile"
+                 t-attf-class="o_govoo_kpi_tile border-start border-4 border-{{tileMeta.expiringContracts.color}}"
+                 t-on-click="openExpiringContracts" role="button">
+                <i t-attf-class="fa {{tileMeta.expiringContracts.icon}} o_govoo_kpi_icon text-{{tileMeta.expiringContracts.color}}"/>
+                <div class="o_govoo_kpi_text">
+                    <span class="o_govoo_kpi_value"><t t-esc="state.expiringContractsCount"/></span>
+                    <span class="o_govoo_kpi_label">Expiring Contracts (60d)</span>
+                </div>
+                <i class="fa fa-angle-right o_govoo_kpi_chevron"/>
+            </div>
+        </div>
+    </t>
+
+</templates>

@@ -25,20 +25,28 @@
         </field>
     </record>
 
-    <!-- Dashboard: Upcoming Meetings (embedded in the board below) -->
+    <!-- Dashboard: Upcoming Meetings (embedded in the board below).
+         view_mode is "kanban" (reusing govoo_board.govoo_meeting_view_kanban,
+         not a new view) rather than "list": a plain list/table has no
+         responsive stacking of its own at narrow (390px) viewports and
+         collapses into a horizontal-scroll mess there, confirmed by the
+         UX audit (issue #252's "Dashboard... collapses on mobile" finding)
+         — kanban reflows naturally, matching how the Compliance RAG
+         widget below already behaves. -->
     <record id="action_govoo_dashboard_meetings" model="ir.actions.act_window">
         <field name="name">Upcoming Meetings</field>
         <field name="res_model">govoo.meeting</field>
-        <field name="view_mode">list</field>
+        <field name="view_mode">kanban,list</field>
         <field name="search_view_id" ref="govoo_dashboard_meeting_search"/>
         <field name="domain">[('state', 'in', ('draft', 'scheduled'))]</field>
     </record>
 
-    <!-- Dashboard: Open Resolutions Requiring My Vote (embedded below) -->
+    <!-- Dashboard: Open Resolutions Requiring My Vote (embedded below).
+         Same kanban-over-list reasoning as the meetings widget above. -->
     <record id="action_govoo_dashboard_my_votes" model="ir.actions.act_window">
         <field name="name">Open Resolutions Requiring My Vote</field>
         <field name="res_model">govoo.resolution</field>
-        <field name="view_mode">list</field>
+        <field name="view_mode">kanban,list</field>
         <field name="domain">[('requires_my_vote', '=', True)]</field>
     </record>
 
@@ -69,56 +77,67 @@
         </field>
     </record>
 
-    <record id="action_compliance_rag_dashboard" model="ir.actions.act_window">
-        <field name="name">Compliance RAG</field>
-        <field name="res_model">govoo.compliance.instance</field>
-        <field name="view_mode">kanban,list</field>
-        <field name="search_view_id" ref="govoo_dashboard_compliance_search"/>
-        <field name="context">{'search_default_filter_active': 1}</field>
-    </record>
-
+    <!-- Issue #252 fixes to this card, all confirmed against the live
+         screenshot that prompted them:
+         1. Decorations now key off rag_color, the model's own already-
+            computed RAG field (govoo_compliance_instance.py), instead of
+            re-deriving an approximation from state — the old
+            state == 'in_progress' => amber rule was actually WRONG
+            whenever an in_progress instance isn't within its lead time
+            yet (should be green), a real bug, not just cosmetic drift.
+         2. One colour badge (rag_color), not two redundant ones
+            (state badge + rag_color badge both saying "late"/"red").
+            state is still shown, as plain text, since the lifecycle stage
+            is still useful — just not duplicated as a second colour.
+         3. Explicit "Due" / "Overdue by N days" labels instead of bare
+            stacked numbers with no caption.
+         4. default_order on rag_severity (govoo_compliance_instance.py) so
+            the most urgent (red) cards sort first — rag_color itself is a
+            Selection field and would otherwise sort alphabetically on its
+            stored key ("amber" before "red"), surfacing the LEAST urgent
+            items first. -->
     <record id="govoo_dashboard_compliance_kanban" model="ir.ui.view">
         <field name="name">govoo.dashboard.compliance.kanban</field>
         <field name="model">govoo.compliance.instance</field>
         <field name="arch" type="xml">
-            <kanban class="o_kanban_mobile"
-                    decoration-danger="state == 'late'"
-                    decoration-warning="state == 'in_progress'"
-                    decoration-success="state == 'upcoming'"
-                    decoration-muted="state in ('filed', 'waived')">
-                <field name="name"/>
+            <kanban class="o_kanban_mobile" default_order="rag_severity">
+                <field name="obligation_id"/>
+                <field name="period"/>
                 <field name="state"/>
+                <field name="rag_color"/>
+                <field name="rag_severity"/>
                 <field name="due_date"/>
                 <field name="days_to_due"/>
-                <field name="obligation_id"/>
                 <templates>
-                    <t t-name="kanban-box">
+                    <t t-name="card">
                         <div class="oe_kanban_global_click o_kanban_record_has_image_fill">
                             <div class="o_kanban_record_top">
                                 <div class="o_kanban_record_headings">
                                     <strong class="o_kanban_record_title">
-                                        <t t-esc="record.name.value"/>
+                                        <t t-esc="record.obligation_id.value"/>
                                     </strong>
+                                    <span class="text-muted" t-if="record.period.value">
+                                        <t t-esc="record.period.value"/>
+                                    </span>
                                 </div>
-                                <strong>
-                                    <field name="state" widget="badge"
-                                           decoration-danger="state == 'late'"
-                                           decoration-warning="state == 'in_progress'"
-                                           decoration-success="state == 'upcoming'"/>
-                                </strong>
+                                <field name="rag_color" widget="badge"
+                                       decoration-danger="rag_color == 'red'"
+                                       decoration-warning="rag_color == 'amber'"
+                                       decoration-success="rag_color == 'green'"
+                                       decoration-muted="rag_color == 'grey'"/>
                             </div>
                             <div class="o_kanban_record_body">
-                                <div class="o_kanban_record_line">
-                                    <strong>Authority:</strong>
-                                    <t t-esc="record.obligation_id.raw_value.authority"/>
+                                <div class="o_kanban_record_line text-muted">
+                                    <t t-esc="record.state.value"/>
                                 </div>
                                 <div class="o_kanban_record_line" t-if="record.due_date.raw_value">
-                                    <strong>Due:</strong>
-                                    <t t-esc="record.due_date.value"/>
-                                </div>
-                                <div class="o_kanban_record_line" t-if="record.days_to_due.raw_value">
-                                    <strong>Days to Due:</strong>
-                                    <t t-esc="record.days_to_due.value"/>
+                                    Due <t t-esc="record.due_date.value"/>
+                                    <t t-if="record.days_to_due.raw_value &lt; 0">
+                                        &#8212; overdue by <t t-esc="-record.days_to_due.raw_value"/> days
+                                    </t>
+                                    <t t-elif="record.days_to_due.raw_value gte 0">
+                                        &#8212; <t t-esc="record.days_to_due.value"/> days left
+                                    </t>
                                 </div>
                             </div>
                         </div>
@@ -128,18 +147,43 @@
         </field>
     </record>
 
+    <!-- view_id is pinned to govoo_dashboard_compliance_kanban explicitly:
+         without it, an act_window with view_mode="kanban,..." and no view_id
+         just picks govoo.compliance.instance's own lowest-priority kanban
+         view (govoo_compliance's own, defined for a different purpose),
+         not necessarily this dashboard's purpose-built one. -->
+    <record id="action_compliance_rag_dashboard" model="ir.actions.act_window">
+        <field name="name">Compliance RAG</field>
+        <field name="res_model">govoo.compliance.instance</field>
+        <field name="view_mode">kanban,list</field>
+        <field name="view_id" ref="govoo_dashboard_compliance_kanban"/>
+        <field name="search_view_id" ref="govoo_dashboard_compliance_search"/>
+        <field name="context">{'search_default_filter_active': 1}</field>
+    </record>
+
     <!-- ============================================================ -->
     <!-- Consolidated landing dashboard (dashboards.md §1).            -->
-    <!-- Evaluation trend, cap table and recent register changes are   -->
-    <!-- deferred to a follow-up pass; see issue #150.                 -->
+    <!-- Evaluation trend, cap table and recent register changes have  -->
+    <!-- their own dedicated dashboards now (issue #252) — not         -->
+    <!-- duplicated here; this page stays focused on what needs same-  -->
+    <!-- day attention (meetings, votes, compliance), not a reporting  -->
+    <!-- catch-all.                                                    -->
     <!-- ============================================================ -->
 
+    <!-- Two view variants, not a `groups=` attribute on the <action>
+         tag: the board module's own JS controller (board_controller.js)
+         has no handling at all for a groups attribute on <action> or
+         <column> — confirmed by reading it directly — so that would
+         have silently done nothing. Role-gating a board.board's content
+         instead means choosing which pre-built view to show server-side
+         (same pattern already proven for Epic P1's action_open_
+         governance_config), via the server action below. -->
     <record id="govoo_board_dashboard_view" model="ir.ui.view">
         <field name="name">govoo.dashboard.board</field>
         <field name="model">board.board</field>
         <field name="arch" type="xml">
             <form string="Governance Dashboard">
-                <board style="2-1">
+                <board style="2-1" class="o_govoo_board_dashboard">
                     <column>
                         <!-- The board widget's action tag only reads
                              domain/context/view_mode from its OWN
@@ -157,12 +201,12 @@
                              that user. -->
                         <action name="%(action_govoo_dashboard_meetings)d"
                                 string="Upcoming Meetings"
-                                view_mode="list"
+                                view_mode="kanban"
                                 context="{}"
                                 domain="[('state', 'in', ('draft', 'scheduled'))]"/>
                         <action name="%(action_govoo_dashboard_my_votes)d"
                                 string="Open Resolutions Requiring My Vote"
-                                view_mode="list"
+                                view_mode="kanban"
                                 context="{}"
                                 domain="[('requires_my_vote', '=', True)]"/>
                     </column>
@@ -177,12 +221,67 @@
         </field>
     </record>
 
-    <record id="action_govoo_dashboard" model="ir.actions.act_window">
+    <!-- Same as above, minus the "Open Resolutions Requiring My Vote"
+         column — shown to Company Secretary / Board Administrator, who
+         cannot cast a vote at all (BR-SEC-004, govoo_vote.py
+         _check_voter_eligibility) and for whom that widget is always
+         either empty or irrelevant clutter, never actionable. -->
+    <record id="govoo_board_dashboard_view_no_vote" model="ir.ui.view">
+        <field name="name">govoo.dashboard.board.no_vote</field>
+        <field name="model">board.board</field>
+        <field name="arch" type="xml">
+            <form string="Governance Dashboard">
+                <board style="2-1" class="o_govoo_board_dashboard">
+                    <column>
+                        <action name="%(action_govoo_dashboard_meetings)d"
+                                string="Upcoming Meetings"
+                                view_mode="kanban"
+                                context="{}"
+                                domain="[('state', 'in', ('draft', 'scheduled'))]"/>
+                    </column>
+                    <column>
+                        <action name="%(action_compliance_rag_dashboard)d"
+                                string="Compliance RAG Summary"
+                                view_mode="kanban"
+                                context="{'search_default_filter_active': 1}"/>
+                    </column>
+                </board>
+            </form>
+        </field>
+    </record>
+
+    <!-- Replaces the old plain ir.actions.act_window of the same purpose
+         (role-gating needs a server-side choice of view_id, which a plain
+         act_window record can't do). An XML id can't change the model of
+         the record it points to, so this is a new id with the stale
+         act_window record explicitly deleted below, not a reuse of
+         action_govoo_dashboard. -->
+    <delete id="action_govoo_dashboard" model="ir.actions.act_window"/>
+
+    <record id="action_govoo_dashboard_router" model="ir.actions.server">
         <field name="name">Dashboard</field>
-        <field name="res_model">board.board</field>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="govoo_board_dashboard_view"/>
-        <field name="context">{'disable_toolbar': True}</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <!-- Without groups_id, ir.actions.server._can_execute_action_on_records
+             falls back to requiring WRITE access on model_id itself (res.users
+             here), which an ordinary internal user doesn't have, so every
+             non-admin got "You don't have enough access rights to run this
+             action" just opening the dashboard menu. Setting groups_id makes
+             it check group membership instead. -->
+        <field name="group_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="state">code</field>
+        <field name="code">
+no_vote = user.has_group('govoo_base.group_govoo_secretary') or user.has_group('govoo_base.group_govoo_admin')
+view_id = env.ref('govoo_portal.govoo_board_dashboard_view_no_vote').id if no_vote else env.ref('govoo_portal.govoo_board_dashboard_view').id
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Dashboard',
+    'res_model': 'board.board',
+    'view_mode': 'form',
+    'view_id': view_id,
+    'views': [(view_id, 'form')],
+    'context': {'disable_toolbar': True},
+}
+        </field>
     </record>
 
     <!-- ============================================================ -->
@@ -193,6 +292,6 @@
               name="Dashboard"
               parent="govoo_base.govoo_menu_root"
               sequence="5"
-              action="action_govoo_dashboard"/>
+              action="action_govoo_dashboard_router"/>
 
 </odoo>

@@ -93,6 +93,18 @@ class GovooComplianceInstance(models.Model):
         compute='_compute_rag_color',
         store=True,
     )
+    # Issue #252: a plain Selection field sorts alphabetically on its
+    # stored key ("amber" < "green" < "grey" < "red"), not by actual
+    # severity -- a dashboard grouped/ordered by rag_color this way would
+    # show the single most urgent status (red) LAST. This stored Integer
+    # gives the dashboard a real severity order to sort/group on instead.
+    rag_severity = fields.Integer(
+        string='RAG Severity',
+        compute='_compute_rag_severity',
+        store=True,
+        help='0 = red (most urgent) .. 3 = grey (closed/not applicable). '
+             'For sorting only -- not shown to users.',
+    )
 
     @api.depends('obligation_id', 'period', 'company_id')
     def _compute_name(self):
@@ -128,6 +140,12 @@ class GovooComplianceInstance(models.Model):
                     rec.rag_color = 'green'
             else:
                 rec.rag_color = 'grey'
+
+    @api.depends('rag_color')
+    def _compute_rag_severity(self):
+        severity_by_color = {'red': 0, 'amber': 1, 'green': 2, 'grey': 3}
+        for rec in self:
+            rec.rag_severity = severity_by_color.get(rec.rag_color, 3)
 
     @api.constrains('state')
     def _check_state_terminal(self):

@@ -9,7 +9,7 @@ Cron-driven instance generation, staged reminders, escalation, and filing-pack e
     """,
     'author': 'Govoo',
     'category': 'Governance',
-    'version': '19.0.1.0.1',
+    'version': '19.0.1.0.2',
     'license': 'LGPL-3',
     'depends': ['govoo_base'],
     'data': [

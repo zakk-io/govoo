@@ -28,7 +28,7 @@ access_govoo_resolution_admin,govoo.resolution.admin,model_govoo_resolution,govo
 access_govoo_resolution_auditor,govoo.resolution.auditor,model_govoo_resolution,govoo_base.group_govoo_auditor,1,0,0,0
 access_govoo_resolution_director_portal,govoo.resolution.director_portal,model_govoo_resolution,govoo_base.group_govoo_director_portal,1,0,0,0
 access_govoo_resolution_shareholder_portal,govoo.resolution.shareholder_portal,model_govoo_resolution,govoo_base.group_govoo_shareholder_portal,1,0,0,0
-access_govoo_vote_user,govoo.vote.user,model_govoo_vote,govoo_base.group_govoo_user,0,0,0,0
+access_govoo_vote_user,govoo.vote.user,model_govoo_vote,govoo_base.group_govoo_user,1,0,0,0
 access_govoo_vote_secretary,govoo.vote.secretary,model_govoo_vote,govoo_base.group_govoo_secretary,1,0,1,0
 access_govoo_vote_admin,govoo.vote.admin,model_govoo_vote,govoo_base.group_govoo_admin,1,0,0,0
 access_govoo_vote_auditor,govoo.vote.auditor,model_govoo_vote,govoo_base.group_govoo_auditor,1,0,0,0

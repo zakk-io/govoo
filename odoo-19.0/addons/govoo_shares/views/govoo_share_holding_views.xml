@@ -39,6 +39,37 @@
         </field>
     </record>
 
+    <!-- Issue #252: dedicated ownership breakdown (dashboards.md §3).
+         Previously view_mode listed "pivot,graph" with no dedicated arch
+         for either, so Odoo rendered its generic auto-pivot/graph (first
+         two fields found, usually just a record count) instead of an
+         actual ownership-by-class-and-holder breakdown. -->
+    <record id="govoo_share_holding_view_pivot" model="ir.ui.view">
+        <field name="name">govoo.share.holding.pivot</field>
+        <field name="model">govoo.share.holding</field>
+        <field name="arch" type="xml">
+            <pivot string="Ownership by Class and Holder">
+                <field name="share_class_id" type="row"/>
+                <field name="partner_id" type="row"/>
+                <field name="percentage" type="measure"/>
+                <field name="voting_power" type="measure"/>
+                <field name="quantity" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="govoo_share_holding_view_graph" model="ir.ui.view">
+        <field name="name">govoo.share.holding.graph</field>
+        <field name="model">govoo.share.holding</field>
+        <field name="arch" type="xml">
+            <graph string="Ownership by Class and Holder" type="pie">
+                <field name="share_class_id"/>
+                <field name="partner_id"/>
+                <field name="percentage" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
     <record id="govoo_share_holding_action" model="ir.actions.act_window">
         <field name="name">Cap Table</field>
         <field name="res_model">govoo.share.holding</field>
