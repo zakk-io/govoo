@@ -53,13 +53,18 @@
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
+                    <!-- Issue #253: ribbon for both terminal outcomes,
+                         filed is the good one, waived is still final. -->
+                    <div class="o_ribbon bg-success" invisible="state != 'filed'">Filed</div>
+                    <div class="o_ribbon bg-secondary" invisible="state != 'waived'">Waived</div>
                     <group>
                         <group>
                             <field name="obligation_id"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="period"/>
                             <field name="due_date"/>
-                            <field name="days_to_due"/>
+                            <field name="days_to_due"
+                                   help="Negative once the due date has passed -- this instance is then late until filed or waived."/>
                         </group>
                         <group>
                             <field name="responsible_id"/>
@@ -69,10 +74,12 @@
                                    decoration-danger="rag_color == 'red'"
                                    decoration-muted="rag_color == 'grey'"/>
                             <field name="reference_no"
-                                   invisible="state not in ('in_progress', 'late', 'filed')"/>
+                                   invisible="state not in ('in_progress', 'late', 'filed')"
+                                   help="The authority's own receipt/acknowledgement number for this filing, once submitted -- not an internal Govoo reference."/>
                             <field name="filed_date"
                                    invisible="state not in ('in_progress', 'late', 'filed')"/>
-                            <field name="filing_document_id"/>
+                            <field name="filing_document_id"
+                                   help="The actual filed document (return, declaration, or certificate) as evidence for audit and regulator inspection."/>
                         </group>
                     </group>
                 </sheet>
@@ -145,14 +152,49 @@
         <field name="name">govoo.compliance.instance.calendar</field>
         <field name="model">govoo.compliance.instance</field>
         <field name="arch" type="xml">
+            <!-- Issue #253: colour-code by RAG status. -->
             <calendar string="Compliance Calendar"
                       date_start="due_date"
                       date_stop="due_date"
-                      event_open_popup="true">
+                      event_open_popup="true"
+                      color="rag_color">
                 <field name="obligation_id"/>
                 <field name="period"/>
                 <field name="state"/>
+                <field name="rag_color" filters="1"/>
             </calendar>
+        </field>
+    </record>
+
+    <!-- Issue #253: this model had no search view of its own at all,
+         the only one that existed was govoo_portal's minimal dashboard-
+         widget copy, which isn't suitable (or intended) as the suite's
+         main search view for this model. -->
+    <record id="govoo_compliance_instance_view_search" model="ir.ui.view">
+        <field name="name">govoo.compliance.instance.search</field>
+        <field name="model">govoo.compliance.instance</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="obligation_id"/>
+                <field name="responsible_id"/>
+                <filter name="filter_my_filings" string="My Filings"
+                        domain="[('responsible_id', '=', uid)]"/>
+                <filter name="filter_active" string="Active"
+                        domain="[('state', 'in', ('upcoming', 'in_progress', 'late'))]"/>
+                <filter name="filter_late" string="Late"
+                        domain="[('state', '=', 'late')]"/>
+                <separator/>
+                <filter name="filter_due_date" string="Due Date"
+                        date="due_date" default_period="month"/>
+                <group>
+                    <filter name="group_state" string="Status"
+                            context="{'group_by': 'state'}"/>
+                    <filter name="group_responsible" string="Responsible"
+                            context="{'group_by': 'responsible_id'}"/>
+                    <filter name="group_obligation" string="Obligation"
+                            context="{'group_by': 'obligation_id'}"/>
+                </group>
+            </search>
         </field>
     </record>
 
@@ -160,6 +202,7 @@
         <field name="name">Compliance Instances</field>
         <field name="res_model">govoo.compliance.instance</field>
         <field name="view_mode">list,form,kanban,calendar</field>
+        <field name="search_view_id" ref="govoo_compliance_instance_view_search"/>
     </record>
 
 </odoo>

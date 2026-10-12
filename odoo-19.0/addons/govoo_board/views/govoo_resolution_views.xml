@@ -43,6 +43,12 @@
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
+                    <!-- Issue #253: ribbon for both terminal outcomes that
+                         aren't "Passed" (which already gets a green
+                         statusbar highlight); Failed and Withdrawn are
+                         just as final, so they deserve the same visibility. -->
+                    <div class="o_ribbon bg-danger" invisible="state != 'failed'">Failed</div>
+                    <div class="o_ribbon bg-secondary" invisible="state != 'withdrawn'">Withdrawn</div>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_votes" type="object"
                                 class="oe_stat_button" icon="fa-check-square-o"
@@ -58,13 +64,15 @@
                     <group>
                         <group>
                             <field name="title"/>
-                            <field name="resolution_type"/>
+                            <field name="resolution_type"
+                                   help="Ordinary resolutions pass by simple majority. Special resolutions require the higher majority threshold set in Governance Settings (BR-BOARD-005). Written resolutions are passed by unanimous written consent instead of a meeting vote."/>
                             <field name="meeting_id"/>
                             <field name="agenda_item_id"/>
                         </group>
                         <group>
                             <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="effective_date"/>
+                            <field name="effective_date"
+                                   help="The date this resolution actually takes legal effect -- not necessarily the same date it was passed."/>
                             <field name="result"/>
                             <field name="sign_request_id"/>
                         </group>
@@ -157,10 +165,35 @@
         </field>
     </record>
 
+    <!-- Issue #253: this model had no search view of its own at all. -->
+    <record id="govoo_resolution_view_search" model="ir.ui.view">
+        <field name="name">govoo.resolution.search</field>
+        <field name="model">govoo.resolution</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="title"/>
+                <field name="meeting_id"/>
+                <filter name="filter_requires_my_vote" string="Requires My Vote"
+                        domain="[('requires_my_vote', '=', True)]"/>
+                <filter name="filter_open" string="Open for Voting"
+                        domain="[('state', '=', 'open')]"/>
+                <group>
+                    <filter name="group_state" string="Status"
+                            context="{'group_by': 'state'}"/>
+                    <filter name="group_type" string="Resolution Type"
+                            context="{'group_by': 'resolution_type'}"/>
+                    <filter name="group_meeting" string="Meeting"
+                            context="{'group_by': 'meeting_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <record id="govoo_resolution_action" model="ir.actions.act_window">
         <field name="name">Resolutions</field>
         <field name="res_model">govoo.resolution</field>
         <field name="view_mode">list,form,kanban</field>
+        <field name="search_view_id" ref="govoo_resolution_view_search"/>
     </record>
 
 </odoo>
