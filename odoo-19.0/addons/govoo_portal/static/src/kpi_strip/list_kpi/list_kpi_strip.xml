@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="govoo_portal.ListKpiStrip">
+        <div class="o_govoo_kpi_strip" t-if="!state.loading">
+            <t t-foreach="props.tiles" t-as="tile" t-key="tile.label">
+                <div t-attf-class="o_govoo_kpi_tile border-start border-4 border-{{tile.color}}"
+                     t-on-click="() => this.openTile(tile)" role="button">
+                    <i t-attf-class="fa {{tile.icon}} o_govoo_kpi_icon text-{{tile.color}}"/>
+                    <div class="o_govoo_kpi_text">
+                        <span class="o_govoo_kpi_value"><t t-esc="state.counts[tile_index]"/></span>
+                        <span class="o_govoo_kpi_label"><t t-esc="tile.label"/></span>
+                    </div>
+                    <i class="fa fa-angle-right o_govoo_kpi_chevron"/>
+                </div>
+            </t>
+        </div>
+    </t>
+
+</templates>

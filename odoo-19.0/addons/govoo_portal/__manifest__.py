@@ -12,7 +12,7 @@ owned by other Govoo modules.
     """,
     'author': 'Govoo',
     'category': 'Governance',
-    'version': '19.0.1.0.4',
+    'version': '19.0.1.0.5',
     'license': 'LGPL-3',
     'depends': [
         'govoo_base',
@@ -30,6 +30,7 @@ owned by other Govoo modules.
     'data': [
         'views/portal_templates.xml',
         'views/govoo_portal_menus.xml',
+        'views/govoo_list_kpi_views.xml',
     ],
     'assets': {
         'web.assets_backend': [
