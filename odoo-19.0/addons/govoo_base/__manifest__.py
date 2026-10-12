@@ -9,7 +9,7 @@ appointment (role-over-time) and committee models.
     """,
     'author': 'Govoo',
     'category': 'Governance',
-    'version': '19.0.1.0.3',
+    'version': '19.0.1.0.4',
     'license': 'LGPL-3',
     'depends': ['base', 'mail', 'contacts'],
     'data': [
@@ -24,6 +24,11 @@ appointment (role-over-time) and committee models.
         'views/govoo_committee_views.xml',
         'views/govoo_base_menus.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'govoo_base/static/src/scss/ribbon.scss',
+        ],
+    },
     'installable': True,
     'application': False,
     'auto_install': False,

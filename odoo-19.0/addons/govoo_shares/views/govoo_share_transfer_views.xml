@@ -5,7 +5,12 @@
         <field name="name">govoo.share.transfer.list</field>
         <field name="model">govoo.share.transfer</field>
         <field name="arch" type="xml">
-            <list>
+            <!-- Issue #251: row colouring to match the other statutory-register
+                 list views (govoo.meeting, govoo.resolution, govoo.contract). -->
+            <list decoration-success="state == 'registered'"
+                  decoration-info="state == 'approved'"
+                  decoration-warning="state == 'draft'"
+                  default_group_by="state">
                 <field name="share_class_id"/>
                 <field name="transferor_id"/>
                 <field name="transferee_id"/>

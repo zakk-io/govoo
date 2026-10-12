@@ -9,7 +9,7 @@ Feeds the Register of Members and shareholder vote weighting.
     """,
     'author': 'Govoo',
     'category': 'Governance',
-    'version': '19.0.1.0.3',
+    'version': '19.0.1.0.4',
     'license': 'LGPL-3',
     'depends': ['govoo_secretarial'],
     'data': [

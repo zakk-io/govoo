@@ -44,6 +44,10 @@
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
+                    <!-- Issue #253: web_ribbon (OCA) isn't in this install's
+                         addons path, so this is a small native equivalent
+                         (see govoo_base/static/src/scss/ribbon.scss). -->
+                    <div class="o_ribbon bg-success" invisible="state != 'closed'">Closed</div>
                     <div class="oe_button_box" name="button_box">
                         <!-- Agenda has no smart button: docs/spec/ui/views.md's
                              govoo.agenda.item row requires an inline editable
@@ -90,8 +94,10 @@
                             <field name="date"/>
                             <field name="location"/>
                             <field name="virtual_link"/>
-                            <field name="quorum_required"/>
-                            <field name="quorum_met"/>
+                            <field name="quorum_required"
+                                   help="Minimum number of attendees required for this meeting's resolutions to be valid, per the committee's terms of reference or the Articles of Association."/>
+                            <field name="quorum_met"
+                                   help="Whether the quorum requirement above was actually met once the meeting was held. Resolutions passed without quorum may be challengeable."/>
                         </group>
                     </group>
                     <group string="Attendees">
@@ -187,6 +193,14 @@
                         domain="[('state', '=', 'scheduled')]"/>
                 <filter name="filter_held" string="Held"
                         domain="[('state', '=', 'held')]"/>
+                <separator/>
+                <!-- Odoo's date-filter default_period only accepts "year",
+                     "month" (each optionally with a +/-N offset), or one of
+                     the four named quarters — there's no generic "current
+                     quarter" shorthand, and hardcoding e.g. "third_quarter"
+                     would silently go stale next quarter. -->
+                <filter name="filter_date" string="Date"
+                        date="date" default_period="month"/>
                 <group>
                     <filter name="group_state" string="Status"
                             context="{'group_by': 'state'}"/>
@@ -203,20 +217,30 @@
         <field name="name">govoo.meeting.calendar</field>
         <field name="model">govoo.meeting</field>
         <field name="arch" type="xml">
+            <!-- Issue #253: colour-code by committee (meetings have no RAG
+                 status of their own). -->
             <calendar date_start="date" date_stop="date_end"
-                      string="Meetings" event_open_popup="1">
+                      string="Meetings" event_open_popup="1"
+                      color="committee_id">
                 <field name="name"/>
                 <field name="date"/>
                 <field name="date_end"/>
-                <field name="committee_id"/>
+                <field name="committee_id" filters="1"/>
             </calendar>
         </field>
     </record>
 
+    <!-- Issue #253: search_view_id pinned explicitly. Without it, Odoo's
+         default-view auto-selection was silently picking govoo_portal's
+         minimal dashboard-widget search view (govoo_dashboard_meeting_search,
+         loaded later since govoo_portal depends on govoo_board) over this
+         module's own, fuller one; same empirically-confirmed-not-guessed
+         shape of bug as #251's Votes-smart-button view_mode fix. -->
     <record id="govoo_meeting_action" model="ir.actions.act_window">
         <field name="name">Meetings</field>
         <field name="res_model">govoo.meeting</field>
         <field name="view_mode">list,form,kanban,calendar</field>
+        <field name="search_view_id" ref="govoo_meeting_view_search"/>
     </record>
 
 </odoo>
