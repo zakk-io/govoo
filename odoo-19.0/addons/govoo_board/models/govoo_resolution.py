@@ -264,7 +264,10 @@ class GovooResolution(models.Model):
             'type': 'ir.actions.act_window',
             'name': 'Votes',
             'res_model': 'govoo.vote',
-            'view_mode': 'list,form',
+            # Issue #251: kanban added so the Votes smart button -- the only
+            # UI path to this model for most users -- can actually reach the
+            # new per-voter kanban card, not just the list.
+            'view_mode': 'kanban,list,form',
             'domain': [('resolution_id', '=', self.id)],
             'context': {'default_resolution_id': self.id},
         }
