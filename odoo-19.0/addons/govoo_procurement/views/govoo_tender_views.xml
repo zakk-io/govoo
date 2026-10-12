@@ -43,9 +43,11 @@
                     </div>
                     <group>
                         <group>
-                            <field name="tender_category_id"/>
+                            <field name="tender_category_id"
+                                   help="Shares the same tags as vendor Contact Tags — tag a vendor with this category to record they're registered to bid for it."/>
                             <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="submission_deadline"/>
+                            <field name="submission_deadline"
+                                   help="The date by which bids for this tender must be submitted."/>
                             <field name="reminder_lead_days" invisible="not submission_deadline"/>
                         </group>
                         <group>

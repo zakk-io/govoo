@@ -31,14 +31,17 @@
                             <field name="currency_id" invisible="1"/>
                         </group>
                         <group>
-                            <field name="date_created"/>
+                            <field name="date_created"
+                                   help="The gap between this date and Date Registered is the registration window — late registration risks the charge being void against a liquidator or creditors."/>
                             <field name="date_registered"/>
-                            <field name="satisfied"/>
+                            <field name="satisfied"
+                                   help="Once satisfied, a discharge should be filed — lenders searching the register rely on this flag."/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                     </group>
                     <group string="Property Details">
-                        <field name="property_description"/>
+                        <field name="property_description"
+                               placeholder="Describe the charged property specifically enough to give valid statutory notice to third parties."/>
                     </group>
                     <group string="Document"
                            groups="govoo_base.group_govoo_secretary">

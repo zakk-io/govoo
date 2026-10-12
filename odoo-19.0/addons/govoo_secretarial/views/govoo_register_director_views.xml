@@ -25,17 +25,22 @@
                     <group>
                         <group>
                             <field name="partner_id"/>
-                            <field name="role"/>
-                            <field name="state"/>
+                            <field name="role"
+                                   help="Distinguishes statutory officer roles, which carry different legal duties and liability."/>
+                            <field name="state"
+                                   help="Reflects this person's current legal capacity to act as a director of the company."/>
                         </group>
                         <group>
-                            <field name="date_appointed"/>
-                            <field name="date_resigned"/>
+                            <field name="date_appointed"
+                                   help="Triggers the statutory filing deadline for notifying the registrar of this appointment."/>
+                            <field name="date_resigned"
+                                   help="Triggers the statutory filing deadline for notifying the registrar of this resignation."/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                     </group>
                     <group string="Appointment Reference">
-                        <field name="appointment_id"/>
+                        <field name="appointment_id"
+                               help="The instrument of appointment — the primary legal evidence for this register entry."/>
                     </group>
                 </sheet>
                 <chatter/>

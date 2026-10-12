@@ -23,15 +23,19 @@
                 <sheet>
                     <widget name="web_ribbon" title="Provisional"
                             bg_color="bg-danger"
+                            tooltip="The declared level of control falls into a threshold category that has not yet been formally confirmed."
                             invisible="not is_provisional"/>
                     <group>
                         <group>
                             <field name="partner_id"/>
-                            <field name="nature_of_control"/>
+                            <field name="nature_of_control"
+                                   help="The specific statutory category of control (e.g. shareholding, voting rights, or appointment rights) that triggers beneficial-ownership registration."/>
                         </group>
                         <group>
-                            <field name="date_became_registrable"/>
-                            <field name="evidence_document_id"/>
+                            <field name="date_became_registrable"
+                                   help="The date the statutory clock for declaring this beneficial owner started."/>
+                            <field name="evidence_document_id"
+                                   help="The document evidencing the declared level of control."/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                     </group>

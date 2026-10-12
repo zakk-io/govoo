@@ -65,7 +65,7 @@
                         <group>
                             <field name="title"/>
                             <field name="resolution_type"
-                                   help="Ordinary resolutions pass by simple majority. Special resolutions require the higher majority threshold set in Governance Settings (BR-BOARD-005). Written resolutions are passed by unanimous written consent instead of a meeting vote."/>
+                                   help="Ordinary resolutions pass by simple majority. Special resolutions require the higher majority threshold set in Governance Settings. Written resolutions are passed by unanimous written consent instead of a meeting vote."/>
                             <field name="meeting_id"/>
                             <field name="agenda_item_id"/>
                         </group>

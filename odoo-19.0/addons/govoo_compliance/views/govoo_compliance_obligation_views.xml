@@ -26,23 +26,32 @@
                     <group>
                         <group>
                             <field name="name"/>
-                            <field name="authority"/>
-                            <field name="frequency"/>
-                            <field name="basis"/>
-                            <field name="active"/>
+                            <field name="authority"
+                                   help="The regulator or body this filing is owed to."/>
+                            <field name="frequency"
+                                   help="How often this obligation recurs and a new filing instance is generated."/>
+                            <field name="basis"
+                                   help="How the due date is computed: a fixed calendar date each cycle, or an offset relative to the entity's financial year end."/>
+                            <field name="active"
+                                   help="Inactive by default for a new template — review and confirm it before it starts generating real filing instances."/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                         <group>
-                            <field name="lead_time_days"/>
-                            <field name="applies_to_entity_type"/>
+                            <field name="lead_time_days"
+                                   help="How many days before the due date to start reminding the responsible user."/>
+                            <field name="applies_to_entity_type"
+                                   help="Which entity types this obligation is legally required for. 'All' applies to every entity type."/>
                             <group string="Fixed Date"
                                    invisible="basis != 'fixed_date'">
-                                <field name="fixed_day"/>
-                                <field name="fixed_month"/>
+                                <field name="fixed_day"
+                                       help="The statutory day of the month this filing falls due."/>
+                                <field name="fixed_month"
+                                       help="The statutory month this filing falls due, if it only recurs once a year."/>
                             </group>
                             <group string="FYE Relative"
                                    invisible="basis != 'fye_relative'">
-                                <field name="fye_offset_months"/>
+                                <field name="fye_offset_months"
+                                       help="How many months after the entity's financial year end this filing falls due."/>
                             </group>
                         </group>
                     </group>

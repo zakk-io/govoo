@@ -104,10 +104,13 @@
                             <field name="currency_id" invisible="1"/>
                         </group>
                         <group>
-                            <field name="votes_per_share"/>
-                            <field name="total_authorised"/>
+                            <field name="votes_per_share"
+                                   help="Voting power per share of this class, per the Articles — not always 1:1."/>
+                            <field name="total_authorised"
+                                   help="The ceiling set by the Articles/Memorandum — allotments above this number are not authorised."/>
                             <field name="total_allotted"/>
-                            <field name="is_redeemable"/>
+                            <field name="is_redeemable"
+                                   help="Redeemable shares carry different statutory repayment and capital-maintenance rules."/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                     </group>

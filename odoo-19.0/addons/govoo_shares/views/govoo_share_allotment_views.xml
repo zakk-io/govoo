@@ -34,14 +34,17 @@
                             <field name="price_per_share" widget="monetary"
                                    options="{'currency_field': 'currency_id'}"/>
                             <field name="currency_id" invisible="1"/>
-                            <field name="date_allotted"/>
-                            <field name="certificate_no"/>
+                            <field name="date_allotted"
+                                   help="Starts the statutory clock for issuing a share certificate to this allottee."/>
+                            <field name="certificate_no"
+                                   help="The certificate is the member's title evidence for these shares. Blank means no certificate has been issued yet."/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                     </group>
                     <group string="Certificate"
                            groups="govoo_base.group_govoo_secretary">
-                        <field name="certificate_document_id"/>
+                        <field name="certificate_document_id"
+                               help="The actual issued share certificate, kept as audit evidence."/>
                     </group>
                 </sheet>
                 <chatter/>

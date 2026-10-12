@@ -29,11 +29,16 @@
                             <field name="active"/>
                         </group>
                         <group>
-                            <field name="requires_board_approval"/>
-                            <field name="approval_threshold"/>
-                            <field name="retention_years"/>
-                            <field name="renewal_notice_days"/>
-                            <field name="e_signature_enabled"/>
+                            <field name="requires_board_approval"
+                                   help="Contracts of this type cannot be approved without a linked board resolution that has passed."/>
+                            <field name="approval_threshold"
+                                   help="A contract of this type at or above this value also requires board approval, even if the toggle above is off."/>
+                            <field name="retention_years"
+                                   help="Statutory or company-policy minimum period to keep contracts of this type on file after they end."/>
+                            <field name="renewal_notice_days"
+                                   help="How many days before the contract's End Date to send a renewal/expiry reminder. 0 disables the reminder."/>
+                            <field name="e_signature_enabled"
+                                   help="Allows e-signature for contracts of this type. Leave off if this type of contract must be signed through a different legally required channel, such as a government procurement portal."/>
                         </group>
                     </group>
                 </sheet>

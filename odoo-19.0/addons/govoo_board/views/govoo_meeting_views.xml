@@ -86,7 +86,8 @@
                     <group>
                         <group>
                             <field name="name"/>
-                            <field name="meeting_type"/>
+                            <field name="meeting_type"
+                                   help="Executive and departmental meetings are only visible to members of the relevant committee. Board, committee, AGM, and EGM meetings remain visible to all internal governance users."/>
                             <field name="committee_id"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>

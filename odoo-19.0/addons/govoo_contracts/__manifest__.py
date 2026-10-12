@@ -11,7 +11,7 @@ e-signature execution, obligation/milestone tracking, and renewal/termination.
     """,
     'author': 'Govoo',
     'category': 'Governance',
-    'version': '19.0.1.0.2',
+    'version': '19.0.1.0.3',
     'license': 'LGPL-3',
     'depends': ['govoo_base', 'govoo_compliance', 'govoo_board', 'portal'],
     'data': [

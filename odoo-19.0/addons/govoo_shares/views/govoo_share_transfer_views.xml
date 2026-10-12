@@ -57,15 +57,18 @@
                                    options="{'currency_field': 'currency_id'}"/>
                             <field name="currency_id" invisible="1"/>
                             <field name="stamp_duty" widget="monetary"
-                                   options="{'currency_field': 'currency_id'}"/>
-                            <field name="date_transferred"/>
+                                   options="{'currency_field': 'currency_id'}"
+                                   help="Statutory duty payable on this transfer — a precondition to registration in some jurisdictions."/>
+                            <field name="date_transferred"
+                                   help="Starts the statutory clock for registering this transfer and paying any stamp duty."/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                     </group>
                     <group string="Documents"
                            groups="govoo_base.group_govoo_secretary">
                         <group>
-                            <field name="transfer_instrument_id"/>
+                            <field name="transfer_instrument_id"
+                                   help="The instrument of transfer — the primary legal evidence for this transfer."/>
                         </group>
                     </group>
                 </sheet>

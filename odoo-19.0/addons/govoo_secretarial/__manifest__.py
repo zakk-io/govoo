@@ -9,7 +9,7 @@ register of charges, and append-only audit ledger.
     """,
     'author': 'Govoo',
     'category': 'Governance',
-    'version': '19.0.1.0.1',
+    'version': '19.0.1.0.2',
     'license': 'LGPL-3',
     'depends': ['govoo_base'],
     'data': [

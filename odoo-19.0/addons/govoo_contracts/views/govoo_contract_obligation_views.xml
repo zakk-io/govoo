@@ -52,7 +52,8 @@
                         <group>
                             <field name="responsible_id"/>
                             <field name="amount"/>
-                            <field name="lead_time_days"/>
+                            <field name="lead_time_days"
+                                   help="How many days before Due Date to stage a reminder."/>
                             <field name="rag_color" widget="badge"
                                    decoration-success="rag_color == 'green'"
                                    decoration-warning="rag_color == 'amber'"
@@ -132,9 +133,19 @@
                 <field name="name"/>
                 <field name="contract_id"/>
                 <field name="responsible_id"/>
+                <filter name="filter_mine" string="My Obligations"
+                        domain="[('responsible_id', '=', uid)]"/>
+                <filter name="filter_open" string="Open"
+                        domain="[('state', 'in', ('open', 'overdue'))]"/>
+                <filter name="filter_overdue" string="Overdue"
+                        domain="[('state', '=', 'overdue')]"/>
+                <separator/>
+                <filter name="filter_due_date" string="Due Date"
+                        date="due_date" default_period="month"/>
                 <group>
                     <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
                     <filter name="group_contract" string="Contract" context="{'group_by': 'contract_id'}"/>
+                    <filter name="group_responsible" string="Responsible" context="{'group_by': 'responsible_id'}"/>
                 </group>
             </search>
         </field>

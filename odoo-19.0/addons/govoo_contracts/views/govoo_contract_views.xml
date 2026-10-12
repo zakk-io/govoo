@@ -55,6 +55,17 @@
                            statusbar_visible="draft,in_approval,approved,executed,active"/>
                 </header>
                 <sheet>
+                    <!-- Issue #253: ribbon for both terminal outcomes. Stock
+                         Odoo 19 ships a native web_ribbon widget (web/static/
+                         src/views/widgets/ribbon/), already used by
+                         govoo_secretarial's beneficial-owner form, so this
+                         uses that instead of the custom .o_ribbon class #251
+                         built under the mistaken belief no ribbon mechanism
+                         was available. -->
+                    <widget name="web_ribbon" title="Expired" bg_color="bg-dark"
+                            invisible="state != 'expired'"/>
+                    <widget name="web_ribbon" title="Terminated" bg_color="bg-secondary"
+                            invisible="state != 'terminated'"/>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_obligations" type="object"
                                 class="oe_stat_button" icon="fa-tasks"
@@ -72,10 +83,13 @@
                             <field name="name"/>
                             <field name="contract_type_id"/>
                             <field name="counterparty_id"/>
-                            <field name="is_related_party" readonly="1"/>
-                            <field name="conflict_declared" invisible="not is_related_party"/>
+                            <field name="is_related_party" readonly="1"
+                                   help="Whether the counterparty is a director, shareholder, or other related party. When set, this contract needs a declared conflict of interest before it can be approved."/>
+                            <field name="conflict_declared" invisible="not is_related_party"
+                                   help="Confirms the related-party conflict of interest on this contract has been formally declared, as required before approval."/>
                             <field name="conflict_declaration_notes" invisible="not is_related_party"/>
-                            <field name="portal_approver_ids" widget="many2many_tags"/>
+                            <field name="portal_approver_ids" widget="many2many_tags"
+                                   help="People outside the counterparty who should also see this contract as a named approver in the portal."/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                         <group>
@@ -83,17 +97,22 @@
                             <field name="date_start"/>
                             <field name="date_end"/>
                             <field name="renewal_type"/>
-                            <field name="renewal_date" invisible="renewal_type != 'auto'"/>
-                            <field name="retention_until" readonly="1"/>
-                            <field name="termination_reason" invisible="state not in ('active', 'terminated')"/>
-                            <field name="resolution_id"/>
+                            <field name="renewal_date" invisible="renewal_type != 'auto'"
+                                   help="The date this contract is due to renew, distinct from End Date (when the current term expires)."/>
+                            <field name="retention_until" readonly="1"
+                                   help="Statutory or company-policy date this contract must be kept on file until, computed from its contract type's retention period."/>
+                            <field name="termination_reason" invisible="state not in ('active', 'terminated')"
+                                   help="Required before this contract can be marked Terminated. Whether termination was for breach or by mutual agreement can affect liability, so record the reason precisely."/>
+                            <field name="resolution_id"
+                                   help="Required, and must have Passed, before this contract can be approved if its type requires board approval or its value meets the type's approval threshold."/>
                             <field name="sign_request_id"/>
                             <field name="sign_status" widget="badge"
                                    decoration-success="sign_status == 'signed'"
                                    decoration-info="sign_status == 'sent'"
                                    decoration-danger="sign_status == 'declined'"
                                    decoration-muted="sign_status in ('not_sent', 'cancelled')"
-                                   invisible="not sign_request_id"/>
+                                   invisible="not sign_request_id"
+                                   help="Tracks the e-signature lifecycle of the signing document, independent of the contract's own Status above."/>
                             <div class="d-flex gap-2" invisible="not sign_request_id">
                                 <button name="action_send_for_signature" string="Send for Signature"
                                         type="object" class="btn-secondary"
@@ -109,7 +128,8 @@
                                         invisible="sign_status != 'sent'"/>
                             </div>
                             <field name="executed_document_id"
-                                   readonly="executed_document_id and state in ('executed', 'active', 'expired', 'terminated')"/>
+                                   readonly="executed_document_id and state in ('executed', 'active', 'expired', 'terminated')"
+                                   help="Locked once the contract is Executed — an amendment or renewal must attach a new document rather than replace this one."/>
                             <field name="executed_document_upload" filename="executed_document_upload_filename"
                                    readonly="executed_document_id and state in ('executed', 'active', 'expired', 'terminated')"/>
                             <field name="executed_document_upload_filename" invisible="1"/>
@@ -251,6 +271,17 @@
                 <field name="contract_type_id"/>
                 <filter name="filter_active" string="Active" domain="[('state', '=', 'active')]"/>
                 <filter name="filter_in_approval" string="In Approval" domain="[('state', '=', 'in_approval')]"/>
+                <!-- Issue #253: same 60-day window and state as the
+                     "Expiring in 60 Days" KPI tile
+                     (govoo_portal/static/src/kpi_strip/list_kpi/list_kpi_views.js)
+                     — kept identical so the filter and the tile always agree. -->
+                <filter name="filter_expiring_soon" string="Expiring Soon (60d)"
+                        domain="[('state', '=', 'active'),
+                                 ('date_end', '!=', False),
+                                 ('date_end', '&lt;=', (context_today() + relativedelta(days=60)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="filter_end_date" string="End Date"
+                        date="date_end" default_period="month"/>
                 <group>
                     <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
                     <filter name="group_type" string="Contract Type" context="{'group_by': 'contract_type_id'}"/>
