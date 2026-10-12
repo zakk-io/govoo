@@ -6,7 +6,10 @@
         <field name="name">govoo.vote.list</field>
         <field name="model">govoo.vote</field>
         <field name="arch" type="xml">
-            <list create="0" edit="0">
+            <list create="0" edit="0"
+                  decoration-success="choice == 'for'"
+                  decoration-danger="choice == 'against'"
+                  decoration-warning="choice == 'abstain'">
                 <field name="voter_id"/>
                 <field name="choice" widget="badge"
                        decoration-success="choice == 'for'"
@@ -23,17 +26,24 @@
         <field name="name">govoo.vote.kanban</field>
         <field name="model">govoo.vote</field>
         <field name="arch" type="xml">
-            <kanban create="false" edit="false">
+            <kanban create="false" edit="false" class="o_kanban_mobile">
                 <field name="voter_id"/>
                 <field name="choice"/>
                 <field name="weight"/>
                 <templates>
                     <t t-name="card">
-                        <field name="voter_id"/>
-                        <field name="choice" widget="badge"
-                               decoration-success="choice == 'for'"
-                               decoration-danger="choice == 'against'"/>
-                        <field name="weight" options="{'hide_trailing_zeros': True}"/>
+                        <t t-set="govoo_color" t-value="record.choice.raw_value == 'for' ? 'success' : (record.choice.raw_value == 'against' ? 'danger' : 'warning')"/>
+                        <div t-attf-class="border-start border-4 border-{{govoo_color}} ps-2 d-flex align-items-center">
+                            <field name="voter_id" widget="many2one_avatar" class="me-2"/>
+                            <div class="flex-grow-1">
+                                <strong class="o_kanban_record_title d-block"><field name="voter_id"/></strong>
+                                <field name="weight" options="{'hide_trailing_zeros': True}"/>
+                            </div>
+                            <field name="choice" widget="badge"
+                                   decoration-success="choice == 'for'"
+                                   decoration-danger="choice == 'against'"
+                                   decoration-warning="choice == 'abstain'"/>
+                        </div>
                     </t>
                 </templates>
             </kanban>

@@ -5,12 +5,22 @@
         <field name="name">govoo.compliance.instance.list</field>
         <field name="model">govoo.compliance.instance</field>
         <field name="arch" type="xml">
-            <list>
+            <!-- Issue #251: default_order on rag_severity (not rag_color,
+                 which is a Selection field that would otherwise sort
+                 alphabetically — "amber" before "red" — burying the most
+                 urgent rows last, the same bug already fixed for the
+                 dashboard's copy of this kanban in #252). -->
+            <list decoration-danger="rag_color == 'red'"
+                  decoration-warning="rag_color == 'amber'"
+                  decoration-success="rag_color == 'green'"
+                  decoration-muted="rag_color == 'grey'"
+                  default_order="rag_severity">
                 <field name="obligation_id"/>
                 <field name="period"/>
                 <field name="due_date"/>
                 <field name="days_to_due"/>
                 <field name="responsible_id"/>
+                <field name="rag_severity" column_invisible="1"/>
                 <field name="state" widget="badge"
                        decoration-success="state in ('filed', 'waived')"
                        decoration-info="state == 'in_progress'"
@@ -75,29 +85,56 @@
         <field name="name">govoo.compliance.instance.kanban</field>
         <field name="model">govoo.compliance.instance</field>
         <field name="arch" type="xml">
-            <kanban>
+            <!-- Issue #251: single rag_color badge (not a second, redundant
+                 state badge), explicit "Due X / overdue by N days" text,
+                 responsible-user avatar, colour bar, severity sort — same
+                 fix already proven in #252's dashboard copy of this kanban,
+                 applied here to the module's own primary kanban view. -->
+            <kanban class="o_kanban_mobile" default_order="rag_severity">
                 <field name="obligation_id"/>
                 <field name="period"/>
                 <field name="due_date"/>
                 <field name="days_to_due"/>
                 <field name="state"/>
                 <field name="rag_color"/>
+                <field name="responsible_id"/>
                 <templates>
                     <t t-name="card">
-                        <field name="obligation_id"/>
-                        <field name="period"/>
-                        <field name="due_date"/>
-                        <field name="days_to_due"/>
-                        <field name="state" widget="badge"
-                               decoration-success="state in ('filed', 'waived')"
-                               decoration-info="state == 'in_progress'"
-                               decoration-warning="state == 'upcoming'"
-                               decoration-danger="state == 'late'"/>
-                        <field name="rag_color" widget="badge"
-                               decoration-success="rag_color == 'green'"
-                               decoration-warning="rag_color == 'amber'"
-                               decoration-danger="rag_color == 'red'"
-                               decoration-muted="rag_color == 'grey'"/>
+                        <t t-set="govoo_color" t-value="record.rag_color.raw_value == 'red' ? 'danger' : (record.rag_color.raw_value == 'amber' ? 'warning' : (record.rag_color.raw_value == 'green' ? 'success' : 'secondary'))"/>
+                        <div t-attf-class="border-start border-4 border-{{govoo_color}} ps-2">
+                            <div class="o_kanban_record_top">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title"><field name="obligation_id"/></strong>
+                                    <span class="text-muted d-block" t-if="record.period.value"><field name="period"/></span>
+                                </div>
+                                <field name="rag_color" widget="badge"
+                                       decoration-danger="rag_color == 'red'"
+                                       decoration-warning="rag_color == 'amber'"
+                                       decoration-success="rag_color == 'green'"
+                                       decoration-muted="rag_color == 'grey'"/>
+                            </div>
+                            <div class="o_kanban_record_body">
+                                <div class="text-muted"><field name="state"/></div>
+                                <div t-if="record.due_date.raw_value">
+                                    Due <t t-esc="record.due_date.value"/>
+                                    <t t-if="record.days_to_due.raw_value &lt; 0">
+                                        &#8212; overdue by <t t-esc="-record.days_to_due.raw_value"/> days
+                                    </t>
+                                    <t t-elif="record.days_to_due.raw_value gte 0">
+                                        &#8212; <t t-esc="record.days_to_due.value"/> days left
+                                    </t>
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_bottom">
+                                <div class="oe_kanban_bottom_right">
+                                    <field name="responsible_id" widget="many2one_avatar_user"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-name="menu">
+                        <a t-if="widget.editable" role="menuitem" type="open" class="dropdown-item">Edit</a>
+                        <a t-if="widget.deletable" role="menuitem" type="delete" class="dropdown-item">Delete</a>
                     </t>
                 </templates>
             </kanban>
