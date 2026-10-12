@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Issue #261: KPI strip above each of these five list views, via the
+         js_class mechanism (same pattern Odoo's own project_task_list view
+         uses). The actual Controller/template/component registrations are
+         in static/src/kpi_strip/list_kpi/. -->
+
+    <record id="govoo_meeting_view_list_kpi" model="ir.ui.view">
+        <field name="name">govoo.meeting.list.kpi</field>
+        <field name="model">govoo.meeting</field>
+        <field name="inherit_id" ref="govoo_board.govoo_meeting_view_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="js_class">govoo_meeting_kpi_list</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="govoo_resolution_view_list_kpi" model="ir.ui.view">
+        <field name="name">govoo.resolution.list.kpi</field>
+        <field name="model">govoo.resolution</field>
+        <field name="inherit_id" ref="govoo_board.govoo_resolution_view_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="js_class">govoo_resolution_kpi_list</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="govoo_contract_view_list_kpi" model="ir.ui.view">
+        <field name="name">govoo.contract.list.kpi</field>
+        <field name="model">govoo.contract</field>
+        <field name="inherit_id" ref="govoo_contracts.govoo_contract_view_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="js_class">govoo_contract_kpi_list</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="govoo_contract_obligation_view_list_kpi" model="ir.ui.view">
+        <field name="name">govoo.contract.obligation.list.kpi</field>
+        <field name="model">govoo.contract.obligation</field>
+        <field name="inherit_id" ref="govoo_contracts.govoo_contract_obligation_view_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="js_class">govoo_contract_obligation_kpi_list</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="govoo_compliance_instance_view_list_kpi" model="ir.ui.view">
+        <field name="name">govoo.compliance.instance.list.kpi</field>
+        <field name="model">govoo.compliance.instance</field>
+        <field name="inherit_id" ref="govoo_compliance.govoo_compliance_instance_view_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="js_class">govoo_compliance_instance_kpi_list</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
