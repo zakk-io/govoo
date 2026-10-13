@@ -19,6 +19,39 @@
         <field name="tag">govoo_action_items_dashboard</field>
     </record>
 
+    <!-- Dedicated, group-free list view for the "Contracts Expiring
+         Soon" / "Active Contracts Value" / "Related-Party Contracts
+         Undeclared" KPI tiles' drill-through. govoo_contract_view_list's
+         own default_group_by="state" is the right call for the normal
+         Contract Management menu, but a KPI click promises "here are the
+         N matching records", but grouping collapses all N into one opaque
+         header instead. Odoo's search model only falls back to a view's
+         default_group_by when the action's own context.group_by is
+         empty (confirmed in web/static/src/search/search_model.js's
+         _getGroupBy): passing an empty override doesn't suppress it, so
+         a dedicated view (same precedent as the old dashboard's own
+         govoo_dashboard_compliance_kanban) is the only real fix. -->
+    <record id="govoo_dashboard_contract_list" model="ir.ui.view">
+        <field name="name">govoo.dashboard.contract.list</field>
+        <field name="model">govoo.contract</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="contract_type_id"/>
+                <field name="counterparty_id"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="value" widget="monetary"/>
+                <field name="date_end"/>
+                <field name="state" widget="badge"
+                       decoration-success="state in ('executed', 'active')"
+                       decoration-info="state == 'approved'"
+                       decoration-warning="state in ('draft', 'in_approval')"
+                       decoration-muted="state in ('expired', 'terminated')"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
     <!-- ============================================================ -->
     <!-- Menus                                                         -->
     <!-- ============================================================ -->
