@@ -98,13 +98,20 @@ export class GovooActionItemsDashboard extends Component {
     }
 
     openKpi(kpi) {
+        // Odoo's search model only falls back to a view's own
+        // default_group_by when the action's context.group_by is empty --
+        // passing context: {group_by: []} does NOT suppress it (confirmed
+        // in web/static/src/search/search_model.js's _getGroupBy). The
+        // backend provides list_view_id for models whose normal list view
+        // would otherwise collapse the KPI's own matching rows into one
+        // opaque group header instead of showing them.
         this.action.doAction({
             type: "ir.actions.act_window",
             name: kpi.label,
             res_model: kpi.res_model,
             domain: kpi.domain,
             views: [
-                [false, "list"],
+                [kpi.list_view_id || false, "list"],
                 [false, "form"],
             ],
             target: "current",
