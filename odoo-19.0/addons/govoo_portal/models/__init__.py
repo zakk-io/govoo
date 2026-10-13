@@ -1,3 +1,3 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
-from . import board_board
+from . import govoo_dashboard_action_items

@@ -1,0 +1,140 @@
+// Part of Govoo. See LICENSE file for full copyright and licensing details.
+//
+// Issue #266. The KPI tile look (.o_govoo_kpi_*) is inherited from
+// kpi_strip.scss, kept in the bundle for issue #261's list-page KPI
+// strips -- only new rules (tabs, item rows, icon circles, badges) live
+// here. Icon-circle backgrounds are a plain neutral tint defined inline,
+// not a Bootstrap "-subtle" utility class, since this bundle's exact
+// Bootstrap build was never confirmed to ship those variants (kpi_strip.scss's
+// own history already found one Bootstrap-adjacent assumption -- CSS custom
+// properties -- silently missing here); text colour + a distinct FA4 glyph
+// per type still gives two independent forms of distinction, not colour
+// alone.
+
+.o_govoo_kpi_strip_secondary {
+    margin-top: -0.25rem;
+}
+
+.o_govoo_ai {
+    padding: 1.5rem 1.75rem;
+}
+
+.o_govoo_ai_tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.o_govoo_ai_tab {
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    background: #fff;
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: inherit;
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.04);
+    }
+}
+
+.o_govoo_ai_tab_active {
+    background: #0f172a;
+    border-color: #0f172a;
+    color: #fff;
+
+    &:hover {
+        background: #0f172a;
+    }
+}
+
+.o_govoo_ai_section_head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1.5rem 0 0.625rem 0;
+}
+
+.o_govoo_ai_section_dot {
+    width: 0.5625rem;
+    height: 0.5625rem;
+    border-radius: 999px;
+}
+
+.o_govoo_ai_section_title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.o_govoo_ai_row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    padding: 0.875rem 1.125rem;
+    margin-bottom: 0.625rem;
+}
+
+.o_govoo_ai_icon_circle {
+    flex: 0 0 auto;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.625rem;
+    background: rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.o_govoo_ai_row_text {
+    flex: 1 1 auto;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.o_govoo_ai_row_title {
+    font-size: 0.906rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    .o_govoo_ai_row_text:hover & {
+        text-decoration: underline;
+    }
+}
+
+.o_govoo_ai_row_context {
+    font-size: 0.8125rem;
+    opacity: 0.7;
+    margin-top: 0.125rem;
+}
+
+.o_govoo_ai_badge {
+    flex: 0 0 auto;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.o_govoo_ai_action {
+    flex: 0 0 auto;
+}
+
+.o_govoo_ai_empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    opacity: 0.75;
+
+    i {
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+}
