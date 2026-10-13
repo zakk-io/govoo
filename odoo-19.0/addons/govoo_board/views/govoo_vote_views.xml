@@ -11,6 +11,7 @@
                   decoration-danger="choice == 'against'"
                   decoration-warning="choice == 'abstain'">
                 <field name="voter_id"/>
+                <field name="cast_by_id" string="Cast By (Proxy)"/>
                 <field name="choice" widget="badge"
                        decoration-success="choice == 'for'"
                        decoration-danger="choice == 'against'"

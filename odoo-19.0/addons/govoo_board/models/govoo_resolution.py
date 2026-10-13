@@ -1,5 +1,7 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
+from datetime import timedelta
+
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
@@ -100,6 +102,23 @@ class GovooResolution(models.Model):
         string='Effective Date',
         tracking=True,
     )
+    vote_deadline = fields.Datetime(
+        string='Voting Deadline',
+        tracking=True,
+        help='Issue #269: set automatically at action_open() from the '
+             '"govoo_board.resolution_voting_window_days" parameter, when '
+             'configured. Blank (the default) means no deadline -- a '
+             'Secretary must still manually tally, matching behavior '
+             'before this field existed.',
+    )
+    tie_break_pending = fields.Boolean(
+        string='Tie-Break Pending',
+        tracking=True,
+        help='Issue #269: set by action_tally() when a simple-majority '
+             'vote ties and "govoo_board.resolution_tie_break_enabled" is '
+             'on, instead of auto-failing. Cleared by '
+             'action_chair_casting_vote().',
+    )
     # Always ir.attachment (Many2one comodel is fixed at class-definition
     # time); when a signing document is generated for this field, check
     # self.env['govoo.feature.flags'].is_sign_app_installed() to use
@@ -171,13 +190,84 @@ class GovooResolution(models.Model):
         """BR-BOARD-005: quorum for meeting-linked resolutions reuses the
         meeting's own (already-correct) quorum computation. Standalone/
         written resolutions (meeting_id is null) have no quorum concept
-        defined anywhere in spec -- [CONFIRM]; treated as always-met here
-        rather than inventing an undefined eligible-voter-based threshold.
+        defined anywhere in spec -- [CONFIRM]; treated as always-met unless
+        'govoo_board.written_resolution_quorum_percentage' is explicitly
+        configured (issue #269 item 7), in which case that fraction of
+        _get_eligible_voters() must have cast a non-conflicted vote.
         """
         self.ensure_one()
         if self.meeting_id:
             return self.meeting_id.quorum_met
-        return True
+        threshold = self._written_resolution_quorum_percentage()
+        if threshold is None:
+            return True
+        eligible_count = len(self._get_eligible_voters())
+        if eligible_count <= 0:
+            return True
+        votes_cast = len(self.vote_ids.filtered(lambda v: not v.is_conflicted))
+        return votes_cast >= threshold * eligible_count
+
+    def _voting_window_days(self):
+        """Issue #269 item 3: days after action_open() a resolution's vote
+        auto-closes via cron. Unset (0) = no deadline, the exact behavior
+        before this field existed -- a Secretary must manually tally."""
+        raw = self.env['ir.config_parameter'].sudo().get_param(
+            'govoo_board.resolution_voting_window_days', '0',
+        )
+        try:
+            return int(raw or '0')
+        except (TypeError, ValueError):
+            return 0
+
+    def _notice_period_days(self):
+        """Issue #269 item 5: minimum days between action_open() and a
+        linked meeting's date. Unset (0) = disabled, matching the "no
+        hard-coded legal values" convention -- standalone resolutions have
+        no meeting date to measure against and are never gated by this."""
+        raw = self.env['ir.config_parameter'].sudo().get_param(
+            'govoo_board.resolution_notice_period_days', '0',
+        )
+        try:
+            return int(raw or '0')
+        except (TypeError, ValueError):
+            return 0
+
+    def _meeting_state_gate_enabled(self):
+        """Issue #269 item 6: when enabled, action_open() refuses to open
+        voting on a resolution whose meeting is still in 'draft'. Defaults
+        to disabled: govoo.meeting itself defaults to 'draft' and existing
+        workflows (and this module's own test suite) routinely open
+        resolutions before the meeting is formally scheduled, so enabling
+        this by default would silently change behavior rather than add an
+        opt-in governance policy."""
+        return self.env['ir.config_parameter'].sudo().get_param(
+            'govoo_board.resolution_meeting_state_gate_enabled', 'False',
+        ) in ('True', '1')
+
+    def _tie_break_enabled(self):
+        """Issue #269 item 4: whether a tied simple-majority vote should
+        wait for a chair's casting vote (tie_break_pending) instead of
+        auto-failing. Unset/False preserves the original "a tie fails"
+        behavior."""
+        return self.env['ir.config_parameter'].sudo().get_param(
+            'govoo_board.resolution_tie_break_enabled', 'False',
+        ) in ('True', '1')
+
+    def _written_resolution_quorum_percentage(self):
+        """Issue #269 item 7: fraction (0-1) of eligible voters a standalone
+        (meeting-less) resolution needs voting for quorum to be considered
+        met. Unset (None) preserves the original always-met behavior --
+        the exact figure is a [CONFIRM] legal/governance-policy question,
+        same discipline as _special_majority_threshold."""
+        raw = self.env['ir.config_parameter'].sudo().get_param(
+            'govoo_board.written_resolution_quorum_percentage',
+        )
+        if not raw:
+            return None
+        try:
+            return float(raw)
+        except (TypeError, ValueError):
+            return None
 
     def _get_eligible_voters(self):
         """Return [(partner, voter_type)] -- 'director' or 'shareholder'
@@ -218,6 +308,27 @@ class GovooResolution(models.Model):
             for partner in appointments.partner_id:
                 voters[partner.id] = (partner, 'director')
         return list(voters.values())
+
+    def _compute_vote_weight_for(self, partner):
+        """Issue #269 item 2: the single source of truth for what weight a
+        vote by `partner` on this resolution gets -- shared by
+        govoo.vote.create() (which actually sets it) and the portal's
+        weight-disclosure preview (which must show the voter the exact
+        same number before they submit, never an approximation)."""
+        self.ensure_one()
+        is_shareholder_eligible_type = self.resolution_type in ('ordinary', 'special')
+        is_shareholder_meeting_context = (
+            not self.meeting_id or self.meeting_id.meeting_type in ('agm', 'egm')
+        )
+        if is_shareholder_eligible_type and is_shareholder_meeting_context:
+            company_id = self.company_id.id or self.env.company.id
+            holding = self.env['govoo.share.holding'].search([
+                ('partner_id', '=', partner.id),
+                ('company_id', '=', company_id),
+            ], limit=1)
+            if holding:
+                return holding.voting_power
+        return 1.0
 
     @api.depends('vote_ids')
     def _compute_vote_count(self):
@@ -358,10 +469,29 @@ class GovooResolution(models.Model):
         flagged instead (visible via unreachable_voter_count).
         """
         self._validate_state_transition('open')
+        notice_days = self._notice_period_days()
+        gate_meeting_state = self._meeting_state_gate_enabled()
         for rec in self:
             if not rec.resolution_type:
                 raise ValidationError(_('Resolution type must be set before opening.'))
+            if gate_meeting_state and rec.meeting_id and rec.meeting_id.state == 'draft':
+                raise ValidationError(_(
+                    'Cannot open voting: meeting "%s" has not been scheduled '
+                    'yet (still in Draft).'
+                ) % rec.meeting_id.name)
+            if notice_days and rec.meeting_id and rec.meeting_id.date:
+                days_remaining = (rec.meeting_id.date - fields.Datetime.now()).days
+                if days_remaining < notice_days:
+                    raise ValidationError(_(
+                        'Cannot open voting: only %d day(s) notice before the '
+                        'meeting; the configured notice period '
+                        '("govoo_board.resolution_notice_period_days") '
+                        'requires at least %d day(s).'
+                    ) % (max(days_remaining, 0), notice_days))
         self.write({'state': 'open'})
+        window_days = self._voting_window_days()
+        if window_days:
+            self.write({'vote_deadline': fields.Datetime.now() + timedelta(days=window_days)})
         template = self.env.ref(
             'govoo_board.mail_template_resolution_voting_invite',
             raise_if_not_found=False,
@@ -394,6 +524,14 @@ class GovooResolution(models.Model):
         threshold for resolution_type. A 'special' resolution with no
         configured majority threshold raises rather than silently applying
         plain majority.
+
+        Issue #269 item 4: a tied simple-majority vote (for == against)
+        does not auto-fail when 'govoo_board.resolution_tie_break_enabled'
+        is on -- there is no "chair" field anywhere in govoo.meeting to
+        resolve it automatically, so the resolution is flagged
+        tie_break_pending and stays open until action_chair_casting_vote()
+        is called. With the flag off (the default), a tie fails exactly as
+        before.
         """
         for rec in self:
             if rec.state != 'open':
@@ -403,6 +541,13 @@ class GovooResolution(models.Model):
                 raise ValidationError(_('No eligible votes to tally.'))
             for_votes = sum(eligible_votes.filtered(lambda v: v.choice == 'for').mapped('weight'))
             against_votes = sum(eligible_votes.filtered(lambda v: v.choice == 'against').mapped('weight'))
+            if (
+                rec.resolution_type != 'special'
+                and for_votes == against_votes
+                and rec._tie_break_enabled()
+            ):
+                rec.tie_break_pending = True
+                continue
             if rec._quorum_met() and rec._passes_majority(
                 for_votes, against_votes, raise_if_unconfigured=True,
             ):
@@ -411,10 +556,46 @@ class GovooResolution(models.Model):
             else:
                 rec.state = 'failed'
                 rec.result = 'failed'
+            rec.tie_break_pending = False
             # Otherwise action_open's "Vote on resolution" activity nags as
             # overdue forever on a resolution that no longer needs a vote
             # (issue #154).
             rec.activity_feedback(['mail.mail_activity_data_todo'])
+
+    def action_chair_casting_vote(self, decision):
+        """Issue #269 item 4: resolve a tie flagged by action_tally() via
+        tie_break_pending. Restricted to Secretary/Admin rather than a
+        dedicated "chair" role, since no chair-role field exists anywhere
+        on govoo.meeting yet -- [CONFIRM] whether a dedicated role should
+        replace this group check once that's decided (same deferral
+        already applied to the special-resolution majority threshold)."""
+        if decision not in ('passed', 'failed'):
+            raise ValidationError(_('Casting vote decision must be "passed" or "failed".'))
+        if not (
+            self.env.user.has_group('govoo_base.group_govoo_secretary')
+            or self.env.user.has_group('govoo_base.group_govoo_admin')
+        ):
+            raise ValidationError(_(
+                'Only the Company Secretary or Board Administrator may '
+                "record a chair's casting vote."
+            ))
+        for rec in self:
+            if not rec.tie_break_pending:
+                raise ValidationError(_('This resolution has no pending tie-break.'))
+            rec.state = decision
+            rec.result = decision
+            rec.tie_break_pending = False
+            rec.activity_feedback(['mail.mail_activity_data_todo'])
+
+    def action_chair_casting_vote_passed(self):
+        """Button-friendly wrapper -- form buttons cannot pass a Python
+        argument to action_chair_casting_vote()."""
+        self.action_chair_casting_vote('passed')
+
+    def action_chair_casting_vote_failed(self):
+        """Button-friendly wrapper -- form buttons cannot pass a Python
+        argument to action_chair_casting_vote()."""
+        self.action_chair_casting_vote('failed')
 
     def action_withdraw(self):
         self._validate_state_transition('withdrawn')

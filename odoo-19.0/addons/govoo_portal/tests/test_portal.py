@@ -134,7 +134,12 @@ class TestPortal(HttpCase):
         self.assertIn(self.share_class.name, response.text)
 
     def test_005_vote_recorded_correctly(self):
-        """TC-WF-PORTAL-001: casting a vote via POST records correct voter/weight."""
+        """TC-WF-PORTAL-001: casting a vote via POST records correct voter/weight.
+
+        Issue #269 item 2: casting is now two-step (weight disclosure +
+        explicit confirmation) -- the first POST only shows the confirm
+        step, the second POST (confirmed=1) actually creates the vote.
+        """
         resolution = self.env['govoo.resolution'].create({
             'title': 'Test Resolution',
             'resolution_type': 'ordinary',
@@ -147,9 +152,20 @@ class TestPortal(HttpCase):
         csrf_token = re.search(
             r'name="csrf_token" value="([^"]+)"', cast_page.text,
         ).group(1)
-        self.url_open(
+        confirm_page = self.url_open(
             '/my/votes/%s/cast' % resolution.id,
             data={'vote_choice': 'for', 'csrf_token': csrf_token},
+        )
+        self.assertIn('Confirm', confirm_page.text)
+        no_vote_yet = self.env['govoo.vote'].sudo().search([
+            ('resolution_id', '=', resolution.id),
+            ('voter_id', '=', self.user_director_a.partner_id.id),
+        ])
+        self.assertEqual(len(no_vote_yet), 0)
+
+        self.url_open(
+            '/my/votes/%s/cast' % resolution.id,
+            data={'vote_choice': 'for', 'confirmed': '1', 'csrf_token': csrf_token},
         )
 
         vote = self.env['govoo.vote'].sudo().search([
@@ -196,6 +212,11 @@ class TestPortal(HttpCase):
         self.url_open(
             '/my/holdings/votes/%s/cast' % resolution.id,
             data={'vote_choice': 'for', 'csrf_token': csrf_token},
+        )
+        # Issue #269 item 2: first POST only reaches the confirm step.
+        self.url_open(
+            '/my/holdings/votes/%s/cast' % resolution.id,
+            data={'vote_choice': 'for', 'confirmed': '1', 'csrf_token': csrf_token},
         )
 
         vote = self.env['govoo.vote'].sudo().search([

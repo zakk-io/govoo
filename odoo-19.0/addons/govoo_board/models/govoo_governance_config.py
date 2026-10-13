@@ -33,6 +33,30 @@ _CONFIG_PARAMETER_FIELDS = {
     'minutes_retention_default_years': (
         'govoo_board.minutes_retention_default_years', 'integer', False,
     ),
+    # Issue #269: these five were previously only reachable via
+    # Settings > Technical > System Parameters (special_resolution_
+    # majority_threshold already existed and was read by govoo_resolution.py
+    # -- this UI gap was found during the issue #269 audit, not introduced
+    # by it). All five are new voting-workflow policy switches; every one
+    # defaults to unset/disabled, per the same convention as the six above.
+    'special_resolution_majority_threshold': (
+        'govoo_board.special_resolution_majority_threshold', 'float', True,
+    ),
+    'resolution_voting_window_days': (
+        'govoo_board.resolution_voting_window_days', 'integer', True,
+    ),
+    'resolution_notice_period_days': (
+        'govoo_board.resolution_notice_period_days', 'integer', True,
+    ),
+    'resolution_meeting_state_gate_enabled': (
+        'govoo_board.resolution_meeting_state_gate_enabled', 'boolean', False,
+    ),
+    'resolution_tie_break_enabled': (
+        'govoo_board.resolution_tie_break_enabled', 'boolean', False,
+    ),
+    'written_resolution_quorum_percentage': (
+        'govoo_board.written_resolution_quorum_percentage', 'float', True,
+    ),
 }
 
 
@@ -101,6 +125,56 @@ class GovooGovernanceConfig(models.Model):
              "of the 10-year statutory retention vs. data-subject erasure "
              "reconciliation.",
     )
+    special_resolution_majority_threshold = fields.Float(
+        string='Special Resolution Majority Threshold',
+        tracking=True,
+        help="[CONFIRM] BR-BOARD-005 / open-decisions.md item 11: fraction "
+             "(e.g. 0.75) of for+against votes a 'special' resolution must "
+             "clear. 0 keeps special resolutions blocked from tallying "
+             "until confirmed (company articles / Rwandan law).",
+    )
+    resolution_voting_window_days = fields.Integer(
+        string='Resolution Voting Window (days)',
+        tracking=True,
+        help='Issue #269: days after a resolution opens for voting before '
+             'it auto-closes (tallies) via a daily cron. 0 keeps voting '
+             'open until a Secretary manually tallies it -- the original '
+             'behavior.',
+    )
+    resolution_notice_period_days = fields.Integer(
+        string='Resolution Notice Period (days)',
+        tracking=True,
+        help='Issue #269: minimum days between opening a resolution for '
+             "voting and its linked meeting's date. 0 disables the check. "
+             'Standalone (written) resolutions have no meeting date and are '
+             'never gated by this.',
+    )
+    resolution_meeting_state_gate_enabled = fields.Boolean(
+        string='Block Voting Before Meeting Is Scheduled',
+        tracking=True,
+        default=False,
+        help='Issue #269: when enabled, a resolution cannot open for '
+             "voting while its meeting is still in Draft state. Off by "
+             'default: govoo.meeting defaults to Draft, so this is an '
+             'opt-in governance policy, not a correction of a bug.',
+    )
+    resolution_tie_break_enabled = fields.Boolean(
+        string="Allow Chair's Casting Vote on Ties",
+        tracking=True,
+        default=False,
+        help='Issue #269: when enabled, a tied simple-majority vote waits '
+             'for a Secretary/Board Administrator casting-vote decision '
+             'instead of automatically failing. [CONFIRM]: casting-vote '
+             'authority is restricted to those two groups until a '
+             'dedicated chair role is confirmed.',
+    )
+    written_resolution_quorum_percentage = fields.Float(
+        string='Written Resolution Quorum (%)',
+        tracking=True,
+        help='[CONFIRM] Issue #269: fraction (e.g. 0.5) of eligible voters '
+             'who must vote on a standalone (meeting-less) resolution for '
+             'quorum to be met. 0 keeps the original always-met behavior.',
+    )
 
     @api.constrains('minutes_retention_default_years')
     def _check_minutes_retention_positive(self):
@@ -109,6 +183,20 @@ class GovooGovernanceConfig(models.Model):
                 raise ValidationError(_(
                     'Default Minutes Retention Period must be at least 1 year.'
                 ))
+
+    @api.constrains('special_resolution_majority_threshold', 'written_resolution_quorum_percentage')
+    def _check_fraction_fields_in_range(self):
+        for rec in self:
+            for field_name, label in (
+                ('special_resolution_majority_threshold', 'Special Resolution Majority Threshold'),
+                ('written_resolution_quorum_percentage', 'Written Resolution Quorum (%)'),
+            ):
+                value = rec[field_name]
+                if value and not (0 < value <= 1):
+                    raise ValidationError(_(
+                        '%s must be a fraction between 0 and 1 (e.g. 0.75 '
+                        'for 75%%), or 0 to leave it unconfigured.'
+                    ) % label)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -158,6 +246,11 @@ class GovooGovernanceConfig(models.Model):
             default_value = field.default(self) if field.default else 0
             if field_type == 'boolean':
                 vals[field_name] = raw in ('True', '1')
+            elif field_type == 'float':
+                try:
+                    vals[field_name] = float(raw) if raw else default_value
+                except (TypeError, ValueError):
+                    vals[field_name] = default_value
             else:
                 try:
                     vals[field_name] = int(raw) if raw else default_value

@@ -1,5 +1,8 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
+from datetime import timedelta
+
+from odoo import fields
 from odoo.exceptions import ValidationError
 from odoo.tests import tagged
 from odoo.tests.common import new_test_user
@@ -318,3 +321,220 @@ class GovooResolutionTC(GovooBoardTestBase):
         })
         resolution.sign_request_id = attachment
         self.assertEqual(resolution.sign_request_id, attachment)
+
+    # -- Issue #269 item 5: notice period --------------------------------
+
+    def test_notice_period_unset_preserves_default_behavior(self):
+        """Unset (default) notice period: open succeeds regardless of how
+        close the meeting date is -- the exact behavior before this field
+        existed."""
+        meeting = self._make_meeting()  # default date is not "soon" from now
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+        self.assertEqual(resolution.state, 'open')
+
+    def test_notice_period_blocks_open_when_meeting_too_soon(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.resolution_notice_period_days', '14',
+        )
+        meeting = self._make_meeting()
+        meeting.date = fields.Datetime.now() + timedelta(days=5)
+        resolution = self._make_resolution(meeting)
+        with self.assertRaises(ValidationError):
+            resolution.action_open()
+
+    def test_notice_period_allows_open_when_meeting_far_enough_out(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.resolution_notice_period_days', '14',
+        )
+        meeting = self._make_meeting()
+        meeting.date = fields.Datetime.now() + timedelta(days=30)
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+        self.assertEqual(resolution.state, 'open')
+
+    # -- Issue #269 item 6: gate opening on meeting state ----------------
+
+    def test_meeting_state_gate_disabled_by_default(self):
+        """govoo.meeting defaults to 'draft', and this module's own test
+        suite routinely opens resolutions against a draft meeting -- the
+        gate must stay opt-in."""
+        meeting = self._make_meeting()
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+        self.assertEqual(resolution.state, 'open')
+
+    def test_meeting_state_gate_blocks_draft_meeting_when_enabled(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.resolution_meeting_state_gate_enabled', 'True',
+        )
+        meeting = self._make_meeting()
+        resolution = self._make_resolution(meeting)
+        with self.assertRaises(ValidationError):
+            resolution.action_open()
+
+    def test_meeting_state_gate_allows_scheduled_meeting_when_enabled(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.resolution_meeting_state_gate_enabled', 'True',
+        )
+        meeting = self._make_meeting()
+        meeting.action_schedule()
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+        self.assertEqual(resolution.state, 'open')
+
+    # -- Issue #269 item 4: tie-break / chair's casting vote -------------
+
+    def test_tie_fails_by_default(self):
+        meeting = self._make_meeting()
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+        for partner in [self.partner_a, self.partner_b]:
+            self.env['govoo.vote'].create({
+                'resolution_id': resolution.id,
+                'voter_id': partner.id,
+                'choice': 'for',
+            })
+        for partner in [self.partner_c, self.partner_d]:
+            self.env['govoo.vote'].create({
+                'resolution_id': resolution.id,
+                'voter_id': partner.id,
+                'choice': 'against',
+            })
+        resolution.action_tally()
+        self.assertEqual(resolution.state, 'failed')
+        self.assertFalse(resolution.tie_break_pending)
+
+    def test_tie_break_enabled_waits_for_casting_vote(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.resolution_tie_break_enabled', 'True',
+        )
+        meeting = self._make_meeting()
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+        for partner in [self.partner_a, self.partner_b]:
+            self.env['govoo.vote'].create({
+                'resolution_id': resolution.id,
+                'voter_id': partner.id,
+                'choice': 'for',
+            })
+        for partner in [self.partner_c, self.partner_d]:
+            self.env['govoo.vote'].create({
+                'resolution_id': resolution.id,
+                'voter_id': partner.id,
+                'choice': 'against',
+            })
+        resolution.action_tally()
+        self.assertEqual(resolution.state, 'open')
+        self.assertTrue(resolution.tie_break_pending)
+
+        secretary = new_test_user(
+            self.env, login='test_secretary_casting_vote',
+            groups='govoo_base.group_govoo_secretary',
+            company_id=self.company.id,
+        )
+        resolution.with_user(secretary).action_chair_casting_vote('passed')
+        self.assertEqual(resolution.state, 'passed')
+        self.assertEqual(resolution.result, 'passed')
+        self.assertFalse(resolution.tie_break_pending)
+
+    def test_casting_vote_restricted_to_secretary_or_admin(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.resolution_tie_break_enabled', 'True',
+        )
+        meeting = self._make_meeting()
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+        for partner in [self.partner_a, self.partner_b]:
+            self.env['govoo.vote'].create({
+                'resolution_id': resolution.id,
+                'voter_id': partner.id,
+                'choice': 'for',
+            })
+        for partner in [self.partner_c, self.partner_d]:
+            self.env['govoo.vote'].create({
+                'resolution_id': resolution.id,
+                'voter_id': partner.id,
+                'choice': 'against',
+            })
+        resolution.action_tally()
+        self.assertTrue(resolution.tie_break_pending)
+
+        plain_user = new_test_user(
+            self.env, login='test_plain_user_casting_vote',
+            groups='govoo_base.group_govoo_user',
+            company_id=self.company.id,
+        )
+        with self.assertRaises(ValidationError):
+            resolution.with_user(plain_user).action_chair_casting_vote('passed')
+
+    # -- Issue #269 item 7: quorum for standalone resolutions ------------
+
+    def _make_standalone_shareholder_resolution_with_holdings(self, quorum_percentage):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.written_resolution_quorum_percentage', str(quorum_percentage),
+        )
+        # _get_eligible_voters() searches ALL govoo.share.holding for the
+        # resolution's company -- self.company is this project's shared,
+        # heavily-seeded demo company, so a fresh company here isolates
+        # the eligible-voter count to exactly the 4 holdings below instead
+        # of also counting every other shareholder already seeded on
+        # self.company.
+        company = self.env['res.company'].create({'name': 'Quorum Test Co'})
+        share_class = self.env['govoo.share.class'].create({
+            'name': 'Ordinary Shares',
+            'nominal_value': 1000,
+            'votes_per_share': 1.0,
+            'total_authorised': 100,
+            'company_id': company.id,
+        })
+        for partner in [self.partner_a, self.partner_b, self.partner_c, self.partner_d]:
+            self.env['govoo.share.allotment'].create({
+                'share_class_id': share_class.id,
+                'partner_id': partner.id,
+                'quantity': 10,
+                'date_allotted': '2026-01-01',
+            })
+        resolution = self.env['govoo.resolution'].with_company(company).create({
+            'title': 'Standalone Shareholder Resolution',
+            'resolution_type': 'ordinary',
+        })
+        resolution.action_open()
+        return resolution
+
+    def test_written_resolution_quorum_configured_rejects_too_few_votes(self):
+        resolution = self._make_standalone_shareholder_resolution_with_holdings(0.5)
+        # Only 1 of 4 eligible shareholders votes (25%) -- below 50%.
+        self.env['govoo.vote'].create({
+            'resolution_id': resolution.id,
+            'voter_id': self.partner_a.id,
+            'choice': 'for',
+        })
+        resolution.action_tally()
+        self.assertEqual(resolution.state, 'failed')
+
+    def test_written_resolution_quorum_configured_passes_with_enough_votes(self):
+        resolution = self._make_standalone_shareholder_resolution_with_holdings(0.5)
+        # All 4 eligible shareholders vote (100%) -- clears 50% quorum.
+        for partner in [self.partner_a, self.partner_b, self.partner_c, self.partner_d]:
+            self.env['govoo.vote'].create({
+                'resolution_id': resolution.id,
+                'voter_id': partner.id,
+                'choice': 'for',
+            })
+        resolution.action_tally()
+        self.assertEqual(resolution.state, 'passed')
+
+    def test_written_resolution_quorum_unset_preserves_always_met_behavior(self):
+        resolution = self.env['govoo.resolution'].create({
+            'title': 'Standalone Resolution No Quorum Config',
+            'resolution_type': 'written',
+        })
+        resolution.action_open()
+        self.env['govoo.vote'].create({
+            'resolution_id': resolution.id,
+            'voter_id': self.partner_a.id,
+            'choice': 'for',
+        })
+        resolution.action_tally()
+        self.assertEqual(resolution.state, 'passed')

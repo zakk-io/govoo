@@ -42,3 +42,7 @@ access_govoo_governance_config_user,govoo.governance.config.user,model_govoo_gov
 access_govoo_governance_config_secretary,govoo.governance.config.secretary,model_govoo_governance_config,govoo_base.group_govoo_secretary,1,1,1,0
 access_govoo_governance_config_admin,govoo.governance.config.admin,model_govoo_governance_config,govoo_base.group_govoo_admin,1,1,1,0
 access_govoo_governance_config_auditor,govoo.governance.config.auditor,model_govoo_governance_config,govoo_base.group_govoo_auditor,1,0,0,0
+access_govoo_vote_proxy_user,govoo.vote.proxy.user,model_govoo_vote_proxy,govoo_base.group_govoo_user,1,0,0,0
+access_govoo_vote_proxy_secretary,govoo.vote.proxy.secretary,model_govoo_vote_proxy,govoo_base.group_govoo_secretary,1,1,1,1
+access_govoo_vote_proxy_admin,govoo.vote.proxy.admin,model_govoo_vote_proxy,govoo_base.group_govoo_admin,1,1,1,0
+access_govoo_vote_proxy_auditor,govoo.vote.proxy.auditor,model_govoo_vote_proxy,govoo_base.group_govoo_auditor,1,0,0,0
