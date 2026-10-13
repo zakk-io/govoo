@@ -117,6 +117,12 @@ class GovooDashboardActionItems(models.AbstractModel):
             ('conflict_declared', '=', False),
         ]
 
+        # Deliberately NOT govoo_contract_view_list: its own
+        # default_group_by="state" collapses every result into one
+        # opaque group header instead of the flat list a KPI click
+        # promises -- see the comment on this view's own record.
+        list_view_id = self.env.ref('govoo_portal.govoo_dashboard_contract_list').id
+
         return [
             {
                 'key': 'expiring_contracts',
@@ -126,6 +132,7 @@ class GovooDashboardActionItems(models.AbstractModel):
                 'value': str(self.env['govoo.contract'].search_count(expiring_domain)),
                 'res_model': 'govoo.contract',
                 'domain': expiring_domain,
+                'list_view_id': list_view_id,
             },
             {
                 'key': 'active_contracts_value',
@@ -135,6 +142,7 @@ class GovooDashboardActionItems(models.AbstractModel):
                 'value': self._format_currency(total_value, currency),
                 'res_model': 'govoo.contract',
                 'domain': [('state', '=', 'active')],
+                'list_view_id': list_view_id,
             },
             {
                 'key': 'undeclared_conflicts',
@@ -144,6 +152,7 @@ class GovooDashboardActionItems(models.AbstractModel):
                 'value': str(self.env['govoo.contract'].search_count(undeclared_domain)),
                 'res_model': 'govoo.contract',
                 'domain': undeclared_domain,
+                'list_view_id': list_view_id,
             },
         ]
 
@@ -157,6 +166,7 @@ class GovooDashboardActionItems(models.AbstractModel):
             'value': str(self.env['govoo.board.pack'].search_count(domain)),
             'res_model': 'govoo.board.pack',
             'domain': domain,
+            'list_view_id': False,
         }
 
     def _format_currency(self, amount, currency):
