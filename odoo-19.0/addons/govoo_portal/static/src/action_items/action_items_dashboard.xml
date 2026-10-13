@@ -38,6 +38,19 @@
                 </div>
             </div>
 
+            <div t-if="!state.loading and state.data.kpis.length" class="o_govoo_kpi_strip o_govoo_kpi_strip_secondary">
+                <t t-foreach="state.data.kpis" t-as="kpi" t-key="kpi.key">
+                    <div t-attf-class="o_govoo_kpi_tile border-start border-4 border-{{kpi.color}}"
+                         t-on-click="() => this.openKpi(kpi)" role="button">
+                        <i t-attf-class="fa {{kpi.icon}} o_govoo_kpi_icon text-{{kpi.color}}"/>
+                        <div class="o_govoo_kpi_text">
+                            <span class="o_govoo_kpi_value"><t t-esc="kpi.value"/></span>
+                            <span class="o_govoo_kpi_label"><t t-esc="kpi.label"/></span>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
             <div t-if="!state.loading" class="o_govoo_ai_tabs">
                 <t t-foreach="state.data.tabs" t-as="tab" t-key="tab.key">
                     <button type="button"

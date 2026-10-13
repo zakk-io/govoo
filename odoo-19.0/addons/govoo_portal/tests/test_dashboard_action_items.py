@@ -214,3 +214,90 @@ class TestDashboardActionItems(TransactionCase):
                 tab['count'],
                 len([i for i in data['items'] if i['type'] == tab['key']]),
             )
+
+    # -- Issue #266 follow-up: governance-health KPI tiles --------------
+    # These are company-wide, not per-user, so assertions are delta-based
+    # against the shared seeded demo data rather than exact totals (same
+    # discipline as test_vote_item_appears_for_eligible_voter above).
+
+    def _make_active_contract(self, **overrides):
+        vals = {
+            'name': 'CTR-266-KPI',
+            'contract_type_id': self.contract_type.id,
+            'counterparty_id': self.counterparty.id,
+            'company_id': self.company.id,
+            'value': 5000000.0,
+            'state': 'active',
+        }
+        vals.update(overrides)
+        return self.env['govoo.contract'].create(vals)
+
+    def _kpi(self, user, key):
+        kpis = self._get_items(user)['kpis']
+        return next((k for k in kpis if k['key'] == key), None)
+
+    def test_contract_kpis_present_for_approver_absent_for_plain_user(self):
+        self.assertIsNotNone(self._kpi(self.approver, 'expiring_contracts'))
+        self.assertIsNotNone(self._kpi(self.approver, 'active_contracts_value'))
+        self.assertIsNotNone(self._kpi(self.approver, 'undeclared_conflicts'))
+        self.assertIsNone(self._kpi(self.director, 'expiring_contracts'))
+
+    def test_expiring_contracts_kpi_counts_a_new_expiring_contract(self):
+        before = int(self._kpi(self.approver, 'expiring_contracts')['value'])
+        self._make_active_contract(date_end=Date.today() + timedelta(days=30))
+        after = int(self._kpi(self.approver, 'expiring_contracts')['value'])
+        self.assertEqual(after, before + 1)
+
+    def test_expiring_contracts_kpi_excludes_a_far_future_contract(self):
+        before = int(self._kpi(self.approver, 'expiring_contracts')['value'])
+        self._make_active_contract(date_end=Date.today() + timedelta(days=400))
+        after = int(self._kpi(self.approver, 'expiring_contracts')['value'])
+        self.assertEqual(after, before)
+
+    def test_active_contracts_value_kpi_includes_new_contract_value(self):
+        def parsed(kpi):
+            return int(''.join(ch for ch in kpi['value'] if ch.isdigit()))
+
+        before = parsed(self._kpi(self.approver, 'active_contracts_value'))
+        self._make_active_contract(value=5000000.0)
+        after = parsed(self._kpi(self.approver, 'active_contracts_value'))
+        self.assertEqual(after, before + 5000000)
+
+    def _make_related_party_counterparty(self):
+        """is_related_party is computed from the counterparty partner's
+        own govoo_is_director/shareholder/officer/beneficial_owner flags
+        (govoo_contract.py's _compute_is_related_party) -- it can't be set
+        directly on the contract, only earned via a genuinely flagged
+        partner."""
+        partner = self.env['res.partner'].create({
+            'name': 'Related Party 266',
+            'company_id': self.company.id,
+            'govoo_is_director': True,
+        })
+        return partner
+
+    def test_undeclared_conflicts_kpi_counts_undeclared_related_party_contract(self):
+        before = int(self._kpi(self.approver, 'undeclared_conflicts')['value'])
+        self._make_active_contract(
+            counterparty_id=self._make_related_party_counterparty().id, conflict_declared=False,
+        )
+        after = int(self._kpi(self.approver, 'undeclared_conflicts')['value'])
+        self.assertEqual(after, before + 1)
+
+    def test_undeclared_conflicts_kpi_excludes_declared_related_party_contract(self):
+        before = int(self._kpi(self.approver, 'undeclared_conflicts')['value'])
+        self._make_active_contract(
+            counterparty_id=self._make_related_party_counterparty().id, conflict_declared=True,
+        )
+        after = int(self._kpi(self.approver, 'undeclared_conflicts')['value'])
+        self.assertEqual(after, before)
+
+    def test_pending_board_packs_kpi_present_for_any_user(self):
+        self.assertIsNotNone(self._kpi(self.director, 'pending_board_packs'))
+
+    def test_pending_board_packs_kpi_counts_a_new_draft_pack(self):
+        meeting = self._make_resolution(self.company, self.director.partner_id)[1]
+        before = int(self._kpi(self.director, 'pending_board_packs')['value'])
+        self.env['govoo.board.pack'].create({'meeting_id': meeting.id})
+        after = int(self._kpi(self.director, 'pending_board_packs')['value'])
+        self.assertEqual(after, before + 1)

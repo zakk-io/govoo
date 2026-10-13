@@ -36,6 +36,7 @@ const EMPTY_DATA = {
     counts: { overdue: 0, week: 0, votes: 0, meetings: 0 },
     tabs: [{ key: "all", label: "All", count: 0 }],
     items: [],
+    kpis: [],
 };
 
 export class GovooActionItemsDashboard extends Component {
@@ -92,6 +93,20 @@ export class GovooActionItemsDashboard extends Component {
             res_model: item.res_model,
             res_id: item.res_id,
             views: [[false, "form"]],
+            target: "current",
+        });
+    }
+
+    openKpi(kpi) {
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            name: kpi.label,
+            res_model: kpi.res_model,
+            domain: kpi.domain,
+            views: [
+                [false, "list"],
+                [false, "form"],
+            ],
             target: "current",
         });
     }

@@ -1,21 +1,25 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
+from datetime import timedelta
+
 from odoo import api, fields, models
 from odoo.exceptions import AccessError
 
 WEEK_WINDOW_DAYS = 7
+CONTRACT_EXPIRY_WINDOW_DAYS = 60
 
 # govoo.contract.obligation's own ir.model.access.csv grants read only to
 # Admin/Auditor/Contract Manager/Contract Approver -- NOT plain
 # group_govoo_user (most Board Directors), the exact same access boundary
 # kpi_strip.js already had to gate govoo.contract behind for the same
 # reason: calling search() for an ungated user raises an AccessError.
-OBLIGATION_ACCESS_GROUPS = (
+CONTRACT_ACCESS_GROUPS = (
     'govoo_base.group_govoo_admin',
     'govoo_base.group_govoo_auditor',
     'govoo_base.group_govoo_contract_manager',
     'govoo_base.group_govoo_contract_approver',
 )
+OBLIGATION_ACCESS_GROUPS = CONTRACT_ACCESS_GROUPS
 
 
 class GovooDashboardActionItems(models.AbstractModel):
@@ -71,7 +75,95 @@ class GovooDashboardActionItems(models.AbstractModel):
             'meetings': len([i for i in items if i['type'] == 'meeting']),
         }
 
-        return {'counts': counts, 'tabs': tabs, 'items': items}
+        return {'counts': counts, 'tabs': tabs, 'items': items, 'kpis': self._get_extra_kpis()}
+
+    def _get_extra_kpis(self):
+        """Issue #266 follow-up: the 4 original tiles (Overdue/Due This
+        Week/Votes Pending/Meetings to Prep) are personal action-item
+        counts the tab bar and list below already show in full detail.
+        These 4 are deliberately a different kind of signal -- company-
+        wide governance health and risk, not a restatement of "my"
+        queue -- so they add real information rather than duplicating it.
+        Each degrades to absent (not zero) for a user without access,
+        same convention kpi_strip.js already established for
+        govoo.contract."""
+        kpis = []
+        try:
+            if self._has_any_group(CONTRACT_ACCESS_GROUPS):
+                kpis += self._get_contract_kpis()
+        except AccessError:
+            pass
+        try:
+            kpis.append(self._get_pending_packs_kpi())
+        except AccessError:
+            pass
+        return kpis
+
+    def _get_contract_kpis(self):
+        today = fields.Date.context_today(self)
+        window_end = today + timedelta(days=CONTRACT_EXPIRY_WINDOW_DAYS)
+
+        expiring_domain = [
+            ('state', '=', 'active'),
+            ('date_end', '!=', False),
+            ('date_end', '<=', window_end),
+        ]
+        active_contracts = self.env['govoo.contract'].search([('state', '=', 'active')])
+        currency = self.env.company.currency_id
+        total_value = sum(active_contracts.mapped('value'))
+
+        undeclared_domain = [
+            ('is_related_party', '=', True),
+            ('conflict_declared', '=', False),
+        ]
+
+        return [
+            {
+                'key': 'expiring_contracts',
+                'label': 'Contracts Expiring Soon (60d)',
+                'icon': 'fa-file-text-o',
+                'color': 'secondary',
+                'value': str(self.env['govoo.contract'].search_count(expiring_domain)),
+                'res_model': 'govoo.contract',
+                'domain': expiring_domain,
+            },
+            {
+                'key': 'active_contracts_value',
+                'label': 'Active Contracts Value',
+                'icon': 'fa-money',
+                'color': 'success',
+                'value': self._format_currency(total_value, currency),
+                'res_model': 'govoo.contract',
+                'domain': [('state', '=', 'active')],
+            },
+            {
+                'key': 'undeclared_conflicts',
+                'label': 'Related-Party Contracts Undeclared',
+                'icon': 'fa-exclamation-circle',
+                'color': 'danger',
+                'value': str(self.env['govoo.contract'].search_count(undeclared_domain)),
+                'res_model': 'govoo.contract',
+                'domain': undeclared_domain,
+            },
+        ]
+
+    def _get_pending_packs_kpi(self):
+        domain = [('state', '!=', 'distributed')]
+        return {
+            'key': 'pending_board_packs',
+            'label': 'Pending Board Packs',
+            'icon': 'fa-folder-open-o',
+            'color': 'dark',
+            'value': str(self.env['govoo.board.pack'].search_count(domain)),
+            'res_model': 'govoo.board.pack',
+            'domain': domain,
+        }
+
+    def _format_currency(self, amount, currency):
+        formatted = '{:,.{prec}f}'.format(amount, prec=currency.decimal_places)
+        if currency.position == 'before':
+            return '%s%s' % (currency.symbol, formatted)
+        return '%s %s' % (formatted, currency.symbol)
 
     def _has_any_group(self, xmlids):
         return any(self.env.user.has_group(xmlid) for xmlid in xmlids)
