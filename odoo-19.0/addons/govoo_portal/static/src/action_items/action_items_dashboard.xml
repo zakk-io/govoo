@@ -62,7 +62,7 @@
                                 <div class="o_govoo_ai_icon_circle">
                                     <i t-attf-class="fa {{item.icon}} text-{{item.color}}"/>
                                 </div>
-                                <div class="o_govoo_ai_row_text">
+                                <div class="o_govoo_ai_row_text" role="button" t-on-click="() => this.openRecord(item)">
                                     <div class="o_govoo_ai_row_title"><t t-esc="item.title"/></div>
                                     <div class="o_govoo_ai_row_context" t-if="item.context"><t t-esc="item.context"/></div>
                                 </div>
