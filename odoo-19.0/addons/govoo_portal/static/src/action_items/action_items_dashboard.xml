@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="govoo_portal.ActionItemsDashboard">
+        <div class="o_govoo_ai">
+            <div class="o_govoo_ai_header">
+                <h2 class="o_govoo_ai_title">My Action Items</h2>
+                <p class="o_govoo_ai_subtitle text-muted">
+                    Everything that needs your attention, <t t-esc="userName"/> — across meetings, votes, obligations, contracts, and filings.
+                </p>
+            </div>
+
+            <div t-if="!state.loading" class="o_govoo_kpi_strip">
+                <div class="o_govoo_kpi_tile border-start border-4 border-danger"
+                     t-on-click="() => this.selectTab('all')" role="button">
+                    <i class="fa fa-exclamation-triangle o_govoo_kpi_icon text-danger"/>
+                    <div class="o_govoo_kpi_text">
+                        <span class="o_govoo_kpi_value"><t t-esc="state.data.counts.overdue"/></span>
+                        <span class="o_govoo_kpi_label">Overdue</span>
+                    </div>
+                </div>
+                <div class="o_govoo_kpi_tile border-start border-4 border-warning"
+                     t-on-click="() => this.selectTab('all')" role="button">
+                    <i class="fa fa-clock-o o_govoo_kpi_icon text-warning"/>
+                    <div class="o_govoo_kpi_text">
+                        <span class="o_govoo_kpi_value"><t t-esc="state.data.counts.week"/></span>
+                        <span class="o_govoo_kpi_label">Due This Week</span>
+                    </div>
+                </div>
+                <div class="o_govoo_kpi_tile border-start border-4 border-info"
+                     t-on-click="() => this.selectTab('vote')" role="button">
+                    <i class="fa fa-gavel o_govoo_kpi_icon text-info"/>
+                    <div class="o_govoo_kpi_text">
+                        <span class="o_govoo_kpi_value"><t t-esc="state.data.counts.votes"/></span>
+                        <span class="o_govoo_kpi_label">Votes Pending</span>
+                    </div>
+                </div>
+                <div class="o_govoo_kpi_tile border-start border-4 border-primary"
+                     t-on-click="() => this.selectTab('meeting')" role="button">
+                    <i class="fa fa-calendar o_govoo_kpi_icon text-primary"/>
+                    <div class="o_govoo_kpi_text">
+                        <span class="o_govoo_kpi_value"><t t-esc="state.data.counts.meetings"/></span>
+                        <span class="o_govoo_kpi_label">Meetings to Prep</span>
+                    </div>
+                </div>
+            </div>
+
+            <div t-if="!state.loading" class="o_govoo_ai_tabs">
+                <t t-foreach="state.data.tabs" t-as="tab" t-key="tab.key">
+                    <button type="button"
+                            t-attf-class="o_govoo_ai_tab {{ tab.key === state.activeTab ? 'o_govoo_ai_tab_active' : '' }}"
+                            t-on-click="() => this.selectTab(tab.key)">
+                        <t t-esc="tab.label"/> (<t t-esc="tab.count"/>)
+                    </button>
+                </t>
+            </div>
+
+            <t t-if="!state.loading">
+                <t t-foreach="sections" t-as="section" t-key="section.key">
+                    <t t-if="section.items.length">
+                        <div class="o_govoo_ai_section_head">
+                            <span t-attf-class="o_govoo_ai_section_dot bg-{{section.color}}"/>
+                            <span t-attf-class="o_govoo_ai_section_title text-{{section.color}}">
+                                <t t-esc="section.label"/>
+                            </span>
+                        </div>
+                        <t t-foreach="section.items" t-as="item" t-key="item.id">
+                            <div class="o_govoo_ai_row">
+                                <div class="o_govoo_ai_icon_circle">
+                                    <i t-attf-class="fa {{item.icon}} text-{{item.color}}"/>
+                                </div>
+                                <div class="o_govoo_ai_row_text">
+                                    <div class="o_govoo_ai_row_title"><t t-esc="item.title"/></div>
+                                    <div class="o_govoo_ai_row_context" t-if="item.context"><t t-esc="item.context"/></div>
+                                </div>
+                                <span t-attf-class="o_govoo_ai_badge text-{{section.color}}">
+                                    <t t-esc="item.due_label"/>
+                                </span>
+                                <button type="button" class="btn btn-primary btn-sm o_govoo_ai_action"
+                                        t-on-click="() => this.openRecord(item)">
+                                    <t t-esc="item.action_label"/>
+                                </button>
+                            </div>
+                        </t>
+                    </t>
+                </t>
+                <div t-if="!visibleItems.length" class="o_govoo_ai_empty">
+                    <i class="fa fa-check-circle text-success"/>
+                    <p>You're all caught up — nothing needs your attention right now.</p>
+                </div>
+            </t>
+        </div>
+    </t>
+
+</templates>
