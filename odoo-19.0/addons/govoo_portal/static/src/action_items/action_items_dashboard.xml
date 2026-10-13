@@ -3,13 +3,6 @@
 
     <t t-name="govoo_portal.ActionItemsDashboard">
         <div class="o_govoo_ai">
-            <div class="o_govoo_ai_header">
-                <h2 class="o_govoo_ai_title">My Action Items</h2>
-                <p class="o_govoo_ai_subtitle text-muted">
-                    Everything that needs your attention, <t t-esc="userName"/> — across meetings, votes, obligations, contracts, and filings.
-                </p>
-            </div>
-
             <div t-if="!state.loading" class="o_govoo_kpi_strip">
                 <div class="o_govoo_kpi_tile border-start border-4 border-danger"
                      t-on-click="() => this.selectTab('all')" role="button">

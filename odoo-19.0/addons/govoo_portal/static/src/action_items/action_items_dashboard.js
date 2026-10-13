@@ -4,7 +4,6 @@ import { Component, useState, onWillStart } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
-import { user } from "@web/core/user";
 
 // Issue #266: replaces the role-based board.board Dashboard (issue #252)
 // with one unified, personal action list. All FA4 icon names and plain
@@ -46,7 +45,6 @@ export class GovooActionItemsDashboard extends Component {
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
-        this.userName = user.name;
         this.state = useState({
             loading: true,
             activeTab: "all",
