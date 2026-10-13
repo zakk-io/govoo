@@ -158,4 +158,11 @@
         <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
     </record>
 
+    <record id="govoo_vote_proxy_comp_rule" model="ir.rule">
+        <field name="name">Vote Proxy: multi-company</field>
+        <field name="model_id" ref="model_govoo_vote_proxy"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+    </record>
+
 </odoo>

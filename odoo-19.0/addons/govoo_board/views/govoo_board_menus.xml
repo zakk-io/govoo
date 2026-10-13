@@ -56,6 +56,15 @@
               action="govoo_vote_action"
               sequence="50"/>
 
+    <!-- Issue #269 item 1: Secretary/Admin-administered proxy appointments
+         (no portal self-service in v1). -->
+    <menuitem id="govoo_menu_vote_proxy"
+              name="Voting Proxies"
+              parent="govoo_menu_board"
+              action="govoo_vote_proxy_action"
+              sequence="55"
+              groups="govoo_base.group_govoo_secretary,govoo_base.group_govoo_admin"/>
+
     <!-- Issue #238: Governance Settings lives under the shared Configuration
          tab (govoo_base.govoo_menu_configuration), not under Board &
          Meetings; it covers govoo_secretarial/govoo_shares parameters too,

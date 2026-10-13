@@ -36,7 +36,15 @@
                             invisible="state != 'draft'"/>
                     <button name="action_tally" string="Tally Votes"
                             type="object" class="oe_highlight"
-                            invisible="state != 'open'"/>
+                            invisible="state != 'open' or tie_break_pending"/>
+                    <button name="action_chair_casting_vote_passed" string="Casting Vote: Pass"
+                            type="object" class="oe_highlight"
+                            invisible="not tie_break_pending"
+                            groups="govoo_base.group_govoo_secretary,govoo_base.group_govoo_admin"/>
+                    <button name="action_chair_casting_vote_failed" string="Casting Vote: Fail"
+                            type="object"
+                            invisible="not tie_break_pending"
+                            groups="govoo_base.group_govoo_secretary,govoo_base.group_govoo_admin"/>
                     <button name="action_withdraw" string="Withdraw"
                             type="object"
                             invisible="state in ('passed', 'failed', 'withdrawn')"/>
@@ -61,6 +69,10 @@
                         <field name="unreachable_voter_count"/> eligible voter(s) could not be notified by email
                         (no usable email on file to auto-create portal access) -- see the Voting Notifications tab below.
                     </div>
+                    <div class="alert alert-info" role="alert" invisible="not tie_break_pending">
+                        This vote is tied. Record the Company Secretary / Board Administrator's
+                        casting vote above to resolve it (Governance Settings: "Allow Chair's Casting Vote on Ties").
+                    </div>
                     <group>
                         <group>
                             <field name="title"/>
@@ -73,6 +85,8 @@
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="effective_date"
                                    help="The date this resolution actually takes legal effect -- not necessarily the same date it was passed."/>
+                            <field name="vote_deadline" readonly="1"
+                                   help="Set automatically when opened, if a voting window is configured in Governance Settings. Blank means no deadline -- tally manually."/>
                             <field name="result"/>
                             <field name="sign_request_id"/>
                         </group>
@@ -85,6 +99,7 @@
                             <field name="vote_ids">
                                 <list editable="bottom">
                                     <field name="voter_id"/>
+                                    <field name="cast_by_id" string="Cast By (Proxy)"/>
                                     <field name="choice"/>
                                     <field name="weight" options="{'hide_trailing_zeros': True}"/>
                                     <field name="is_conflicted"/>

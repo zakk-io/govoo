@@ -93,16 +93,46 @@ class ShareholderPortal(CustomerPortal):
         )
         values.update({
             'resolutions': resolutions,
+            'proxy_items': self._get_proxy_vote_items(partner, voter_type='shareholder'),
             'page_name': 'shareholder_votes',
             'pager': pager,
             'default_url': '/my/holdings/votes',
         })
         return request.render('govoo_portal.portal_my_shareholder_votes', values)
 
+    def _get_proxy_vote_items(self, proxy_partner, voter_type):
+        """Issue #269 item 1: see DirectorPortal._get_proxy_vote_items --
+        duplicated rather than shared because DirectorPortal and
+        ShareholderPortal are two independent CustomerPortal subclasses
+        with no common base of their own, same as _document_check_access
+        above is already duplicated between the two."""
+        proxies = request.env['govoo.vote.proxy']._get_active_proxies_for(proxy_partner.id)
+        items = []
+        for proxy in proxies:
+            principal = proxy.principal_partner_id
+            resolutions = request.env['govoo.resolution'].sudo().search([
+                ('state', '=', 'open'),
+                ('meeting_id', '=', proxy.meeting_id.id),
+            ])
+            for resolution in resolutions:
+                already_voted = request.env['govoo.vote'].sudo().search_count([
+                    ('resolution_id', '=', resolution.id),
+                    ('voter_id', '=', principal.id),
+                ])
+                if already_voted:
+                    continue
+                voter_row = resolution.voter_notification_ids.filtered(
+                    lambda v, p=principal: v.partner_id == p,
+                )
+                if voter_row and voter_row[0].voter_type == voter_type:
+                    items.append({'resolution': resolution, 'principal': principal})
+        return items
+
     @http.route('/my/holdings/votes/<int:resolution_id>/cast', type='http',
                 auth='user', methods=['GET', 'POST'], website=True)
     def portal_cast_vote_shareholder(self, resolution_id, access_token=None,
-                                     vote_choice=None, conflict_declared=None, **kw):
+                                     vote_choice=None, conflict_declared=None,
+                                     on_behalf_of=None, confirmed=None, **kw):
         try:
             resolution_sudo = self._document_check_access(
                 'govoo.resolution', resolution_id, access_token,
@@ -111,52 +141,80 @@ class ShareholderPortal(CustomerPortal):
             return request.redirect('/my')
 
         partner = request.env.user.partner_id
+        voter_partner, on_behalf_of = self._resolve_vote_voter(
+            partner, resolution_sudo, on_behalf_of,
+        )
+        # Issue #269 item 2: weight is now always sourced the same way
+        # govoo.vote.create() itself sources it (resolution._compute_vote_
+        # weight_for), rather than this controller separately summing every
+        # holding -- the two could previously disagree for a shareholder
+        # holding more than one share class. This is also what the
+        # pre-submit disclosure preview below must show.
+        weight = resolution_sudo._compute_vote_weight_for(voter_partner)
+
+        base_values = {
+            'resolution': resolution_sudo,
+            'page_name': 'cast_vote',
+            'token': access_token,
+            'weight': weight,
+            'on_behalf_of': on_behalf_of,
+            'principal_name': voter_partner.name if on_behalf_of else None,
+        }
 
         if request.httprequest.method == 'POST':
             if not vote_choice:
-                values = {
-                    'resolution': resolution_sudo,
-                    'error': _('Please select a vote choice.'),
-                    'page_name': 'cast_vote',
-                    'token': access_token,
-                }
+                values = dict(base_values, error=_('Please select a vote choice.'))
                 return request.render('govoo_portal.portal_cast_vote_shareholder', values)
 
             # Check for existing vote
             existing = request.env['govoo.vote'].sudo().search([
                 ('resolution_id', '=', resolution_id),
-                ('voter_id', '=', partner.id),
+                ('voter_id', '=', voter_partner.id),
             ], limit=1)
             if existing:
-                values = {
-                    'resolution': resolution_sudo,
-                    'error': _('You have already voted on this resolution.'),
-                    'page_name': 'cast_vote',
-                    'token': access_token,
-                }
+                values = dict(base_values, error=_('This voter has already voted on this resolution.'))
                 return request.render('govoo_portal.portal_cast_vote_shareholder', values)
 
-            # Get voting power from holdings
-            holdings = request.env['govoo.share.holding'].sudo().search([
-                ('partner_id', '=', partner.id),
-            ])
-            voting_power = sum(holdings.mapped('voting_power'))
+            if not confirmed:
+                values = dict(
+                    base_values,
+                    confirm_step=True,
+                    selected_choice=vote_choice,
+                    selected_conflict=bool(conflict_declared),
+                )
+                return request.render('govoo_portal.portal_cast_vote_shareholder', values)
 
-            request.env['govoo.vote'].sudo().create({
+            create_vals = {
                 'resolution_id': resolution_id,
-                'voter_id': partner.id,
+                'voter_id': voter_partner.id,
                 'choice': vote_choice,
-                'weight': voting_power,
                 'is_conflicted': bool(conflict_declared),
-            })
+            }
+            if on_behalf_of:
+                create_vals['cast_by_id'] = partner.id
+            request.env['govoo.vote'].sudo().create(create_vals)
             return request.redirect('/my/holdings/votes')
 
-        values = {
-            'resolution': resolution_sudo,
-            'page_name': 'cast_vote',
-            'token': access_token,
-        }
-        return request.render('govoo_portal.portal_cast_vote_shareholder', values)
+        return request.render('govoo_portal.portal_cast_vote_shareholder', base_values)
+
+    def _resolve_vote_voter(self, current_partner, resolution_sudo, on_behalf_of):
+        """Issue #269 item 1: see DirectorPortal._resolve_vote_voter --
+        duplicated for the same reason as _get_proxy_vote_items above."""
+        if not on_behalf_of:
+            return current_partner, None
+        try:
+            principal_id = int(on_behalf_of)
+        except (TypeError, ValueError):
+            return current_partner, None
+        is_valid_proxy = request.env['govoo.vote.proxy']._is_active_proxy_for(
+            current_partner.id, principal_id, resolution_sudo.meeting_id.id,
+        )
+        if not is_valid_proxy:
+            return current_partner, None
+        principal = request.env['res.partner'].sudo().browse(principal_id).exists()
+        if not principal:
+            return current_partner, None
+        return principal, principal_id
 
     # ------------------------------------------------------------
     # My Register Entry

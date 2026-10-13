@@ -2,6 +2,7 @@
 
 from . import (
     govoo_agenda_item,
+    govoo_board_cron,
     govoo_board_pack,
     govoo_governance_config,
     govoo_meeting,
@@ -9,4 +10,5 @@ from . import (
     govoo_resolution,
     govoo_resolution_voter,
     govoo_vote,
+    govoo_vote_proxy,
 )

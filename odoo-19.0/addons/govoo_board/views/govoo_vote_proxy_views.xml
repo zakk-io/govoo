@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="govoo_vote_proxy_view_list" model="ir.ui.view">
+        <field name="name">govoo.vote.proxy.list</field>
+        <field name="model">govoo.vote.proxy</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="meeting_id"/>
+                <field name="principal_partner_id"/>
+                <field name="proxy_partner_id"/>
+                <field name="active" widget="boolean_toggle"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="govoo_vote_proxy_view_form" model="ir.ui.view">
+        <field name="name">govoo.vote.proxy.form</field>
+        <field name="model">govoo.vote.proxy</field>
+        <field name="arch" type="xml">
+            <form string="Voting Proxy Appointment">
+                <sheet>
+                    <widget name="web_ribbon" title="Inactive" bg_color="text-bg-secondary" invisible="active"/>
+                    <group>
+                        <group>
+                            <field name="meeting_id"/>
+                            <field name="principal_partner_id"/>
+                            <field name="proxy_partner_id"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="govoo_vote_proxy_action" model="ir.actions.act_window">
+        <field name="name">Voting Proxies</field>
+        <field name="res_model">govoo.vote.proxy</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Appoint a proxy to cast votes on a director's or shareholder's behalf.
+            </p>
+            <p>
+                Issue #269: v1 is administered here only -- there is no portal
+                self-service proxy appointment yet. One appointment covers every
+                resolution linked to the chosen meeting.
+            </p>
+        </field>
+    </record>
+
+</odoo>
