@@ -5,7 +5,7 @@
     <menuitem id="govoo_menu_shares"
               name="Shares &amp; Cap Table"
               parent="govoo_base.govoo_menu_root"
-              sequence="30"/>
+              sequence="40"/>
 
     <menuitem id="govoo_menu_share_class"
               name="Share Classes"
