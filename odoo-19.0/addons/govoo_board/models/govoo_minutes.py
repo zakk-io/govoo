@@ -249,9 +249,8 @@ class GovooMinutes(models.Model):
                 and rec.submitted_by_id.id == self.env.uid
             ):
                 raise ValidationError(_(
-                    'Cannot approve: minutes must be approved by someone '
-                    'other than whoever submitted them for approval '
-                    '("govoo_board.minutes_require_different_approver").'
+                    'Cannot approve: these minutes must be approved by '
+                    'someone other than whoever submitted them.'
                 ))
         self.write({'state': 'approved', 'approved_by_id': self.env.uid})
 
@@ -279,9 +278,9 @@ class GovooMinutes(models.Model):
             for rec in self:
                 if not rec.signed_document_id:
                     raise ValidationError(_(
-                        'E-signature is not yet confirmed as legally valid '
-                        'under Rwandan law (BR-BOARD-008). Upload the signed '
-                        'copy to "Signed Document" first, then sign.'
+                        'E-signature has not yet been confirmed as legally '
+                        'valid. Upload the signed copy to "Signed Document" '
+                        'first, then sign.'
                     ))
         self._validate_state_transition('signed')
         self.write({'state': 'signed', 'signed_by_id': self.env.uid})

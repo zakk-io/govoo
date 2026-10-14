@@ -10,7 +10,7 @@
             <field name="name">Register of Charges: Registration Reminder</field>
             <field name="model_id" ref="model_govoo_register_charge"/>
             <field name="subject">Charge registration deadline approaching</field>
-            <field name="description">Sent to Company Secretaries when a charge nears its registration deadline (issue #236)</field>
+            <field name="description">Sent to Company Secretaries when a charge nears its registration deadline.</field>
             <field name="auto_delete" eval="True"/>
             <field name="body_html" type="html">
 <div>
@@ -33,7 +33,7 @@
             <field name="name">Register of Beneficial Owners: Declaration Reminder</field>
             <field name="model_id" ref="model_govoo_register_beneficial_owner"/>
             <field name="subject">Beneficial ownership declaration deadline approaching</field>
-            <field name="description">Sent to Company Secretaries when a beneficial owner's declaration nears its deadline (issue #236)</field>
+            <field name="description">Sent to Company Secretaries when a beneficial owner's declaration nears its deadline.</field>
             <field name="auto_delete" eval="True"/>
             <field name="body_html" type="html">
 <div>

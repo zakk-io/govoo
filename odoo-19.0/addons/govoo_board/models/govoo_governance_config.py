@@ -94,142 +94,143 @@ class GovooGovernanceConfig(models.Model):
         default=lambda self: self.env.company,
         ondelete='cascade',
     )
+    # Statutory deadline fields below: exact day-counts are open legal
+    # questions pending confirmation from the company's lawyers (company
+    # articles / Rwandan law) -- see docs/spec/decisions/open-decisions.md.
+    # 0 is the safe default: it leaves the corresponding reminder/check
+    # disabled rather than guessing a number.
     charge_registration_deadline_days = fields.Integer(
         string='Charge Registration Deadline (days)',
         tracking=True,
-        help="[CONFIRM] Statutory window, in days from a charge's creation date, "
-             "to register it with the Registrar before it risks being void against "
-             "a liquidator/creditors. 0 keeps the reminder disabled until confirmed.",
+        help="How many days after a charge is created it must be registered "
+             "with the Registrar, before it risks being void against a "
+             "liquidator or creditors. Leave at 0 to turn the reminder off "
+             "until this is confirmed with your legal team.",
     )
     beneficial_owner_declaration_deadline_days = fields.Integer(
         string='Beneficial Owner Declaration Deadline (days)',
         tracking=True,
-        help="[CONFIRM] Statutory window, in days from becoming registrable, to "
-             "declare/file a new beneficial owner. 0 keeps the reminder disabled "
-             "until confirmed.",
+        help="How many days after someone becomes a registrable beneficial "
+             "owner they must be declared/filed. Leave at 0 to turn the "
+             "reminder off until this is confirmed with your legal team.",
     )
     certificate_issuance_deadline_days = fields.Integer(
         string='Share Certificate Issuance Deadline (days)',
         tracking=True,
-        help="[CONFIRM] Statutory window, in days from allotment, to issue a share "
-             "certificate to the shareholder. 0 keeps the reminder disabled until "
-             "confirmed.",
+        help="How many days after allotment a share certificate must be "
+             "issued to the shareholder. Leave at 0 to turn the reminder "
+             "off until this is confirmed with your legal team.",
     )
     transfer_registration_deadline_days = fields.Integer(
         string='Share Transfer Registration Deadline (days)',
         tracking=True,
-        help="[CONFIRM] Statutory window, in days from the transfer date, to "
-             "register a share transfer (and pay any stamp duty). 0 keeps the "
-             "reminder disabled until confirmed.",
+        help="How many days after a transfer a share transfer must be "
+             "registered (and any stamp duty paid). Leave at 0 to turn the "
+             "reminder off until this is confirmed with your legal team.",
     )
     e_signature_legally_confirmed = fields.Boolean(
         string='E-Signature Legally Confirmed',
         tracking=True,
         default=False,
-        help="[CONFIRM] BR-BOARD-008 / open-decisions.md item 3: whether "
-             "e-signatures carry legal validity for minutes/resolutions under "
-             "the applicable law. Leave unchecked until confirmed -- while "
-             "unchecked, e-signing stays closed and only a manually uploaded "
-             "signed document can complete signing.",
+        help="Whether electronic signatures carry legal validity for "
+             "minutes and resolutions under the law that applies to your "
+             "company. Leave unchecked until your legal team confirms this "
+             "-- while unchecked, only a manually uploaded signed document "
+             "can complete signing.",
     )
     minutes_retention_default_years = fields.Integer(
         string='Default Minutes Retention Period (years)',
         tracking=True,
         default=10,
-        help="[CONFIRM] open-decisions.md item 13: how long signed minutes are "
-             "retained when govoo_rw is not installed or has no active retention "
-             "rule for 'minutes'. Defaults to 10 years pending legal confirmation "
-             "of the 10-year statutory retention vs. data-subject erasure "
-             "reconciliation.",
+        help="How long signed minutes are kept on file. Defaults to 10 "
+             "years; confirm with your legal team whether this matches "
+             "your jurisdiction's statutory retention requirement.",
     )
     special_resolution_majority_threshold = fields.Float(
         string='Special Resolution Majority Threshold',
         tracking=True,
-        help="[CONFIRM] BR-BOARD-005 / open-decisions.md item 11: fraction "
-             "(e.g. 0.75) of for+against votes a 'special' resolution must "
-             "clear. 0 keeps special resolutions blocked from tallying "
-             "until confirmed (company articles / Rwandan law).",
+        help="The fraction of for-plus-against votes a special resolution "
+             "must clear to pass (e.g. 0.75 for a three-quarters majority). "
+             "Leave at 0 to keep special resolutions from being tallied "
+             "until your company's articles/legal requirement is confirmed.",
     )
     resolution_voting_window_days = fields.Integer(
         string='Resolution Voting Window (days)',
         tracking=True,
-        help='Issue #269: days after a resolution opens for voting before '
-             'it auto-closes (tallies) via a daily cron. 0 keeps voting '
-             'open until a Secretary manually tallies it -- the original '
-             'behavior.',
+        help="How many days a resolution stays open for voting before it "
+             "closes and tallies itself automatically. Leave at 0 to keep "
+             "voting open until a Secretary tallies it manually.",
     )
     resolution_notice_period_days = fields.Integer(
         string='Resolution Notice Period (days)',
         tracking=True,
-        help='Issue #269: minimum days between opening a resolution for '
-             "voting and its linked meeting's date. 0 disables the check. "
-             'Standalone (written) resolutions have no meeting date and are '
-             'never gated by this.',
+        help="Minimum number of days' notice required between opening a "
+             "resolution for voting and the date of its meeting. Leave at "
+             "0 to turn this check off. Standalone (written) resolutions "
+             "have no meeting date and are never affected by this.",
     )
     resolution_meeting_state_gate_enabled = fields.Boolean(
         string='Block Voting Before Meeting Is Scheduled',
         tracking=True,
         default=False,
-        help='Issue #269: when enabled, a resolution cannot open for '
-             "voting while its meeting is still in Draft state. Off by "
-             'default: govoo.meeting defaults to Draft, so this is an '
-             'opt-in governance policy, not a correction of a bug.',
+        help="When enabled, a resolution cannot be opened for voting while "
+             "its meeting is still in Draft. Off by default, since meetings "
+             "start in Draft and many boards open resolutions before "
+             "formally scheduling the meeting.",
     )
     resolution_tie_break_enabled = fields.Boolean(
         string="Allow Chair's Casting Vote on Ties",
         tracking=True,
         default=False,
-        help='Issue #269: when enabled, a tied simple-majority vote waits '
-             'for a Secretary/Board Administrator casting-vote decision '
-             'instead of automatically failing. [CONFIRM]: casting-vote '
-             'authority is restricted to those two groups until a '
-             'dedicated chair role is confirmed.',
+        help="When enabled, a tied vote waits for a Secretary or Board "
+             "Administrator to record a casting-vote decision instead of "
+             "automatically failing. Casting-vote authority is currently "
+             "limited to those two roles until a dedicated Chair role is "
+             "introduced.",
     )
     written_resolution_quorum_percentage = fields.Float(
         string='Written Resolution Quorum (%)',
         tracking=True,
-        help='[CONFIRM] Issue #269: fraction (e.g. 0.5) of eligible voters '
-             'who must vote on a standalone (meeting-less) resolution for '
-             'quorum to be met. 0 keeps the original always-met behavior.',
+        help="The fraction of eligible voters who must vote on a "
+             "standalone (meeting-less) resolution for quorum to be "
+             "considered met (e.g. 0.5 for half). Leave at 0 to treat "
+             "quorum as always met.",
     )
     meeting_notice_period_days = fields.Integer(
         string='Meeting Notice Period (days)',
         tracking=True,
-        help='[CONFIRM] Issue #271: minimum days between scheduling a '
-             'meeting and its date. 0 disables the check.',
+        help="Minimum number of days' notice required between scheduling "
+             "a meeting and its date. Leave at 0 to turn this check off.",
     )
     minutes_require_different_approver = fields.Boolean(
         string='Require a Different Approver for Minutes',
         tracking=True,
         default=False,
-        help='Issue #271: when enabled, minutes cannot be approved by the '
-             'same user who submitted them for approval. Off by default -- '
-             'does not implement a full "Directors approve" workflow (no '
-             'non-portal Director/Chair role exists today), only prevents '
-             'the narrowest form of self-approval.',
+        help="When enabled, minutes cannot be approved by the same person "
+             "who submitted them for approval. Off by default. Note: this "
+             "only prevents self-approval -- it does not yet implement a "
+             "full \"the Board approves minutes\" workflow.",
     )
     board_pack_min_lead_days = fields.Integer(
         string='Board Pack Minimum Lead Time (days)',
         tracking=True,
-        help='Issue #271: minimum days before the meeting that a board '
-             'pack must be distributed by. 0 disables the check.',
+        help="Minimum number of days before the meeting that a board pack "
+             "must be distributed by. Leave at 0 to turn this check off.",
     )
     agenda_freeze_on_schedule = fields.Boolean(
         string='Freeze Agenda Once Scheduled',
         tracking=True,
         default=False,
-        help='Issue #271: when enabled, agenda items can no longer be '
-             'added once the meeting leaves Draft. Off by default: agenda '
-             'items remain editable until the meeting is fully Closed, '
-             'the original behavior.',
+        help="When enabled, agenda items can no longer be added once a "
+             "meeting leaves Draft. Off by default: the agenda stays "
+             "editable until the meeting is fully Closed.",
     )
     meeting_close_requires_minutes_approved = fields.Boolean(
         string='Require Approved Minutes to Close a Meeting',
         tracking=True,
         default=False,
-        help='Issue #271: when enabled, a meeting cannot be closed until '
-             'its minutes reach "Approved" or "Signed" -- not just "For '
-             'Approval" (the original, lower bar).',
+        help="When enabled, a meeting cannot be closed until its minutes "
+             "reach Approved or Signed -- not just submitted For Approval.",
     )
 
     @api.constrains('minutes_retention_default_years')

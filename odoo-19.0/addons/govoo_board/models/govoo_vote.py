@@ -54,11 +54,10 @@ class GovooVote(models.Model):
     cast_by_id = fields.Many2one(
         comodel_name='res.partner',
         string='Cast By (Proxy)',
-        help='Issue #269 item 1: set when a registered proxy '
-             '(govoo.vote.proxy) casts this vote on behalf of voter_id. '
-             "voter_id always stays the principal -- weight and "
-             'eligibility are computed for the principal, never the '
-             'proxy. Blank when the voter cast their own vote.',
+        help='Set when a registered proxy casts this vote on someone '
+             "else's behalf. The vote always belongs to the person who "
+             'delegated it -- weight and eligibility are based on them, '
+             'never the proxy. Blank when the voter cast their own vote.',
     )
 
     @api.model_create_multi

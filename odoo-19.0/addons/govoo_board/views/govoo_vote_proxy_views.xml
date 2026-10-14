@@ -49,9 +49,10 @@
                 Appoint a proxy to cast votes on a director's or shareholder's behalf.
             </p>
             <p>
-                Issue #269: v1 is administered here only -- there is no portal
-                self-service proxy appointment yet. One appointment covers every
-                resolution linked to the chosen meeting.
+                Proxies are set up here by the Company Secretary or Admin --
+                directors and shareholders cannot appoint their own proxy yet.
+                One appointment covers every resolution linked to the chosen
+                meeting.
             </p>
         </field>
     </record>
