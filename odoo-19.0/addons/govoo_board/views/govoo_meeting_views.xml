@@ -1,6 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Issue #271 item 2: reschedule wizard, defined first so the
+         meeting form's button below (which references this action via
+         %(...)d) can resolve the xmlid at view-load time. -->
+    <record id="govoo_meeting_reschedule_wizard_view_form" model="ir.ui.view">
+        <field name="name">govoo.meeting.reschedule.wizard.form</field>
+        <field name="model">govoo.meeting.reschedule.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reschedule Meeting">
+                <group>
+                    <field name="meeting_id" invisible="1"/>
+                    <field name="new_date"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" string="Reschedule"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="govoo_meeting_reschedule_wizard_action" model="ir.actions.act_window">
+        <field name="name">Reschedule Meeting</field>
+        <field name="res_model">govoo.meeting.reschedule.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_meeting_id': active_id}</field>
+    </record>
+
     <record id="govoo_meeting_view_list" model="ir.ui.view">
         <field name="name">govoo.meeting.list</field>
         <field name="model">govoo.meeting</field>
@@ -8,6 +37,7 @@
             <list decoration-success="state in ('held', 'minuted', 'closed')"
                   decoration-info="state == 'scheduled'"
                   decoration-warning="state == 'draft'"
+                  decoration-muted="state == 'cancelled'"
                   default_group_by="committee_id">
                 <field name="name"/>
                 <field name="meeting_type"/>
@@ -17,7 +47,8 @@
                 <field name="state" widget="badge"
                        decoration-success="state in ('held', 'minuted', 'closed')"
                        decoration-info="state == 'scheduled'"
-                       decoration-warning="state == 'draft'"/>
+                       decoration-warning="state == 'draft'"
+                       decoration-muted="state == 'cancelled'"/>
                 <field name="company_id" groups="base.group_multi_company"/>
             </list>
         </field>
@@ -41,13 +72,21 @@
                     <button name="action_close" string="Close Meeting"
                             type="object" class="oe_highlight"
                             invisible="state != 'minuted'"/>
-                    <field name="state" widget="statusbar"/>
+                    <button name="%(govoo_meeting_reschedule_wizard_action)d" string="Reschedule"
+                            type="action"
+                            invisible="state not in ('draft', 'scheduled')"/>
+                    <button name="action_cancel" string="Cancel Meeting"
+                            type="object"
+                            invisible="state not in ('draft', 'scheduled')"
+                            confirm="Cancel this meeting? This cannot be undone."/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,scheduled,held,minuted,closed"/>
                 </header>
                 <sheet>
                     <!-- Issue #253: web_ribbon (OCA) isn't in this install's
                          addons path, so this is a small native equivalent
                          (see govoo_base/static/src/scss/ribbon.scss). -->
                     <div class="o_ribbon bg-success" invisible="state != 'closed'">Closed</div>
+                    <div class="o_ribbon bg-secondary" invisible="state != 'cancelled'">Cancelled</div>
                     <div class="oe_button_box" name="button_box">
                         <!-- Agenda has no smart button: docs/spec/ui/views.md's
                              govoo.agenda.item row requires an inline editable
@@ -83,6 +122,26 @@
                                 string="Draft Minutes" class="btn-link"
                                 groups="govoo_base.group_govoo_secretary"/>
                     </div>
+                    <div class="alert alert-secondary" role="alert" invisible="state != 'cancelled'">
+                        <field name="cancel_reason" readonly="1"/>
+                        <span invisible="not rescheduled_to_id">
+                            — rescheduled to
+                            <field name="rescheduled_to_id" readonly="1"/>
+                        </span>
+                    </div>
+                    <div class="alert alert-info" role="alert" invisible="not rescheduled_from_id">
+                        This meeting replaces a cancelled/rescheduled meeting:
+                        <field name="rescheduled_from_id" readonly="1"/>
+                    </div>
+                    <!-- Issue #273: Pack/Minutes already had this empty-
+                         state call-to-action; Resolutions previously had
+                         no in-context way to create the first one. -->
+                    <div class="alert alert-info" role="alert" invisible="resolution_count">
+                        No resolutions have been proposed yet.
+                        <button name="action_create_resolution" type="object"
+                                string="Draft Resolution" class="btn-link"
+                                groups="govoo_base.group_govoo_secretary"/>
+                    </div>
                     <group>
                         <group>
                             <field name="name"/>
@@ -102,6 +161,8 @@
                     </group>
                     <group string="Attendees">
                         <field name="attendee_ids" widget="many2many_tags"/>
+                        <field name="confirmed_attendee_ids" widget="many2many_tags"
+                               help="Who actually attended, distinct from who was invited above. Leave empty to have quorum computed from the invite list instead."/>
                     </group>
                     <notebook>
                         <!-- Pack, Minutes, and Resolutions are reachable via
@@ -193,6 +254,8 @@
                         domain="[('state', '=', 'scheduled')]"/>
                 <filter name="filter_held" string="Held"
                         domain="[('state', '=', 'held')]"/>
+                <filter name="filter_cancelled" string="Cancelled"
+                        domain="[('state', '=', 'cancelled')]"/>
                 <separator/>
                 <!-- Odoo's date-filter default_period only accepts "year",
                      "month" (each optionally with a +/-N offset), or one of

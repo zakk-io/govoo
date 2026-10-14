@@ -75,6 +75,26 @@ class GovooMinutes(models.Model):
         compute='_compute_retention_until',
         store=True,
     )
+    submitted_by_id = fields.Many2one(
+        comodel_name='res.users',
+        string='Submitted By',
+        readonly=True,
+        copy=False,
+    )
+    approved_by_id = fields.Many2one(
+        comodel_name='res.users',
+        string='Approved By',
+        readonly=True,
+        copy=False,
+    )
+    signed_by_id = fields.Many2one(
+        comodel_name='res.users',
+        string='Signed By',
+        readonly=True,
+        copy=False,
+    )
+
+    _LOCKED_FIELDS_AFTER_APPROVAL = ('body', 'attendance_ids', 'apologies_ids')
 
     @api.depends('create_date', 'company_id')
     def _compute_retention_until(self):
@@ -132,6 +152,21 @@ class GovooMinutes(models.Model):
                 raise ValidationError(_('Cannot delete minutes once approved.'))
         return super().unlink()
 
+    def write(self, vals):
+        """Issue #271 item 5: lock substantive content once approved --
+        only unlink() was previously guarded, so the body/attendance could
+        still be silently changed after "Approval" in effect meant
+        nothing. signed_document_id is deliberately NOT locked (the
+        manual-upload-fallback path sets it while still 'approved', before
+        action_sign())."""
+        if any(f in vals for f in self._LOCKED_FIELDS_AFTER_APPROVAL):
+            for rec in self:
+                if rec.state in ('approved', 'signed'):
+                    raise ValidationError(_(
+                        'Minutes content cannot be edited once approved.'
+                    ))
+        return super().write(vals)
+
     def _validate_state_transition(self, target_state):
         """Enforce strictly forward state transitions."""
         allowed = {
@@ -154,11 +189,71 @@ class GovooMinutes(models.Model):
                 raise ValidationError(
                     _('Meeting must be at least "Held" before submitting minutes for approval.')
                 )
-        self.write({'state': 'for_approval'})
+        self.write({'state': 'for_approval', 'submitted_by_id': self.env.uid})
+        self._notify_approvers()
+
+    def _notify_approvers(self):
+        """Issue #271 follow-up: nobody was told minutes needed their
+        approval -- they'd only find out by opening the Minutes list
+        manually. Notifies every Company Secretary (the only group with
+        write access to govoo.minutes, confirmed via ir.model.access.csv
+        -- Admin is read-only here), reusing the same
+        get_governance_secretary_partners() helper and per-recipient
+        send_mail(email_values=...) loop govoo_secretarial_cron.py's
+        _notify_secretaries() already established. Excludes the submitter
+        when minutes_require_different_approver is on, since they're
+        blocked from approving their own submission anyway -- notifying
+        them to do something they can't would be misleading."""
+        require_different = self._minutes_require_different_approver()
+        template = self.env.ref(
+            'govoo_board.mail_template_minutes_approval_requested', raise_if_not_found=False,
+        )
+        for rec in self:
+            secretaries = self.env['res.users'].get_governance_secretary_partners()
+            if require_different and rec.submitted_by_id:
+                secretaries = secretaries - rec.submitted_by_id.partner_id
+            for partner in secretaries:
+                rec.message_post(
+                    body=_('Minutes for %s are awaiting your approval.') % rec.meeting_id.name,
+                    partner_ids=partner.ids,
+                    subtype_xmlid='mail.mt_comment',
+                )
+                if template:
+                    template.send_mail(
+                        rec.id,
+                        email_values={
+                            'email_to': partner.email,
+                            'recipient_ids': [(6, 0, partner.ids)],
+                        },
+                        force_send=True,
+                    )
+
+    def _minutes_require_different_approver(self):
+        """Issue #271 item 1: unset/False preserves the original behavior
+        (the same Secretary who drafted and submitted may also approve).
+        Does not implement a full "Directors approve" workflow -- no
+        non-portal Director/Chair role exists in this codebase to grant
+        write access to govoo.minutes to (see issue #271's scope note);
+        this only prevents the narrowest form of self-approval."""
+        return self.env['ir.config_parameter'].sudo().get_param(
+            'govoo_board.minutes_require_different_approver', 'False',
+        ) in ('True', '1')
 
     def action_approve(self):
         self._validate_state_transition('approved')
-        self.write({'state': 'approved'})
+        require_different = self._minutes_require_different_approver()
+        for rec in self:
+            if (
+                require_different
+                and rec.submitted_by_id
+                and rec.submitted_by_id.id == self.env.uid
+            ):
+                raise ValidationError(_(
+                    'Cannot approve: minutes must be approved by someone '
+                    'other than whoever submitted them for approval '
+                    '("govoo_board.minutes_require_different_approver").'
+                ))
+        self.write({'state': 'approved', 'approved_by_id': self.env.uid})
 
     @api.model
     def _esignature_legally_confirmed(self):
@@ -189,4 +284,4 @@ class GovooMinutes(models.Model):
                         'copy to "Signed Document" first, then sign.'
                     ))
         self._validate_state_transition('signed')
-        self.write({'state': 'signed'})
+        self.write({'state': 'signed', 'signed_by_id': self.env.uid})

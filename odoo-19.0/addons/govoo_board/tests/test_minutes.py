@@ -2,6 +2,7 @@
 
 from odoo.exceptions import ValidationError
 from odoo.tests import tagged
+from odoo.tests.common import new_test_user
 
 from .common import GovooBoardTestBase
 
@@ -180,3 +181,142 @@ class GovooMinutesAcceptanceTC(GovooBoardTestBase):
         minutes.action_sign()
 
         self.assertEqual(minutes.state, 'signed')
+
+
+@tagged('post_install', '-at_install', 'govoo_board')
+class TestGovooMinutesActorTracking(GovooBoardTestBase):
+    """Issue #271 item 1: audit-trail fields + self-approval guard."""
+
+    def _make_minutes_held(self):
+        meeting = self._make_meeting()
+        meeting.write({'state': 'held'})
+        return self.env['govoo.minutes'].create({
+            'meeting_id': meeting.id,
+            'body': '<p>Minutes.</p>',
+        })
+
+    def test_actor_fields_set_on_each_transition(self):
+        minutes = self._make_minutes_held()
+        minutes.action_submit_for_approval()
+        self.assertEqual(minutes.submitted_by_id, self.env.user)
+        minutes.action_approve()
+        self.assertEqual(minutes.approved_by_id, self.env.user)
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.e_signature_legally_confirmed', 'True',
+        )
+        minutes.action_sign()
+        self.assertEqual(minutes.signed_by_id, self.env.user)
+
+    def test_self_approval_allowed_by_default(self):
+        """Unset config: the same user who submitted may still approve --
+        the original behavior."""
+        minutes = self._make_minutes_held()
+        minutes.action_submit_for_approval()
+        minutes.action_approve()
+        self.assertEqual(minutes.state, 'approved')
+
+    def test_self_approval_blocked_when_enabled(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.minutes_require_different_approver', 'True',
+        )
+        minutes = self._make_minutes_held()
+        minutes.action_submit_for_approval()
+        with self.assertRaises(ValidationError):
+            minutes.action_approve()
+
+    def test_different_approver_allowed_when_enabled(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.minutes_require_different_approver', 'True',
+        )
+        minutes = self._make_minutes_held()
+        minutes.action_submit_for_approval()
+        other_secretary = new_test_user(
+            self.env, login='test_other_secretary',
+            groups='govoo_base.group_govoo_secretary',
+            company_id=self.company.id,
+        )
+        minutes.with_user(other_secretary).action_approve()
+        self.assertEqual(minutes.state, 'approved')
+        self.assertEqual(minutes.approved_by_id, other_secretary)
+
+    def test_submitting_for_approval_notifies_secretaries(self):
+        """Issue #271 follow-up: previously nobody was told minutes needed
+        approval. assertGreater (not an exact count) since
+        get_governance_secretary_partners() is not company-scoped and may
+        also notify real secretaries already seeded in the shared dev DB."""
+        message_count_before = self.env['mail.message'].search_count([])
+        mail_count_before = self.env['mail.mail'].search_count([])
+
+        minutes = self._make_minutes_held()
+        minutes.action_submit_for_approval()
+
+        self.assertGreater(self.env['mail.message'].search_count([]), message_count_before)
+        self.assertGreater(self.env['mail.mail'].search_count([]), mail_count_before)
+
+    def test_submitter_excluded_from_their_own_notification_when_require_different_enabled(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.minutes_require_different_approver', 'True',
+        )
+        secretary = new_test_user(
+            self.env, login='test_notify_secretary',
+            groups='govoo_base.group_govoo_secretary',
+            company_id=self.company.id,
+        )
+        minutes = self._make_minutes_held().with_user(secretary)
+        minutes.action_submit_for_approval()
+
+        notified_partners = minutes.message_ids.mapped('partner_ids')
+        self.assertNotIn(secretary.partner_id, notified_partners)
+
+
+@tagged('post_install', '-at_install', 'govoo_board')
+class TestGovooMinutesContentLock(GovooBoardTestBase):
+    """Issue #271 item 5: approved/signed minutes content is immutable."""
+
+    def _make_approved_minutes(self):
+        meeting = self._make_meeting()
+        meeting.write({'state': 'held'})
+        minutes = self.env['govoo.minutes'].create({
+            'meeting_id': meeting.id,
+            'body': '<p>Original content.</p>',
+        })
+        minutes.action_submit_for_approval()
+        minutes.action_approve()
+        return minutes
+
+    def test_body_editable_before_approval(self):
+        meeting = self._make_meeting()
+        meeting.write({'state': 'held'})
+        minutes = self.env['govoo.minutes'].create({
+            'meeting_id': meeting.id,
+            'body': '<p>Draft content.</p>',
+        })
+        minutes.body = '<p>Revised draft.</p>'
+        self.assertIn('Revised draft', minutes.body)
+
+    def test_body_locked_after_approval(self):
+        minutes = self._make_approved_minutes()
+        with self.assertRaises(ValidationError):
+            minutes.body = '<p>Tampered content.</p>'
+
+    def test_attendance_locked_after_approval(self):
+        minutes = self._make_approved_minutes()
+        with self.assertRaises(ValidationError):
+            minutes.attendance_ids = [(6, 0, [self.partner_a.id])]
+
+    def test_apologies_locked_after_approval(self):
+        minutes = self._make_approved_minutes()
+        with self.assertRaises(ValidationError):
+            minutes.apologies_ids = [(6, 0, [self.partner_a.id])]
+
+    def test_signed_document_still_writable_after_approval(self):
+        """The manual-upload-fallback path sets this field while still
+        'approved', before action_sign() -- must not be swept into the
+        content lock."""
+        minutes = self._make_approved_minutes()
+        attachment = self.env['ir.attachment'].create({
+            'name': 'signed.pdf',
+            'datas': b'ZmFrZSBwZGY=',
+        })
+        minutes.signed_document_id = attachment
+        self.assertEqual(minutes.signed_document_id, attachment)

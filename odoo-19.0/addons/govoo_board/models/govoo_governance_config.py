@@ -57,6 +57,23 @@ _CONFIG_PARAMETER_FIELDS = {
     'written_resolution_quorum_percentage': (
         'govoo_board.written_resolution_quorum_percentage', 'float', True,
     ),
+    # Issue #271: meeting/minutes/board-pack workflow policy switches,
+    # same unset-by-default convention.
+    'meeting_notice_period_days': (
+        'govoo_board.meeting_notice_period_days', 'integer', True,
+    ),
+    'minutes_require_different_approver': (
+        'govoo_board.minutes_require_different_approver', 'boolean', False,
+    ),
+    'board_pack_min_lead_days': (
+        'govoo_board.board_pack_min_lead_days', 'integer', True,
+    ),
+    'agenda_freeze_on_schedule': (
+        'govoo_board.agenda_freeze_on_schedule', 'boolean', False,
+    ),
+    'meeting_close_requires_minutes_approved': (
+        'govoo_board.meeting_close_requires_minutes_approved', 'boolean', False,
+    ),
 }
 
 
@@ -174,6 +191,45 @@ class GovooGovernanceConfig(models.Model):
         help='[CONFIRM] Issue #269: fraction (e.g. 0.5) of eligible voters '
              'who must vote on a standalone (meeting-less) resolution for '
              'quorum to be met. 0 keeps the original always-met behavior.',
+    )
+    meeting_notice_period_days = fields.Integer(
+        string='Meeting Notice Period (days)',
+        tracking=True,
+        help='[CONFIRM] Issue #271: minimum days between scheduling a '
+             'meeting and its date. 0 disables the check.',
+    )
+    minutes_require_different_approver = fields.Boolean(
+        string='Require a Different Approver for Minutes',
+        tracking=True,
+        default=False,
+        help='Issue #271: when enabled, minutes cannot be approved by the '
+             'same user who submitted them for approval. Off by default -- '
+             'does not implement a full "Directors approve" workflow (no '
+             'non-portal Director/Chair role exists today), only prevents '
+             'the narrowest form of self-approval.',
+    )
+    board_pack_min_lead_days = fields.Integer(
+        string='Board Pack Minimum Lead Time (days)',
+        tracking=True,
+        help='Issue #271: minimum days before the meeting that a board '
+             'pack must be distributed by. 0 disables the check.',
+    )
+    agenda_freeze_on_schedule = fields.Boolean(
+        string='Freeze Agenda Once Scheduled',
+        tracking=True,
+        default=False,
+        help='Issue #271: when enabled, agenda items can no longer be '
+             'added once the meeting leaves Draft. Off by default: agenda '
+             'items remain editable until the meeting is fully Closed, '
+             'the original behavior.',
+    )
+    meeting_close_requires_minutes_approved = fields.Boolean(
+        string='Require Approved Minutes to Close a Meeting',
+        tracking=True,
+        default=False,
+        help='Issue #271: when enabled, a meeting cannot be closed until '
+             'its minutes reach "Approved" or "Signed" -- not just "For '
+             'Approval" (the original, lower bar).',
     )
 
     @api.constrains('minutes_retention_default_years')

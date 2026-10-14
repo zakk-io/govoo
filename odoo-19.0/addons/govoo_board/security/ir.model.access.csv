@@ -46,3 +46,5 @@ access_govoo_vote_proxy_user,govoo.vote.proxy.user,model_govoo_vote_proxy,govoo_
 access_govoo_vote_proxy_secretary,govoo.vote.proxy.secretary,model_govoo_vote_proxy,govoo_base.group_govoo_secretary,1,1,1,1
 access_govoo_vote_proxy_admin,govoo.vote.proxy.admin,model_govoo_vote_proxy,govoo_base.group_govoo_admin,1,1,1,0
 access_govoo_vote_proxy_auditor,govoo.vote.proxy.auditor,model_govoo_vote_proxy,govoo_base.group_govoo_auditor,1,0,0,0
+access_govoo_meeting_reschedule_wizard_secretary,govoo.meeting.reschedule.wizard.secretary,model_govoo_meeting_reschedule_wizard,govoo_base.group_govoo_secretary,1,1,1,1
+access_govoo_meeting_reschedule_wizard_admin,govoo.meeting.reschedule.wizard.admin,model_govoo_meeting_reschedule_wizard,govoo_base.group_govoo_admin,1,1,1,1

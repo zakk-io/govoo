@@ -36,6 +36,17 @@
                             <field name="written_resolution_quorum_percentage"/>
                         </group>
                     </group>
+                    <group string="Meeting / Minutes / Board Pack Workflow (issue #271)">
+                        <group>
+                            <field name="meeting_notice_period_days"/>
+                            <field name="board_pack_min_lead_days"/>
+                            <field name="agenda_freeze_on_schedule"/>
+                        </group>
+                        <group>
+                            <field name="minutes_require_different_approver"/>
+                            <field name="meeting_close_requires_minutes_approved"/>
+                        </group>
+                    </group>
                 </sheet>
                 <chatter/>
             </form>

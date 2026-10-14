@@ -1,5 +1,8 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
+from datetime import timedelta
+
+from odoo import fields
 from odoo.exceptions import ValidationError
 from odoo.tests import tagged
 
@@ -73,3 +76,34 @@ class TestBoardPackDistribution(GovooBoardTestBase):
         pack = self.env['govoo.board.pack'].create({'meeting_id': meeting.id})
         with self.assertRaises(ValidationError):
             pack.action_distribute()
+
+    # -- Issue #271 item 6: minimum board-pack distribution lead time ----
+
+    def test_lead_time_unset_preserves_default_behavior(self):
+        """Unset (default): a pack can be distributed at any time relative
+        to the meeting date -- the original behavior."""
+        pack = self._compiled_pack()
+        pack.meeting_id.date = fields.Datetime.now() - timedelta(days=1)
+        pack.distribution_ids.mapped('partner_id').write({'email': 'director@example.com'})
+        pack.action_distribute()
+        self.assertEqual(pack.state, 'distributed')
+
+    def test_lead_time_blocks_distribution_too_close_to_meeting(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.board_pack_min_lead_days', '5',
+        )
+        pack = self._compiled_pack()
+        pack.meeting_id.date = fields.Datetime.now() + timedelta(days=2)
+        pack.distribution_ids.mapped('partner_id').write({'email': 'director@example.com'})
+        with self.assertRaises(ValidationError):
+            pack.action_distribute()
+
+    def test_lead_time_allows_distribution_far_enough_out(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.board_pack_min_lead_days', '5',
+        )
+        pack = self._compiled_pack()
+        pack.meeting_id.date = fields.Datetime.now() + timedelta(days=10)
+        pack.distribution_ids.mapped('partner_id').write({'email': 'director@example.com'})
+        pack.action_distribute()
+        self.assertEqual(pack.state, 'distributed')

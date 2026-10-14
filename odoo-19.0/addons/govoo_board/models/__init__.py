@@ -6,6 +6,7 @@ from . import (
     govoo_board_pack,
     govoo_governance_config,
     govoo_meeting,
+    govoo_meeting_reschedule_wizard,
     govoo_minutes,
     govoo_resolution,
     govoo_resolution_voter,

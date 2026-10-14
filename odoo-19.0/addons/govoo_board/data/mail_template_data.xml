@@ -70,5 +70,36 @@
             </field>
         </record>
 
+        <!-- Issue #271 follow-up: sent to every Company Secretary (the
+             only group with write access to govoo.minutes per
+             ir.model.access.csv) when minutes are submitted for
+             approval, since previously nobody was told; they'd only find
+             out by opening the Minutes list manually. No partner_to/lang
+             fields: like govoo_secretarial's own reminder templates, the
+             recipient is set per-send via email_values in a loop over
+             get_governance_secretary_partners(), not a fixed field on
+             the record. -->
+        <record id="mail_template_minutes_approval_requested" model="mail.template">
+            <field name="name">Minutes: Approval Requested</field>
+            <field name="model_id" ref="model_govoo_minutes"/>
+            <field name="subject">Minutes awaiting your approval: {{ object.meeting_id.name }}</field>
+            <field name="description">Sent to Company Secretaries when minutes are submitted for approval (issue #271 follow-up)</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+<div>
+    <p>
+        Hello,<br/><br/>
+        Minutes for <strong t-out="object.meeting_id.name or ''">Meeting</strong> have been
+        submitted and are awaiting your approval.
+    </p>
+    <div style="text-align: center; padding: 16px 0px 16px 0px;">
+        <a t-attf-href="/odoo/govoo.minutes/{{ object.id }}"
+           style="padding: 5px 10px; color: #FFFFFF; text-decoration: none; background-color: #875A7B; border: 1px solid #875A7B; border-radius: 3px">
+            Review Minutes</a>
+    </div>
+</div>
+            </field>
+        </record>
+
     </data>
 </odoo>

@@ -2,9 +2,40 @@
 
 from odoo.tests import TransactionCase
 
+# Every govoo_board governance-policy switch introduced by #269/#271, all
+# "unset = original behavior" by design. This module's tests run against
+# the same persistent dev database real users configure live via
+# Governance Settings (this project has no separate, disposable test DB)
+# -- whatever a Secretary has actually turned on for real (e.g. while
+# manually testing the feature) is otherwise still committed and visible
+# as the starting state of every test transaction, silently breaking any
+# test that doesn't itself account for that specific parameter. Clearing
+# all of them before each test keeps the suite hermetic regardless of
+# what's configured live; TransactionCase rolls this back afterward, so a
+# real admin's live configuration is untouched once the test run ends.
+_GOVOO_BOARD_CONFIG_PARAMS_TO_RESET = (
+    'govoo_board.special_resolution_majority_threshold',
+    'govoo_board.resolution_voting_window_days',
+    'govoo_board.resolution_notice_period_days',
+    'govoo_board.resolution_meeting_state_gate_enabled',
+    'govoo_board.resolution_tie_break_enabled',
+    'govoo_board.written_resolution_quorum_percentage',
+    'govoo_board.meeting_notice_period_days',
+    'govoo_board.minutes_require_different_approver',
+    'govoo_board.board_pack_min_lead_days',
+    'govoo_board.agenda_freeze_on_schedule',
+    'govoo_board.meeting_close_requires_minutes_approved',
+)
+
 
 class GovooBoardTestBase(TransactionCase):
     """Shared setup for board module tests."""
+
+    def setUp(self):
+        super().setUp()
+        IrConfigParameter = self.env['ir.config_parameter'].sudo()
+        for key in _GOVOO_BOARD_CONFIG_PARAMS_TO_RESET:
+            IrConfigParameter.set_param(key, False)
 
     @classmethod
     def setUpClass(cls):
