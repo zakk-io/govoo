@@ -98,6 +98,20 @@ class TestMeetingStatButtons(GovooBoardTestBase):
         self.assertEqual(action['res_model'], 'govoo.resolution')
         self.assertEqual(action['domain'], [('meeting_id', '=', meeting.id)])
 
+    def test_action_create_resolution(self):
+        """Issue #273: action_create_resolution opens a blank create form
+        pre-seeded with this meeting, without pre-creating a record (title/
+        resolution_type are required and can't be meaningfully defaulted)."""
+        meeting = self._make_meeting()
+        resolution_count_before = self.env['govoo.resolution'].search_count([])
+        action = meeting.action_create_resolution()
+        self.assertEqual(action['res_model'], 'govoo.resolution')
+        self.assertNotIn('res_id', action)
+        self.assertEqual(action['context']['default_meeting_id'], meeting.id)
+        self.assertEqual(
+            self.env['govoo.resolution'].search_count([]), resolution_count_before,
+        )
+
 
 @tagged('post_install', '-at_install')
 class TestResolutionStatButtons(GovooBoardTestBase):

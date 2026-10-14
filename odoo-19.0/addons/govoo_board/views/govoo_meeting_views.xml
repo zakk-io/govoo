@@ -133,6 +133,15 @@
                         This meeting replaces a cancelled/rescheduled meeting:
                         <field name="rescheduled_from_id" readonly="1"/>
                     </div>
+                    <!-- Issue #273: Pack/Minutes already had this empty-
+                         state call-to-action; Resolutions previously had
+                         no in-context way to create the first one. -->
+                    <div class="alert alert-info" role="alert" invisible="resolution_count">
+                        No resolutions have been proposed yet.
+                        <button name="action_create_resolution" type="object"
+                                string="Draft Resolution" class="btn-link"
+                                groups="govoo_base.group_govoo_secretary"/>
+                    </div>
                     <group>
                         <group>
                             <field name="name"/>
