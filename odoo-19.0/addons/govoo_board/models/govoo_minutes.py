@@ -96,6 +96,23 @@ class GovooMinutes(models.Model):
 
     _LOCKED_FIELDS_AFTER_APPROVAL = ('body', 'attendance_ids', 'apologies_ids')
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Link the meeting back to these minutes on creation, mirroring
+        govoo.board.pack.create()'s own meeting.pack_id link-back. Without
+        this, meeting.minutes_id (a plain, non-computed field with no
+        editable widget anywhere in the UI) stays permanently unset for
+        every minutes record created via the normal "Draft Minutes"
+        button -- action_minute()'s own 'Minutes must be created before
+        marking meeting as minuted' check would then always fail, even
+        once the minutes are genuinely drafted and approved, with no way
+        to fix it from the UI at all."""
+        records = super().create(vals_list)
+        for rec in records:
+            if rec.meeting_id and not rec.meeting_id.minutes_id:
+                rec.meeting_id.minutes_id = rec.id
+        return records
+
     @api.depends('create_date', 'company_id')
     def _compute_retention_until(self):
         """Retention from create_date, sourced from govoo_rw config (BR-BOARD-004).
