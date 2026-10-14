@@ -7,29 +7,19 @@
               sequence="100"
               web_icon="govoo_base,static/description/icon.png"/>
 
-    <!-- Appointments submenu -->
+    <!-- Appointments -->
     <menuitem id="govoo_menu_appointments"
               name="Appointments"
               parent="govoo_menu_root"
-              sequence="10"/>
-
-    <menuitem id="govoo_menu_appointment_list"
-              name="All Appointments"
-              parent="govoo_menu_appointments"
               action="govoo_appointment_action"
               sequence="10"/>
 
-    <!-- Committees submenu -->
+    <!-- Committees -->
     <menuitem id="govoo_menu_committees"
               name="Committees"
               parent="govoo_menu_root"
-              sequence="20"/>
-
-    <menuitem id="govoo_menu_committee_list"
-              name="All Committees"
-              parent="govoo_menu_committees"
               action="govoo_committee_action"
-              sequence="10"/>
+              sequence="20"/>
 
     <!-- Configuration (Board Administrator and Company Secretary; issue
          #238 widened this from admin-only so Company Secretaries, who
