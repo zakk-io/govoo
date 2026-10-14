@@ -220,6 +220,22 @@ class GovooMeeting(models.Model):
             'res_id': minutes.id,
         }
 
+    def action_create_resolution(self):
+        """Resolutions' empty-state call-to-action (issue #273), matching
+        action_create_pack()/action_create_minutes() above. Unlike those
+        two, govoo.resolution has required fields (title, resolution_type)
+        that can't be meaningfully defaulted, so this opens a blank create
+        form pre-seeded with meeting_id via context instead of
+        pre-creating a placeholder record."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Resolution',
+            'res_model': 'govoo.resolution',
+            'view_mode': 'form',
+            'context': {'default_meeting_id': self.id},
+        }
+
     def action_view_resolutions(self):
         self.ensure_one()
         return {
