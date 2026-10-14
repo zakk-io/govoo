@@ -15,6 +15,32 @@ class TestPortal(HttpCase):
     bugs (BR-SEC-006) actually show up.
     """
 
+    # Same hermeticity concern govoo_board/tests/common.py and
+    # govoo_portal/tests/test_dashboard_action_items.py already address:
+    # test_005/test_006 call resolution.action_open(), which is gated by
+    # govoo_board's own config parameters -- a real admin's live
+    # Governance Settings configuration would otherwise silently break
+    # them.
+    _GOVOO_BOARD_CONFIG_PARAMS_TO_RESET = (
+        'govoo_board.special_resolution_majority_threshold',
+        'govoo_board.resolution_voting_window_days',
+        'govoo_board.resolution_notice_period_days',
+        'govoo_board.resolution_meeting_state_gate_enabled',
+        'govoo_board.resolution_tie_break_enabled',
+        'govoo_board.written_resolution_quorum_percentage',
+        'govoo_board.meeting_notice_period_days',
+        'govoo_board.minutes_require_different_approver',
+        'govoo_board.board_pack_min_lead_days',
+        'govoo_board.agenda_freeze_on_schedule',
+        'govoo_board.meeting_close_requires_minutes_approved',
+    )
+
+    def setUp(self):
+        super().setUp()
+        IrConfigParameter = self.env['ir.config_parameter'].sudo()
+        for key in self._GOVOO_BOARD_CONFIG_PARAMS_TO_RESET:
+            IrConfigParameter.set_param(key, False)
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()

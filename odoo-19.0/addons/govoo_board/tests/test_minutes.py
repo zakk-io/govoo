@@ -239,6 +239,35 @@ class TestGovooMinutesActorTracking(GovooBoardTestBase):
         self.assertEqual(minutes.state, 'approved')
         self.assertEqual(minutes.approved_by_id, other_secretary)
 
+    def test_submitting_for_approval_notifies_secretaries(self):
+        """Issue #271 follow-up: previously nobody was told minutes needed
+        approval. assertGreater (not an exact count) since
+        get_governance_secretary_partners() is not company-scoped and may
+        also notify real secretaries already seeded in the shared dev DB."""
+        message_count_before = self.env['mail.message'].search_count([])
+        mail_count_before = self.env['mail.mail'].search_count([])
+
+        minutes = self._make_minutes_held()
+        minutes.action_submit_for_approval()
+
+        self.assertGreater(self.env['mail.message'].search_count([]), message_count_before)
+        self.assertGreater(self.env['mail.mail'].search_count([]), mail_count_before)
+
+    def test_submitter_excluded_from_their_own_notification_when_require_different_enabled(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.minutes_require_different_approver', 'True',
+        )
+        secretary = new_test_user(
+            self.env, login='test_notify_secretary',
+            groups='govoo_base.group_govoo_secretary',
+            company_id=self.company.id,
+        )
+        minutes = self._make_minutes_held().with_user(secretary)
+        minutes.action_submit_for_approval()
+
+        notified_partners = minutes.message_ids.mapped('partner_ids')
+        self.assertNotIn(secretary.partner_id, notified_partners)
+
 
 @tagged('post_install', '-at_install', 'govoo_board')
 class TestGovooMinutesContentLock(GovooBoardTestBase):

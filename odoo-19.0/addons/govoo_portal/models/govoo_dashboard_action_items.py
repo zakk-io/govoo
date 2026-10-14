@@ -48,6 +48,7 @@ class GovooDashboardActionItems(models.AbstractModel):
             self._get_contract_items,
             self._get_filing_items,
             self._get_meeting_items,
+            self._get_minutes_approval_items,
         ):
             try:
                 items += fetch()
@@ -271,6 +272,37 @@ class GovooDashboardActionItems(models.AbstractModel):
                 'res_id': inst.id,
             })
         return results
+
+    def _get_minutes_approval_items(self):
+        """Folded into the Meetings tab (type='meeting') rather than its
+        own tab, per explicit request -- minutes approval is naturally
+        part of a meeting's lifecycle. Gated on group_govoo_secretary: it
+        is the only group with write access to govoo.minutes
+        (ir.model.access.csv), so an Admin/Auditor/Director opening this
+        dashboard could never act on this item anyway. When
+        govoo_board.minutes_require_different_approver is on, the
+        submitter's own pending minutes are excluded -- they're blocked
+        from approving their own submission, so showing it as actionable
+        to them would be misleading."""
+        if not self.env.user.has_group('govoo_base.group_govoo_secretary'):
+            return []
+        require_different = self.env['ir.config_parameter'].sudo().get_param(
+            'govoo_board.minutes_require_different_approver', 'False',
+        ) in ('True', '1')
+        minutes = self.env['govoo.minutes'].search([('state', '=', 'for_approval')])
+        if require_different:
+            minutes = minutes.filtered(lambda m: m.submitted_by_id.id != self.env.uid)
+        return [{
+            'id': 'minutes-%d' % m.id,
+            'type': 'meeting',
+            'group': 'week',
+            'title': 'Minutes: %s' % (m.meeting_id.name or ''),
+            'context': ('Submitted by %s' % m.submitted_by_id.name) if m.submitted_by_id else '',
+            'due_label': 'Awaiting approval',
+            'action_label': 'Approve Minutes',
+            'res_model': 'govoo.minutes',
+            'res_id': m.id,
+        } for m in minutes]
 
     def _get_meeting_items(self):
         partner = self.env.user.partner_id

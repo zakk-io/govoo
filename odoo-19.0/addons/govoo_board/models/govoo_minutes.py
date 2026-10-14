@@ -190,6 +190,43 @@ class GovooMinutes(models.Model):
                     _('Meeting must be at least "Held" before submitting minutes for approval.')
                 )
         self.write({'state': 'for_approval', 'submitted_by_id': self.env.uid})
+        self._notify_approvers()
+
+    def _notify_approvers(self):
+        """Issue #271 follow-up: nobody was told minutes needed their
+        approval -- they'd only find out by opening the Minutes list
+        manually. Notifies every Company Secretary (the only group with
+        write access to govoo.minutes, confirmed via ir.model.access.csv
+        -- Admin is read-only here), reusing the same
+        get_governance_secretary_partners() helper and per-recipient
+        send_mail(email_values=...) loop govoo_secretarial_cron.py's
+        _notify_secretaries() already established. Excludes the submitter
+        when minutes_require_different_approver is on, since they're
+        blocked from approving their own submission anyway -- notifying
+        them to do something they can't would be misleading."""
+        require_different = self._minutes_require_different_approver()
+        template = self.env.ref(
+            'govoo_board.mail_template_minutes_approval_requested', raise_if_not_found=False,
+        )
+        for rec in self:
+            secretaries = self.env['res.users'].get_governance_secretary_partners()
+            if require_different and rec.submitted_by_id:
+                secretaries = secretaries - rec.submitted_by_id.partner_id
+            for partner in secretaries:
+                rec.message_post(
+                    body=_('Minutes for %s are awaiting your approval.') % rec.meeting_id.name,
+                    partner_ids=partner.ids,
+                    subtype_xmlid='mail.mt_comment',
+                )
+                if template:
+                    template.send_mail(
+                        rec.id,
+                        email_values={
+                            'email_to': partner.email,
+                            'recipient_ids': [(6, 0, partner.ids)],
+                        },
+                        force_send=True,
+                    )
 
     def _minutes_require_different_approver(self):
         """Issue #271 item 1: unset/False preserves the original behavior

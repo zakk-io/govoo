@@ -15,6 +15,33 @@ class TestDashboardActionItems(TransactionCase):
     calling user (never sudo()), so these tests also double as the
     record-rule/multi-company regression guard the issue asked for."""
 
+    # Same hermeticity concern govoo_board/tests/common.py already
+    # addresses: this suite runs against the same persistent dev database
+    # real users configure live via Governance Settings, and several
+    # tests below call resolution.action_open()/meeting state transitions
+    # that are gated by govoo_board's own config parameters (notice
+    # periods, meeting-state gate, etc.) -- a real admin's live
+    # configuration would otherwise silently break these tests.
+    _GOVOO_BOARD_CONFIG_PARAMS_TO_RESET = (
+        'govoo_board.special_resolution_majority_threshold',
+        'govoo_board.resolution_voting_window_days',
+        'govoo_board.resolution_notice_period_days',
+        'govoo_board.resolution_meeting_state_gate_enabled',
+        'govoo_board.resolution_tie_break_enabled',
+        'govoo_board.written_resolution_quorum_percentage',
+        'govoo_board.meeting_notice_period_days',
+        'govoo_board.minutes_require_different_approver',
+        'govoo_board.board_pack_min_lead_days',
+        'govoo_board.agenda_freeze_on_schedule',
+        'govoo_board.meeting_close_requires_minutes_approved',
+    )
+
+    def setUp(self):
+        super().setUp()
+        IrConfigParameter = self.env['ir.config_parameter'].sudo()
+        for key in self._GOVOO_BOARD_CONFIG_PARAMS_TO_RESET:
+            IrConfigParameter.set_param(key, False)
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -184,6 +211,90 @@ class TestDashboardActionItems(TransactionCase):
         matches = [i for i in data['items'] if i['type'] == 'meeting' and i['res_id'] == meeting.id]
         self.assertEqual(len(matches), 1)
         self.assertEqual(data['counts']['meetings'], 1)
+
+    def test_minutes_approval_item_appears_for_secretary(self):
+        secretary = new_test_user(
+            self.env, login='test_266_secretary',
+            groups='govoo_base.group_govoo_secretary',
+            company_id=self.company.id,
+        )
+        meeting = self.env['govoo.meeting'].create({
+            'name': 'Meeting 266 Minutes',
+            'meeting_type': 'board',
+            'committee_id': self.committee.id,
+            'date': '2026-04-01 10:00:00',
+            'company_id': self.company.id,
+            'state': 'held',
+        })
+        minutes = self.env['govoo.minutes'].with_user(secretary).create({
+            'meeting_id': meeting.id,
+            'body': '<p>Minutes.</p>',
+        })
+        minutes.with_user(secretary).action_submit_for_approval()
+
+        data = self._get_items(secretary)
+        matches = [i for i in data['items'] if i['type'] == 'meeting' and i['res_id'] == minutes.id]
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0]['res_model'], 'govoo.minutes')
+        self.assertEqual(matches[0]['action_label'], 'Approve Minutes')
+
+    def test_minutes_approval_item_absent_for_non_secretary(self):
+        meeting = self.env['govoo.meeting'].create({
+            'name': 'Meeting 266 Minutes Non-Secretary',
+            'meeting_type': 'board',
+            'committee_id': self.committee.id,
+            'date': '2026-04-01 10:00:00',
+            'company_id': self.company.id,
+            'state': 'held',
+        })
+        minutes = self.env['govoo.minutes'].sudo().create({
+            'meeting_id': meeting.id,
+            'body': '<p>Minutes.</p>',
+        })
+        minutes.sudo().action_submit_for_approval()
+
+        data = self._get_items(self.director)
+        matches = [i for i in data['items'] if i['res_model'] == 'govoo.minutes' and i['res_id'] == minutes.id]
+        self.assertEqual(len(matches), 0)
+
+    def test_minutes_approval_item_excluded_for_submitter_when_require_different_enabled(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.minutes_require_different_approver', 'True',
+        )
+        secretary_a = new_test_user(
+            self.env, login='test_266_secretary_a',
+            groups='govoo_base.group_govoo_secretary',
+            company_id=self.company.id,
+        )
+        secretary_b = new_test_user(
+            self.env, login='test_266_secretary_b',
+            groups='govoo_base.group_govoo_secretary',
+            company_id=self.company.id,
+        )
+        meeting = self.env['govoo.meeting'].create({
+            'name': 'Meeting 266 Minutes Self-Approval',
+            'meeting_type': 'board',
+            'committee_id': self.committee.id,
+            'date': '2026-04-01 10:00:00',
+            'company_id': self.company.id,
+            'state': 'held',
+        })
+        minutes = self.env['govoo.minutes'].with_user(secretary_a).create({
+            'meeting_id': meeting.id,
+            'body': '<p>Minutes.</p>',
+        })
+        minutes.with_user(secretary_a).action_submit_for_approval()
+
+        data_a = self._get_items(secretary_a)
+        self.assertEqual(
+            [i for i in data_a['items'] if i['res_model'] == 'govoo.minutes' and i['res_id'] == minutes.id],
+            [],
+        )
+        data_b = self._get_items(secretary_b)
+        self.assertEqual(
+            len([i for i in data_b['items'] if i['res_model'] == 'govoo.minutes' and i['res_id'] == minutes.id]),
+            1,
+        )
 
     def test_other_company_item_never_appears(self):
         """Multi-company isolation: an item that would otherwise match
