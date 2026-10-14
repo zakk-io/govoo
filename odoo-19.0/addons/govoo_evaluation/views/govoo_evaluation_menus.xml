@@ -4,7 +4,7 @@
     <menuitem id="govoo_menu_evaluation"
               name="Evaluations"
               parent="govoo_base.govoo_menu_root"
-              sequence="55"/>
+              sequence="60"/>
 
     <menuitem id="govoo_menu_evaluation_campaign"
               name="Campaigns"
