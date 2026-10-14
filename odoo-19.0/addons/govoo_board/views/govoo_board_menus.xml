@@ -4,7 +4,7 @@
     <menuitem id="govoo_menu_board"
               name="Board &amp; Meetings"
               parent="govoo_base.govoo_menu_root"
-              sequence="40"/>
+              sequence="10"/>
 
     <!-- Issue #197: re-parent Appointments and Committees (originally
          top-level menus defined in govoo_base/views/govoo_base_menus.xml)
