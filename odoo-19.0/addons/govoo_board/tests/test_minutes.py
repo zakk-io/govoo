@@ -128,6 +128,31 @@ class TestMinutesWorkflow(GovooBoardTestBase):
     exercises the documented fallback default (10 years); the real
     govoo_rw-config path is covered in govoo_rw's own test suite (#32)."""
 
+    def test_create_links_meeting_back_to_minutes(self):
+        """Found during manual testing: minutes_id has no editable widget
+        anywhere in the UI, and action_minute() requires it -- without
+        this link-back (mirroring govoo.board.pack.create()'s own
+        meeting.pack_id link), a meeting could never be marked Minuted
+        once its minutes were created via the normal "Draft Minutes"
+        button, with no way to fix it short of direct DB access."""
+        meeting = self._make_meeting()
+        meeting.write({'state': 'held'})
+        self.assertFalse(meeting.minutes_id)
+        minutes = self.env['govoo.minutes'].create({
+            'meeting_id': meeting.id,
+            'body': '<p>Minutes content.</p>',
+        })
+        self.assertEqual(meeting.minutes_id, minutes)
+
+    def test_create_does_not_override_an_already_linked_minutes(self):
+        meeting = self._make_meeting()
+        meeting.write({'state': 'held'})
+        first = self.env['govoo.minutes'].create({'meeting_id': meeting.id})
+        self.assertEqual(meeting.minutes_id, first)
+        second = self.env['govoo.minutes'].create({'meeting_id': meeting.id})
+        self.assertEqual(meeting.minutes_id, first)
+        self.assertNotEqual(meeting.minutes_id, second)
+
     def test_minutes_lifecycle_and_retention(self):
         meeting = self._make_meeting()
         meeting.write({'state': 'held'})
