@@ -42,11 +42,10 @@ class GovooMeeting(models.Model):
         string='Meeting Type',
         required=True,
         tracking=True,
-        help='Issue #202: "executive" and "departmental" meetings are '
-             'confidentiality-partitioned by committee_id.member_ids -- '
-             'see govoo_meeting_confidential_comp_rule -- unlike board/'
-             'committee/agm/egm meetings, which remain visible to every '
-             'internal governance user as before.',
+        help='Executive and Departmental meetings are only visible to '
+             'members of the relevant committee -- Board, Committee, AGM '
+             'and EGM meetings remain visible to every internal governance '
+             'user as usual.',
     )
     calendar_event_id = fields.Many2one(
         comodel_name='calendar.event',
@@ -78,11 +77,10 @@ class GovooMeeting(models.Model):
         column1='meeting_id',
         column2='partner_id',
         string='Attendees Present',
-        help='Issue #271 item 4: who actually attended, distinct from '
-             'attendee_ids (who was invited). Quorum is computed from this '
-             'list once it has been populated; left empty, quorum falls '
-             'back to the invite list exactly as before this field '
-             'existed.',
+        help='Who actually attended, distinct from the invite list above. '
+             'Quorum is calculated from this list once it is filled in; '
+             'left empty, quorum is calculated from the invite list '
+             'instead.',
     )
     quorum_required = fields.Integer(
         string='Quorum Required',
@@ -338,10 +336,9 @@ class GovooMeeting(models.Model):
                     days_remaining = (rec.date - fields.Datetime.now()).days
                     if days_remaining < notice_days:
                         raise ValidationError(_(
-                            'Cannot schedule: only %d day(s) notice before '
-                            'the meeting; the configured notice period '
-                            '("govoo_board.meeting_notice_period_days") '
-                            'requires at least %d day(s).'
+                            'Cannot schedule yet: the meeting is only %d '
+                            'day(s) away, but Governance Settings requires '
+                            'at least %d day(s) notice.'
                         ) % (max(days_remaining, 0), notice_days))
         alarm = self.env.ref('govoo_board.alarm_meeting_email_1_day', raise_if_not_found=False)
         for rec in self:
@@ -406,8 +403,8 @@ class GovooMeeting(models.Model):
                 )
             if requires_minutes_approved and rec.minutes_id.state not in ('approved', 'signed'):
                 raise ValidationError(_(
-                    'Cannot close meeting: minutes must be "Approved" or '
-                    '"Signed" first ("govoo_board.meeting_close_requires_minutes_approved").'
+                    'Cannot close meeting: the minutes must be "Approved" '
+                    'or "Signed" first.'
                 ))
         self.write({'state': 'closed'})
 

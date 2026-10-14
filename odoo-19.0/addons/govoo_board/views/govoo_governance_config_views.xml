@@ -24,7 +24,7 @@
                         <field name="e_signature_legally_confirmed"/>
                         <field name="minutes_retention_default_years"/>
                     </group>
-                    <group string="Voting Workflow (issue #269)">
+                    <group string="Voting Workflow">
                         <group>
                             <field name="special_resolution_majority_threshold"/>
                             <field name="resolution_voting_window_days"/>
@@ -36,7 +36,7 @@
                             <field name="written_resolution_quorum_percentage"/>
                         </group>
                     </group>
-                    <group string="Meeting / Minutes / Board Pack Workflow (issue #271)">
+                    <group string="Meeting, Minutes and Board Pack Workflow">
                         <group>
                             <field name="meeting_notice_period_days"/>
                             <field name="board_pack_min_lead_days"/>

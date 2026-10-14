@@ -89,7 +89,6 @@ class GovooAgendaItem(models.Model):
                 raise ValidationError(msg)
             if freeze_on_schedule and rec.meeting_id and rec.meeting_id.state != 'draft':
                 raise ValidationError(_(
-                    'Cannot add or edit agenda items once the meeting has '
-                    'been scheduled -- the agenda is frozen '
-                    '("govoo_board.agenda_freeze_on_schedule").'
+                    'The agenda is frozen: items can no longer be added or '
+                    'changed once the meeting has been scheduled.'
                 ))

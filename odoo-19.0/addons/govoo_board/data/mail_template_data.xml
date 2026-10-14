@@ -18,7 +18,7 @@
             <field name="subject">Board pack available: {{ object.pack_id.meeting_id.name }}</field>
             <field name="partner_to">{{ object.partner_id.id }}</field>
             <field name="lang">{{ object.partner_id.lang }}</field>
-            <field name="description">Sent to each recipient when a board pack is distributed (issue #203)</field>
+            <field name="description">Sent to each recipient when a board pack is distributed.</field>
             <field name="auto_delete" eval="True"/>
             <field name="body_html" type="html">
 <div>
@@ -50,7 +50,7 @@
             <field name="subject">Your vote is requested: {{ object.resolution_id.title }}</field>
             <field name="partner_to">{{ object.partner_id.id }}</field>
             <field name="lang">{{ object.partner_id.lang }}</field>
-            <field name="description">Sent to each eligible voter when a resolution opens for voting (issue #234)</field>
+            <field name="description">Sent to each eligible voter when a resolution opens for voting.</field>
             <field name="auto_delete" eval="True"/>
             <field name="body_html" type="html">
 <div>
@@ -83,7 +83,7 @@
             <field name="name">Minutes: Approval Requested</field>
             <field name="model_id" ref="model_govoo_minutes"/>
             <field name="subject">Minutes awaiting your approval: {{ object.meeting_id.name }}</field>
-            <field name="description">Sent to Company Secretaries when minutes are submitted for approval (issue #271 follow-up)</field>
+            <field name="description">Sent to Company Secretaries when minutes are submitted for approval.</field>
             <field name="auto_delete" eval="True"/>
             <field name="body_html" type="html">
 <div>

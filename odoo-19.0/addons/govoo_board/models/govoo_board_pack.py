@@ -208,10 +208,9 @@ class GovooBoardPack(models.Model):
                 days_remaining = (rec.meeting_id.date - fields.Datetime.now()).days
                 if days_remaining < lead_days:
                     raise ValidationError(_(
-                        'Cannot distribute: only %d day(s) remain before '
-                        'the meeting; the configured minimum lead time '
-                        '("govoo_board.board_pack_min_lead_days") requires '
-                        'at least %d day(s).'
+                        'Cannot distribute yet: only %d day(s) remain '
+                        'before the meeting, but Governance Settings '
+                        'requires at least %d day(s) lead time.'
                     ) % (max(days_remaining, 0), lead_days))
             pending = rec.distribution_ids.filtered(lambda d: not d.sent_date)
             missing_email = pending.filtered(lambda d: not d.partner_id.email)
