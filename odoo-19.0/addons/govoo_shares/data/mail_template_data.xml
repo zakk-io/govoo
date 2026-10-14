@@ -10,7 +10,7 @@
             <field name="name">Share Allotment: Certificate Issuance Reminder</field>
             <field name="model_id" ref="model_govoo_share_allotment"/>
             <field name="subject">Share certificate issuance deadline approaching</field>
-            <field name="description">Sent to Company Secretaries when an allotment nears its certificate-issuance deadline (issue #236)</field>
+            <field name="description">Sent to Company Secretaries when an allotment nears its certificate-issuance deadline.</field>
             <field name="auto_delete" eval="True"/>
             <field name="body_html" type="html">
 <div>
@@ -34,7 +34,7 @@
             <field name="name">Share Transfer: Registration Reminder</field>
             <field name="model_id" ref="model_govoo_share_transfer"/>
             <field name="subject">Share transfer registration deadline approaching</field>
-            <field name="description">Sent to Company Secretaries when a transfer nears its registration deadline (issue #236)</field>
+            <field name="description">Sent to Company Secretaries when a transfer nears its registration deadline.</field>
             <field name="auto_delete" eval="True"/>
             <field name="body_html" type="html">
 <div>

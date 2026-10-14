@@ -105,19 +105,16 @@ class GovooResolution(models.Model):
     vote_deadline = fields.Datetime(
         string='Voting Deadline',
         tracking=True,
-        help='Issue #269: set automatically at action_open() from the '
-             '"govoo_board.resolution_voting_window_days" parameter, when '
-             'configured. Blank (the default) means no deadline -- a '
-             'Secretary must still manually tally, matching behavior '
-             'before this field existed.',
+        help='When this resolution automatically closes and tallies, if a '
+             'voting window is configured in Governance Settings. Blank '
+             'means no deadline -- a Secretary must manually tally it.',
     )
     tie_break_pending = fields.Boolean(
         string='Tie-Break Pending',
         tracking=True,
-        help='Issue #269: set by action_tally() when a simple-majority '
-             'vote ties and "govoo_board.resolution_tie_break_enabled" is '
-             'on, instead of auto-failing. Cleared by '
-             'action_chair_casting_vote().',
+        help="Set when a tied vote is waiting for a Secretary or Board "
+             "Administrator's casting-vote decision, if that option is "
+             "enabled in Governance Settings.",
     )
     # Always ir.attachment (Many2one comodel is fixed at class-definition
     # time); when a signing document is generated for this field, check
@@ -162,10 +159,9 @@ class GovooResolution(models.Model):
         for rec in self:
             if rec.sign_request_id:
                 raise ValidationError(_(
-                    'E-signature is not yet confirmed as legally valid '
-                    'under Rwandan law (BR-BOARD-008); Sign Request cannot '
-                    'be used. Store the executed resolution document '
-                    'separately instead.'
+                    'E-signature has not yet been confirmed as legally '
+                    'valid, so it cannot be used here. Store the executed '
+                    'resolution document separately instead.'
                 ))
 
     @api.depends('meeting_id.company_id')
@@ -397,12 +393,10 @@ class GovooResolution(models.Model):
         if not threshold:
             if raise_if_unset:
                 raise ValidationError(_(
-                    'Special resolution majority threshold is not configured '
-                    '(BR-BOARD-005; see docs/spec/decisions/open-decisions.md '
-                    'item 11 -- exact percentage pending company articles / '
-                    'Rwandan law confirmation). Set the '
-                    '"govoo_board.special_resolution_majority_threshold" '
-                    'system parameter before tallying special resolutions.'
+                    'This special resolution cannot be tallied yet: the '
+                    'required majority threshold has not been set. Go to '
+                    'Governance Settings and set the "Special Resolution '
+                    'Majority Threshold" first.'
                 ))
             return None
         return float(threshold)
@@ -492,10 +486,9 @@ class GovooResolution(models.Model):
                 days_remaining = (rec.meeting_id.date - fields.Datetime.now()).days
                 if days_remaining < notice_days:
                     raise ValidationError(_(
-                        'Cannot open voting: only %d day(s) notice before the '
-                        'meeting; the configured notice period '
-                        '("govoo_board.resolution_notice_period_days") '
-                        'requires at least %d day(s).'
+                        'Cannot open voting yet: the meeting is only %d '
+                        'day(s) away, but Governance Settings requires at '
+                        'least %d day(s) notice before opening a vote.'
                     ) % (max(days_remaining, 0), notice_days))
         self.write({'state': 'open'})
         window_days = self._voting_window_days()
