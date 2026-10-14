@@ -479,6 +479,15 @@ class GovooResolution(models.Model):
                     'Cannot open voting: meeting "%s" has not been scheduled '
                     'yet (still in Draft).'
                 ) % rec.meeting_id.name)
+            if rec.meeting_id and rec.meeting_id.state == 'cancelled':
+                # Issue #271: 'cancelled' is a new meeting state this check
+                # predates (#269) -- this branch is unconditional (not
+                # gated by resolution_meeting_state_gate_enabled), since a
+                # cancelled meeting is never a valid place to vote
+                # regardless of that policy switch.
+                raise ValidationError(_(
+                    'Cannot open voting: meeting "%s" has been cancelled.'
+                ) % rec.meeting_id.name)
             if notice_days and rec.meeting_id and rec.meeting_id.date:
                 days_remaining = (rec.meeting_id.date - fields.Datetime.now()).days
                 if days_remaining < notice_days:

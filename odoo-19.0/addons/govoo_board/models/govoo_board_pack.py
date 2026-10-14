@@ -176,6 +176,18 @@ class GovooBoardPack(models.Model):
         ) as merged:
             return merged.getvalue()
 
+    def _board_pack_min_lead_days(self):
+        """Issue #271 item 6: minimum days before the meeting that a pack
+        must be distributed by. Unset (0) = disabled, matching every other
+        notice/lead-time parameter's convention."""
+        raw = self.env['ir.config_parameter'].sudo().get_param(
+            'govoo_board.board_pack_min_lead_days', '0',
+        )
+        try:
+            return int(raw or '0')
+        except (TypeError, ValueError):
+            return 0
+
     def action_distribute(self):
         """Distribute compiled pack to recipients via both an in-app
         portal notification and an actual email (issue #203) -- the two
@@ -188,9 +200,19 @@ class GovooBoardPack(models.Model):
             'govoo_board.mail_template_board_pack_distribution',
             raise_if_not_found=False,
         )
+        lead_days = self._board_pack_min_lead_days()
         for rec in self:
             if rec.state != 'compiled':
                 raise ValidationError(_('Pack must be compiled before distribution.'))
+            if lead_days and rec.meeting_id.date:
+                days_remaining = (rec.meeting_id.date - fields.Datetime.now()).days
+                if days_remaining < lead_days:
+                    raise ValidationError(_(
+                        'Cannot distribute: only %d day(s) remain before '
+                        'the meeting; the configured minimum lead time '
+                        '("govoo_board.board_pack_min_lead_days") requires '
+                        'at least %d day(s).'
+                    ) % (max(days_remaining, 0), lead_days))
             pending = rec.distribution_ids.filtered(lambda d: not d.sent_date)
             missing_email = pending.filtered(lambda d: not d.partner_id.email)
             if missing_email:

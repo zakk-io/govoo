@@ -1,5 +1,8 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
+from datetime import timedelta
+
+from odoo import fields
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
 
@@ -228,3 +231,205 @@ class GovooMeetingTC(GovooBoardTestBase):
 
         meeting.action_close()
         self.assertEqual(meeting.state, 'closed')
+
+    # -- Issue #271 item 2: cancel & reschedule --------------------------
+
+    def test_cancel_from_draft(self):
+        meeting = self._make_meeting()
+        meeting.action_cancel(reason='Venue unavailable')
+        self.assertEqual(meeting.state, 'cancelled')
+        self.assertEqual(meeting.cancel_reason, 'Venue unavailable')
+
+    def test_cancel_from_scheduled(self):
+        meeting = self._make_meeting()
+        meeting.action_schedule()
+        meeting.action_cancel()
+        self.assertEqual(meeting.state, 'cancelled')
+
+    def test_cancel_blocked_once_held(self):
+        meeting = self._make_meeting()
+        meeting.action_schedule()
+        meeting.action_hold()
+        with self.assertRaises(ValidationError):
+            meeting.action_cancel()
+
+    def test_cancel_blocked_by_open_resolution(self):
+        meeting = self._make_meeting()
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+        with self.assertRaises(ValidationError):
+            meeting.action_cancel()
+        self.assertEqual(meeting.state, 'draft')
+
+    def test_cancel_allowed_after_resolution_withdrawn(self):
+        meeting = self._make_meeting()
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+        resolution.action_withdraw()
+        meeting.action_cancel()
+        self.assertEqual(meeting.state, 'cancelled')
+
+    def test_reschedule_cancels_original_and_links_new_meeting(self):
+        meeting = self._make_meeting()
+        new_date = fields.Datetime.now() + timedelta(days=30)
+        new_meeting = meeting.action_reschedule(new_date)
+        self.assertEqual(meeting.state, 'cancelled')
+        self.assertEqual(meeting.cancel_reason, 'Rescheduled')
+        self.assertEqual(meeting.rescheduled_to_id, new_meeting)
+        self.assertEqual(new_meeting.rescheduled_from_id, meeting)
+        self.assertEqual(new_meeting.state, 'draft')
+        self.assertEqual(new_meeting.date, new_date)
+        self.assertEqual(new_meeting.committee_id, meeting.committee_id)
+        self.assertEqual(new_meeting.attendee_ids, meeting.attendee_ids)
+
+    def test_reschedule_does_not_copy_agenda_or_resolutions(self):
+        meeting = self._make_meeting()
+        self.env['govoo.agenda.item'].create({
+            'meeting_id': meeting.id,
+            'title': 'Item',
+            'item_type': 'noting',
+        })
+        resolution = self._make_resolution(meeting)
+        resolution.action_open()
+        resolution.action_withdraw()
+        new_meeting = meeting.action_reschedule(fields.Datetime.now() + timedelta(days=30))
+        self.assertFalse(new_meeting.agenda_ids)
+        self.assertFalse(new_meeting.resolution_ids)
+
+    # -- Issue #271 item 3: meeting notice period -------------------------
+
+    def test_meeting_notice_period_unset_preserves_default_behavior(self):
+        meeting = self._make_meeting()
+        meeting.action_schedule()
+        self.assertEqual(meeting.state, 'scheduled')
+
+    def test_meeting_notice_period_blocks_schedule_when_too_soon(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.meeting_notice_period_days', '14',
+        )
+        meeting = self._make_meeting()
+        meeting.date = fields.Datetime.now() + timedelta(days=5)
+        with self.assertRaises(ValidationError):
+            meeting.action_schedule()
+
+    def test_meeting_notice_period_allows_schedule_when_far_enough_out(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.meeting_notice_period_days', '14',
+        )
+        meeting = self._make_meeting()
+        meeting.date = fields.Datetime.now() + timedelta(days=30)
+        meeting.action_schedule()
+        self.assertEqual(meeting.state, 'scheduled')
+
+    # -- Issue #271 item 4: confirmed vs invited attendees ----------------
+
+    def test_quorum_falls_back_to_invited_when_confirmed_empty(self):
+        meeting = self._make_meeting(quorum=3)
+        self.assertTrue(meeting.quorum_met)
+
+    def test_quorum_uses_confirmed_attendees_when_populated(self):
+        meeting = self._make_meeting(quorum=3)
+        meeting.confirmed_attendee_ids = [(6, 0, [self.partner_a.id, self.partner_b.id])]
+        self.assertFalse(meeting.quorum_met)
+
+    def test_quorum_confirmed_attendees_can_still_meet_quorum(self):
+        meeting = self._make_meeting(quorum=2)
+        meeting.confirmed_attendee_ids = [(6, 0, [self.partner_a.id, self.partner_b.id])]
+        self.assertTrue(meeting.quorum_met)
+
+    # -- Issue #271 item 8: close requires approved minutes ---------------
+
+    def test_close_allowed_with_for_approval_minutes_by_default(self):
+        meeting = self._make_meeting()
+        meeting.action_schedule()
+        meeting.action_hold()
+        minutes = self.env['govoo.minutes'].create({
+            'meeting_id': meeting.id,
+            'body': '<p>Minutes.</p>',
+        })
+        minutes.action_submit_for_approval()
+        meeting.minutes_id = minutes
+        meeting.action_minute()
+        meeting.action_close()
+        self.assertEqual(meeting.state, 'closed')
+
+    def test_close_blocked_without_approved_minutes_when_enabled(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.meeting_close_requires_minutes_approved', 'True',
+        )
+        meeting = self._make_meeting()
+        meeting.action_schedule()
+        meeting.action_hold()
+        minutes = self.env['govoo.minutes'].create({
+            'meeting_id': meeting.id,
+            'body': '<p>Minutes.</p>',
+        })
+        minutes.action_submit_for_approval()
+        meeting.minutes_id = minutes
+        meeting.action_minute()
+        with self.assertRaises(ValidationError):
+            meeting.action_close()
+
+    def test_close_allowed_with_approved_minutes_when_enabled(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.meeting_close_requires_minutes_approved', 'True',
+        )
+        meeting = self._make_meeting()
+        meeting.action_schedule()
+        meeting.action_hold()
+        minutes = self.env['govoo.minutes'].create({
+            'meeting_id': meeting.id,
+            'body': '<p>Minutes.</p>',
+        })
+        minutes.action_submit_for_approval()
+        minutes.action_approve()
+        meeting.minutes_id = minutes
+        meeting.action_minute()
+        meeting.action_close()
+        self.assertEqual(meeting.state, 'closed')
+
+    # -- Issue #271 item 7: agenda freeze ---------------------------------
+
+    def test_agenda_item_addable_after_scheduled_by_default(self):
+        meeting = self._make_meeting()
+        meeting.action_schedule()
+        item = self.env['govoo.agenda.item'].create({
+            'meeting_id': meeting.id,
+            'title': 'Late item',
+            'item_type': 'noting',
+        })
+        self.assertTrue(item.exists())
+
+    def test_agenda_freeze_blocks_new_item_once_scheduled_when_enabled(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.agenda_freeze_on_schedule', 'True',
+        )
+        meeting = self._make_meeting()
+        meeting.action_schedule()
+        with self.assertRaises(ValidationError):
+            self.env['govoo.agenda.item'].create({
+                'meeting_id': meeting.id,
+                'title': 'Late item',
+                'item_type': 'noting',
+            })
+
+    def test_agenda_freeze_still_allows_items_while_draft(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'govoo_board.agenda_freeze_on_schedule', 'True',
+        )
+        meeting = self._make_meeting()
+        item = self.env['govoo.agenda.item'].create({
+            'meeting_id': meeting.id,
+            'title': 'Item',
+            'item_type': 'noting',
+        })
+        self.assertTrue(item.exists())
+
+    # -- #269/#271 compatibility: cancelled meetings also gate voting ----
+
+    def test_resolution_open_blocked_on_cancelled_meeting(self):
+        meeting = self._make_meeting()
+        meeting.action_cancel()
+        resolution = self._make_resolution(meeting)
+        with self.assertRaises(ValidationError):
+            resolution.action_open()

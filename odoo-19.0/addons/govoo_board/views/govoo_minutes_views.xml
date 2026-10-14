@@ -29,6 +29,11 @@
                             <field name="signed_document_id"/>
                        </group>
                     </group>
+                    <group string="Audit Trail">
+                        <field name="submitted_by_id" readonly="1"/>
+                        <field name="approved_by_id" readonly="1"/>
+                        <field name="signed_by_id" readonly="1"/>
+                    </group>
                     <group string="Attendance">
                         <group>
                             <field name="attendance_ids" widget="many2many_tags"/>

@@ -1,6 +1,6 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 
@@ -73,9 +73,23 @@ class GovooAgendaItem(models.Model):
         string='Resolutions',
     )
 
+    def _agenda_freeze_on_schedule_enabled(self):
+        """Issue #271 item 7: unset/False preserves the original behavior
+        (agenda editable up until the meeting is fully closed)."""
+        return self.env['ir.config_parameter'].sudo().get_param(
+            'govoo_board.agenda_freeze_on_schedule', 'False',
+        ) in ('True', '1')
+
     @api.constrains('meeting_id')
     def _check_meeting_not_closed(self):
         msg = 'Cannot add agenda items to a closed meeting.'
+        freeze_on_schedule = self._agenda_freeze_on_schedule_enabled()
         for rec in self:
             if rec.meeting_id and rec.meeting_id.state == 'closed':
                 raise ValidationError(msg)
+            if freeze_on_schedule and rec.meeting_id and rec.meeting_id.state != 'draft':
+                raise ValidationError(_(
+                    'Cannot add or edit agenda items once the meeting has '
+                    'been scheduled -- the agenda is frozen '
+                    '("govoo_board.agenda_freeze_on_schedule").'
+                ))
