@@ -122,3 +122,15 @@ class GovooVoteProxyTC(GovooBoardTestBase):
         proxies = self.env['govoo.vote.proxy']._get_active_proxies_for(self.partner_b.id)
         self.assertEqual(len(proxies), 1)
         self.assertEqual(proxies.principal_partner_id, self.partner_a)
+
+    def test_display_name_is_not_raw_model_id(self):
+        """Issue #244: display_name must never fall back to "govoo.vote.proxy,<id>"."""
+        meeting = self._make_meeting()
+        proxy = self.env['govoo.vote.proxy'].create({
+            'meeting_id': meeting.id,
+            'principal_partner_id': self.partner_a.id,
+            'proxy_partner_id': self.partner_b.id,
+        })
+        self.assertNotEqual(proxy.display_name, '%s,%s' % (proxy._name, proxy.id))
+        self.assertIn(self.partner_a.name, proxy.display_name)
+        self.assertIn(self.partner_b.name, proxy.display_name)

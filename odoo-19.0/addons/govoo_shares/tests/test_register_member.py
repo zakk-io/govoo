@@ -52,3 +52,14 @@ class TestRegisterMember(GovooShareTestBase):
         ])
         self.assertEqual(len(member_a), 1)
         self.assertTrue(member_a.date_ceased, 'date_ceased should be set once holding reaches zero.')
+
+    def test_display_name_is_not_raw_model_id(self):
+        """Issue #244: display_name must never fall back to "govoo.register.member,<id>"."""
+        self._make_allotment(self.partner_a, 10)
+        self.env['govoo.share.holding']._recompute_holdings(self.share_class.id)
+        member = self.env['govoo.register.member'].search([
+            ('partner_id', '=', self.partner_a.id),
+            ('company_id', '=', self.company.id),
+        ])
+        self.assertNotEqual(member.display_name, '%s,%s' % (member._name, member.id))
+        self.assertIn(self.partner_a.name, member.display_name)

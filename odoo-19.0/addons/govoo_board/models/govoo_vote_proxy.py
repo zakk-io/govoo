@@ -64,6 +64,20 @@ class GovooVoteProxy(models.Model):
         tracking=True,
     )
 
+    @api.depends('principal_partner_id.name', 'proxy_partner_id.name', 'meeting_id.name')
+    def _compute_display_name(self):
+        # No plain-text field on this model, so display_name would
+        # otherwise fall back to the raw "govoo.vote.proxy,<id>" string.
+        for rec in self:
+            if rec.principal_partner_id and rec.proxy_partner_id:
+                rec.display_name = '%s → %s (%s)' % (
+                    rec.principal_partner_id.name,
+                    rec.proxy_partner_id.name,
+                    rec.meeting_id.name or _('no meeting'),
+                )
+            else:
+                rec.display_name = _('Voting Proxy')
+
     @api.constrains('principal_partner_id', 'proxy_partner_id')
     def _check_not_self_proxy(self):
         for rec in self:

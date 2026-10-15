@@ -1,6 +1,6 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import fields, models
+from odoo import _, api, fields, models
 
 
 class GovooContractDelegation(models.Model):
@@ -50,3 +50,15 @@ class GovooContractDelegation(models.Model):
         string='Active',
         default=True,
     )
+
+    @api.depends('user_id.name', 'contract_type_id.name')
+    def _compute_display_name(self):
+        # No plain-text field on this model, so display_name would
+        # otherwise fall back to the raw "govoo.contract.delegation,<id>" string.
+        for rec in self:
+            if rec.user_id:
+                rec.display_name = '%s — %s' % (
+                    rec.user_id.name, rec.contract_type_id.name or _('All Contract Types'),
+                )
+            else:
+                rec.display_name = _('Contract Delegation')

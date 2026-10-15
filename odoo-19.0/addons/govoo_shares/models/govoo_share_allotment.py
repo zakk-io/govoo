@@ -64,6 +64,21 @@ class GovooShareAllotment(models.Model):
         string='Share Certificate',
     )
 
+    @api.depends('partner_id.name', 'quantity', 'share_class_id.name', 'date_allotted')
+    def _compute_display_name(self):
+        # No plain-text field on this model, so display_name would
+        # otherwise fall back to the raw "govoo.share.allotment,<id>" string.
+        for rec in self:
+            if rec.partner_id and rec.share_class_id:
+                rec.display_name = _('%(partner)s — %(qty)s %(share_class)s (%(date)s)') % {
+                    'partner': rec.partner_id.name,
+                    'qty': rec.quantity,
+                    'share_class': rec.share_class_id.name,
+                    'date': rec.date_allotted or _('no date'),
+                }
+            else:
+                rec.display_name = _('Share Allotment')
+
     @api.constrains('quantity')
     def _check_quantity(self):
         for rec in self:

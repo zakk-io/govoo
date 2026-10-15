@@ -96,3 +96,14 @@ class TestRegisterEntry(TransactionCase):
         )
         with self.assertRaises(AccessError):
             entry.with_user(governance_user).check_access('read')
+
+    def test_display_name_is_not_raw_model_id(self):
+        """Issue #244: display_name must never fall back to "govoo.register.entry,<id>"."""
+        entry = self.env['govoo.register.entry']._log_entry(
+            register_model='govoo.register.director',
+            res_id=1,
+            change_type='create',
+            effective_date='2026-01-01',
+        )
+        self.assertNotEqual(entry.display_name, '%s,%s' % (entry._name, entry.id))
+        self.assertIn('Director', entry.display_name)
