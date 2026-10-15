@@ -85,4 +85,19 @@
               parent="purchase.menu_purchase_root"
               action="action_govoo_tender"
               sequence="6"/>
+
+    <!-- Issue #293: the Auditor group can read govoo.tender (via its
+         implied govoo_base.group_govoo_user access row) but has no way to
+         reach it, since menu_govoo_tender above sits under
+         purchase.menu_purchase_root, which is gated to
+         group_purchase_manager/group_purchase_user, and the Auditor
+         correctly holds neither (both carry write/create rights). This
+         gives read-only oversight its own entry point outside that gate,
+         without granting any native Purchase group. -->
+    <menuitem id="menu_govoo_tender_auditor"
+              name="Procurement (Audit View)"
+              parent="govoo_base.govoo_menu_root"
+              action="action_govoo_tender"
+              sequence="70"
+              groups="govoo_base.group_govoo_auditor"/>
 </odoo>
