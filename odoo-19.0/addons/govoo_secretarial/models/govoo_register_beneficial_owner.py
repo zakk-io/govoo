@@ -54,6 +54,16 @@ class GovooRegisterBeneficialOwner(models.Model):
         help='True if nature_of_control uses an unconfirmed threshold category (BR-SEC-STAT-003)',
     )
 
+    @api.depends('partner_id.name', 'nature_of_control')
+    def _compute_display_name(self):
+        # No plain-text field on this model, so display_name would
+        # otherwise fall back to the raw "govoo.register.beneficial.owner,<id>" string.
+        nature_labels = dict(self._fields['nature_of_control']._description_selection(self.env))
+        for rec in self:
+            nature_label = nature_labels.get(rec.nature_of_control, rec.nature_of_control)
+            rec.display_name = '%s — %s' % (rec.partner_id.name, nature_label) \
+                if rec.partner_id else nature_label
+
     @api.depends('nature_of_control')
     def _compute_is_provisional(self):
         # All current selections are provisional until confirmed by legal advisor

@@ -51,6 +51,14 @@ class GovooBoardPack(models.Model):
         tracking=True,
     )
 
+    @api.depends('meeting_id.name')
+    def _compute_display_name(self):
+        # No plain-text field on this model, so display_name would
+        # otherwise fall back to the raw "govoo.board.pack,<id>" string.
+        for rec in self:
+            rec.display_name = _('Board Pack - %s') % rec.meeting_id.name \
+                if rec.meeting_id else _('Board Pack')
+
     @api.model_create_multi
     def create(self, vals_list):
         records = super().create(vals_list)

@@ -270,3 +270,14 @@ class GovooBoardPackTC(GovooBoardTestBase):
             'unauthorized recipient\'s visible content.',
         )
         self.assertIn(open_item.title, visible_titles)
+
+
+@tagged('post_install', '-at_install', 'govoo_board')
+class TestGovooBoardPackDisplayName(GovooBoardTestBase):
+    """Issue #244: display_name must never fall back to "govoo.board.pack,<id>"."""
+
+    def test_display_name_is_not_raw_model_id(self):
+        meeting = self._make_meeting()
+        pack = self.env['govoo.board.pack'].create({'meeting_id': meeting.id})
+        self.assertNotEqual(pack.display_name, '%s,%s' % (pack._name, pack.id))
+        self.assertIn(meeting.name, pack.display_name)

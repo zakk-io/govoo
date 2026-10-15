@@ -131,3 +131,17 @@ class TestGovooGovernanceConfig(GovooBoardTestBase):
         record.with_user(secretary).write({'charge_registration_deadline_days': 10})
         with self.assertRaises(AccessError):
             record.with_user(plain_user).write({'charge_registration_deadline_days': 5})
+
+
+@tagged('post_install', '-at_install', 'govoo_board')
+class TestGovooGovernanceConfigDisplayName(GovooBoardTestBase):
+    """Issue #244: display_name must never fall back to "govoo.governance.config,<id>"."""
+
+    def test_display_name_is_not_raw_model_id(self):
+        # Uses the model's own get-or-create helper, not a bare create(),
+        # so this test is unaffected by the pre-existing stray-row issue
+        # that causes the other tests in this file to hit
+        # govoo_governance_config_company_uniq.
+        record = self.env['govoo.governance.config']._get_or_create_for_company(self.company)
+        self.assertNotEqual(record.display_name, '%s,%s' % (record._name, record.id))
+        self.assertIn(self.company.name, record.display_name)

@@ -307,3 +307,21 @@ class TestEvaluation(GovooEvaluationTestBase):
                 'participant_ids': [(6, 0, [self.partner_a.id, self.partner_b.id])],
                 'company_id': self.company.id,
             })
+
+    def test_display_name_is_not_raw_model_id(self):
+        """Issue #244: display_name must never fall back to "govoo.evaluation.result,<id>"."""
+        campaign = self.env['govoo.evaluation.campaign'].create({
+            'name': 'Q1 Board Eval',
+            'committee_id': self.committee.id,
+            'survey_id': self.survey.id,
+            'evaluation_type': 'board',
+            'participant_ids': [(6, 0, [self.partner_a.id, self.partner_b.id])],
+            'company_id': self.company.id,
+        })
+        result = self.env['govoo.evaluation.result'].create({
+            'campaign_id': campaign.id,
+            'dimension_id': self.page.id,
+            'company_id': self.company.id,
+        })
+        self.assertNotEqual(result.display_name, '%s,%s' % (result._name, result.id))
+        self.assertIn(campaign.name, result.display_name)

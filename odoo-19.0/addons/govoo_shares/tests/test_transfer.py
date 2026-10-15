@@ -60,3 +60,17 @@ class GovooShareTransferTC(GovooShareTestBase):
                 'quantity': 5,
                 'date_transferred': '2026-03-01',
             })
+
+    def test_display_name_is_not_raw_model_id(self):
+        """Issue #244: display_name must never fall back to "govoo.share.transfer,<id>"."""
+        self._make_allotment(self.partner_a, 10)
+        transfer = self.env['govoo.share.transfer'].create({
+            'share_class_id': self.share_class.id,
+            'transferor_id': self.partner_a.id,
+            'transferee_id': self.partner_b.id,
+            'quantity': 5,
+            'date_transferred': '2026-03-01',
+        })
+        self.assertNotEqual(transfer.display_name, '%s,%s' % (transfer._name, transfer.id))
+        self.assertIn(self.partner_a.name, transfer.display_name)
+        self.assertIn(self.partner_b.name, transfer.display_name)

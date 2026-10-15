@@ -110,6 +110,20 @@ class GovooShareHolding(models.Model):
             rec.percentage = (qty / total_allotted * 100) if total_allotted > 0 else 0.0
             rec.voting_power = qty * rec.share_class_id.votes_per_share
 
+    @api.depends('partner_id.name', 'share_class_id.name', 'percentage')
+    def _compute_display_name(self):
+        # No plain-text field on this model, so display_name would
+        # otherwise fall back to the raw "govoo.share.holding,<id>" string.
+        for rec in self:
+            if rec.partner_id and rec.share_class_id:
+                rec.display_name = _('%(partner)s — %(share_class)s (%(pct).1f%%)') % {
+                    'partner': rec.partner_id.name,
+                    'share_class': rec.share_class_id.name,
+                    'pct': rec.percentage,
+                }
+            else:
+                rec.display_name = _('Share Holding')
+
     @api.model
     def _recompute_holdings(self, share_class_id=False):
         """Recompute all holdings for a given share class (or all classes).

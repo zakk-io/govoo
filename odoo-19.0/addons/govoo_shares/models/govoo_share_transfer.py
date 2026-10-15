@@ -84,6 +84,21 @@ class GovooShareTransfer(models.Model):
         tracking=True,
     )
 
+    @api.depends('transferor_id.name', 'transferee_id.name', 'quantity', 'share_class_id.name')
+    def _compute_display_name(self):
+        # No plain-text field on this model, so display_name would
+        # otherwise fall back to the raw "govoo.share.transfer,<id>" string.
+        for rec in self:
+            if rec.transferor_id and rec.transferee_id and rec.share_class_id:
+                rec.display_name = _('%(transferor)s → %(transferee)s — %(qty)s %(share_class)s') % {
+                    'transferor': rec.transferor_id.name,
+                    'transferee': rec.transferee_id.name,
+                    'qty': rec.quantity,
+                    'share_class': rec.share_class_id.name,
+                }
+            else:
+                rec.display_name = _('Share Transfer')
+
     @api.constrains('quantity')
     def _check_quantity(self):
         for rec in self:

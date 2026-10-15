@@ -92,3 +92,9 @@ class TestDelegationOfAuthority(GovooContractsTestBase):
             contract.action_execute()
         contract.with_user(approver).action_execute()
         self.assertEqual(contract.state, 'executed')
+
+    def test_display_name_is_not_raw_model_id(self):
+        """Issue #244: display_name must never fall back to "govoo.contract.delegation,<id>"."""
+        delegation = self._grant_delegation(contract_type_id=self.contract_type.id)
+        self.assertNotEqual(delegation.display_name, '%s,%s' % (delegation._name, delegation.id))
+        self.assertIn(self.contract_type.name, delegation.display_name)

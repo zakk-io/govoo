@@ -32,6 +32,14 @@ class GovooRegisterMember(models.Model):
         help='Set when aggregate holding reaches zero',
     )
 
+    @api.depends('partner_id.name')
+    def _compute_display_name(self):
+        # No plain-text field on this model, so display_name would
+        # otherwise fall back to the raw "govoo.register.member,<id>" string.
+        for rec in self:
+            rec.display_name = _('%s — Member') % rec.partner_id.name \
+                if rec.partner_id else _('Member')
+
     @api.constrains('date_ceased', 'date_entered')
     def _check_dates(self):
         for rec in self:
