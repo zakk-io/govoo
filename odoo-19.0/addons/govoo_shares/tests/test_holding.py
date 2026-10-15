@@ -94,3 +94,14 @@ class GovooShareHoldingTC(GovooShareTestBase):
             ], limit=1)
             self.assertTrue(member, 'Register of members should have an entry for %s' % partner.name)
             self.assertFalse(member.date_ceased)
+
+    def test_display_name_is_not_raw_model_id(self):
+        """Issue #244: display_name must never fall back to "govoo.share.holding,<id>"."""
+        self._make_allotment(self.partner_a, 10)
+        holding = self.env['govoo.share.holding'].search([
+            ('partner_id', '=', self.partner_a.id),
+            ('share_class_id', '=', self.share_class.id),
+        ], limit=1)
+        self.assertNotEqual(holding.display_name, '%s,%s' % (holding._name, holding.id))
+        self.assertIn(self.partner_a.name, holding.display_name)
+        self.assertIn(self.share_class.name, holding.display_name)

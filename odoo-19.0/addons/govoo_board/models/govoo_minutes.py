@@ -96,6 +96,14 @@ class GovooMinutes(models.Model):
 
     _LOCKED_FIELDS_AFTER_APPROVAL = ('body', 'attendance_ids', 'apologies_ids')
 
+    @api.depends('meeting_id.name')
+    def _compute_display_name(self):
+        # No plain-text field on this model, so display_name would
+        # otherwise fall back to the raw "govoo.minutes,<id>" string.
+        for rec in self:
+            rec.display_name = _('Minutes - %s') % rec.meeting_id.name \
+                if rec.meeting_id else _('Minutes')
+
     @api.model_create_multi
     def create(self, vals_list):
         """Link the meeting back to these minutes on creation, mirroring

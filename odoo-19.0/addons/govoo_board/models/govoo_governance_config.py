@@ -233,6 +233,14 @@ class GovooGovernanceConfig(models.Model):
              "reach Approved or Signed -- not just submitted For Approval.",
     )
 
+    @api.depends('company_id.name')
+    def _compute_display_name(self):
+        # No plain-text field on this model, so display_name would
+        # otherwise fall back to the raw "govoo.governance.config,<id>" string.
+        for rec in self:
+            rec.display_name = _('Governance Settings - %s') % rec.company_id.name \
+                if rec.company_id else _('Governance Settings')
+
     @api.constrains('minutes_retention_default_years')
     def _check_minutes_retention_positive(self):
         for rec in self:

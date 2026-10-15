@@ -345,3 +345,14 @@ class TestGovooMinutesContentLock(GovooBoardTestBase):
         })
         minutes.signed_document_id = attachment
         self.assertEqual(minutes.signed_document_id, attachment)
+
+
+@tagged('post_install', '-at_install', 'govoo_board')
+class TestGovooMinutesDisplayName(GovooBoardTestBase):
+    """Issue #244: display_name must never fall back to "govoo.minutes,<id>"."""
+
+    def test_display_name_is_not_raw_model_id(self):
+        meeting = self._make_meeting()
+        minutes = self.env['govoo.minutes'].create({'meeting_id': meeting.id})
+        self.assertNotEqual(minutes.display_name, '%s,%s' % (minutes._name, minutes.id))
+        self.assertIn(meeting.name, minutes.display_name)

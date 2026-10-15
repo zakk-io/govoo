@@ -55,6 +55,17 @@ class GovooRegisterCharge(models.Model):
         string='Charge Document',
     )
 
+    @api.depends('chargee_partner_id.name', 'date_created')
+    def _compute_display_name(self):
+        # No plain-text field on this model, so display_name would
+        # otherwise fall back to the raw "govoo.register.charge,<id>" string.
+        for rec in self:
+            chargee = rec.chargee_partner_id.name or _('Unknown Chargee')
+            rec.display_name = _('%(chargee)s — Charge (%(date)s)') % {
+                'chargee': chargee,
+                'date': rec.date_created or _('no date'),
+            }
+
     @api.constrains('amount')
     def _check_amount(self):
         for rec in self:

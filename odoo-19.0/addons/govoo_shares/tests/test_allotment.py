@@ -75,3 +75,10 @@ class GovooShareAllotmentTC(GovooShareTestBase):
         holding_c = holdings.filtered(lambda h: h.partner_id == self.partner_c)
         self.assertEqual(holding_a.quantity, 5)
         self.assertEqual(holding_c.quantity, 15)
+
+    def test_display_name_is_not_raw_model_id(self):
+        """Issue #244: display_name must never fall back to "govoo.share.allotment,<id>"."""
+        allotment = self._make_allotment(self.partner_a, 10)
+        self.assertNotEqual(allotment.display_name, '%s,%s' % (allotment._name, allotment.id))
+        self.assertIn(self.partner_a.name, allotment.display_name)
+        self.assertIn(self.share_class.name, allotment.display_name)

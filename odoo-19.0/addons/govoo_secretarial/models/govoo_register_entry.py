@@ -59,6 +59,30 @@ class GovooRegisterEntry(models.Model):
         readonly=True,
     )
 
+    # Plain labels for the free-text register_model so display_name never
+    # leaks the raw technical model name (e.g. "govoo.register.director")
+    # into a user-facing string, per this repo's CLAUDE.md rule.
+    _REGISTER_MODEL_LABELS = {
+        'govoo.register.director': 'Director',
+        'govoo.register.member': 'Member',
+        'govoo.register.beneficial.owner': 'Beneficial Owner',
+        'govoo.register.charge': 'Charge',
+    }
+
+    @api.depends('register_model', 'change_type', 'effective_date')
+    def _compute_display_name(self):
+        # No plain-text field on this model, so display_name would
+        # otherwise fall back to the raw "govoo.register.entry,<id>" string.
+        change_type_labels = dict(self._fields['change_type']._description_selection(self.env))
+        for rec in self:
+            register_label = self._REGISTER_MODEL_LABELS.get(rec.register_model, _('Register'))
+            change_label = change_type_labels.get(rec.change_type, rec.change_type)
+            rec.display_name = _('%(register)s register — %(change)s (%(date)s)') % {
+                'register': register_label,
+                'change': change_label,
+                'date': rec.effective_date or _('no date'),
+            }
+
     def write(self, vals):
         raise UserError(_('Register audit entries are immutable and cannot be modified.'))
 

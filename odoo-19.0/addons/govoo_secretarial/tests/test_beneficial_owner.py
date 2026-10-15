@@ -93,3 +93,30 @@ class TestBeneficialOwner(TransactionCase):
             self.assertNotIn(other_bo, bos)
             with self.assertRaises(AccessError):
                 other_bo.with_user(user).check_access('read')
+
+    def test_display_name_is_not_raw_model_id(self):
+        """Issue #244: display_name must never fall back to "govoo.register.beneficial.owner,<id>"."""
+        bo = self.env['govoo.register.beneficial.owner'].create({
+            'partner_id': self.partner.id,
+            'company_id': self.company.id,
+            'nature_of_control': 'shares_25',
+            'date_became_registrable': '2024-01-01',
+        })
+        self.assertNotEqual(bo.display_name, '%s,%s' % (bo._name, bo.id))
+        self.assertIn(self.partner.name, bo.display_name)
+
+
+@tagged('post_install', '-at_install')
+class TestRegisterChargeDisplayName(TransactionCase):
+    """Issue #244: display_name must never fall back to "govoo.register.charge,<id>"."""
+
+    def test_display_name_is_not_raw_model_id(self):
+        partner = self.env['res.partner'].create({'name': 'Test Chargee'})
+        charge = self.env['govoo.register.charge'].create({
+            'company_id': self.env.company.id,
+            'chargee_partner_id': partner.id,
+            'amount': 1000.0,
+            'date_created': '2024-01-01',
+        })
+        self.assertNotEqual(charge.display_name, '%s,%s' % (charge._name, charge.id))
+        self.assertIn(partner.name, charge.display_name)

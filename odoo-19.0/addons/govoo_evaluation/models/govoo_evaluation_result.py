@@ -62,6 +62,18 @@ class GovooEvaluationResult(models.Model):
         ondelete='cascade',
     )
 
+    @api.depends('campaign_id.name', 'dimension_name')
+    def _compute_display_name(self):
+        # No plain-text field on this model, so display_name would
+        # otherwise fall back to the raw "govoo.evaluation.result,<id>" string.
+        for rec in self:
+            if rec.campaign_id:
+                rec.display_name = '%s — %s' % (
+                    rec.campaign_id.name, rec.dimension_name or _('Overall'),
+                )
+            else:
+                rec.display_name = _('Evaluation Result')
+
     @api.depends('campaign_id')
     def _compute_company(self):
         for rec in self:
