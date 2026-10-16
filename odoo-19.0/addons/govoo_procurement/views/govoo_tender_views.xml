@@ -68,7 +68,18 @@
                             </field>
                         </page>
                         <page string="Documents" name="documents">
-                            <field name="document_ids" widget="many2many_binary"/>
+                            <!-- Issue #306 UX follow-up: once Awarded, the
+                                 model already blocks add/remove on
+                                 document_ids (see ir_attachment.py), but a
+                                 live check found the widget's own upload
+                                 path swallows that rejection silently,
+                                 with no error toast, nothing. Making the
+                                 field readonly here prevents the user from
+                                 ever attempting a change the backend will
+                                 reject, instead of letting them hit a
+                                 silent dead end. -->
+                            <field name="document_ids" widget="many2many_binary"
+                                   readonly="evaluation_stage == 'awarded'"/>
                         </page>
                     </notebook>
                 </sheet>
