@@ -56,7 +56,11 @@
                     </group>
                     <notebook>
                         <page string="Vendor Bids" name="bids">
-                            <field name="bid_ids">
+                            <!-- Issue found alongside the bid-copy feature:
+                                 a brand-new, unscored vendor bid should not
+                                 be addable once a tender is Awarded, same
+                                 lock already applied to document_ids. -->
+                            <field name="bid_ids" readonly="evaluation_stage == 'awarded'">
                                 <list editable="bottom">
                                     <field name="name"/>
                                     <field name="partner_id"/>
