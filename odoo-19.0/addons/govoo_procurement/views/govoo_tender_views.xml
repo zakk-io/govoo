@@ -67,6 +67,9 @@
                                 </list>
                             </field>
                         </page>
+                        <page string="Documents" name="documents">
+                            <field name="document_ids" widget="many2many_binary"/>
+                        </page>
                     </notebook>
                 </sheet>
                 <chatter/>

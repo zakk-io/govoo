@@ -105,6 +105,19 @@ class GovooTender(models.Model):
              'Procurement Officer(s) and Company Secretaries. No reminder '
              'is staged if Submission Deadline is not set.',
     )
+    # Issue #306: a committee workspace to draft/review tender documents
+    # before publication. govoo.tender has zero portal access (see
+    # ir.model.access.csv), so these documents are internal-only by the
+    # same construction the model itself already relies on -- no new
+    # security is needed, and ir.attachment's own access check already
+    # delegates to this model's ACL for any res_model/res_id-linked record
+    # (core odoo/addons/base/models/ir_attachment.py, _check_access).
+    document_ids = fields.One2many(
+        comodel_name='ir.attachment',
+        inverse_name='res_id',
+        domain=[('res_model', '=', 'govoo.tender')],
+        string='Documents',
+    )
 
     @api.depends('bid_ids')
     def _compute_bid_count(self):
