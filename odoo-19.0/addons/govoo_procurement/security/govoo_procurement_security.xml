@@ -7,7 +7,15 @@
              are already native to Purchase. This group exists for role
              clarity ("Procurement Officer" in the user story) and grants
              the native Purchase access an internal governance user would
-             otherwise lack. -->
+             otherwise lack.
+
+             product.group_product_manager is also implied: a Procurement
+             Officer needs to be able to add a product/service when raising
+             an RFQ (a plain purchase.group_purchase_user has read-only
+             access to the product catalog, confirmed against
+             odoo/addons/product/security/ir.model.access.csv), otherwise
+             they can never create a priced line for a vendor who isn't
+             already in the catalog. -->
         <record id="group_govoo_procurement_officer" model="res.groups">
             <field name="name">Procurement Officer</field>
             <field name="sequence">40</field>
@@ -15,6 +23,7 @@
             <field name="implied_ids" eval="[
                 (4, ref('govoo_base.group_govoo_user')),
                 (4, ref('purchase.group_purchase_user')),
+                (4, ref('product.group_product_manager')),
             ]"/>
         </record>
 
