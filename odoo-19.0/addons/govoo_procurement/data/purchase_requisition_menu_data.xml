@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Issue #294: deactivates (not deletes) the native "Purchase
+         Agreements" menu, which duplicated govoo.tender's own tendering
+         flow and sat unused. The underlying purchase.requisition
+         model/feature is untouched, only its nav entry is hidden, so
+         there is a single, unambiguous path to start a tender. -->
+    <record id="purchase_requisition.menu_purchase_requisition_pro_mgt" model="ir.ui.menu">
+        <field name="active">False</field>
+    </record>
+</odoo>
