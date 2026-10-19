@@ -1,26 +1,37 @@
 /** @odoo-module **/
 
 import { registry } from "@web/core/registry";
-import { PurchaseDashBoardListView, PurchaseDashBoardRenderer } from "@purchase/views/purchase_listview";
+import { FileUploadListRenderer } from "@account/views/file_upload_list/file_upload_list_renderer";
+import { fileUploadListView } from "@account/views/file_upload_list/file_upload_list_view";
+import { PurchaseFileUploadListController } from "@purchase/views/purchase_listview";
 import { GovooProcurementKpiStrip } from "./kpi_strip";
 
-// Adds a second, Clagov-styled card row to the Requests for Quotation
-// list, alongside (not replacing) Odoo's own native dashboard cards
-// above it -- this one surfaces a different, governance-relevant cut
-// (tender-linked vs standalone RFQs, approval/confirmation status) that
-// the native New/Sent/Late/Not Acknowledged/Late Receipt row doesn't
-// already cover, rather than duplicating it.
+// Live feedback: having both Odoo's native dashboard row AND a second,
+// Clagov-styled row stacked on top of each other was redundant and
+// cluttered. This replaces the native row outright with a single
+// consolidated strip that keeps its most useful metrics (New, Late RFQ,
+// Not Acknowledged, Pending Approval -- reusing those same named filters
+// from view_purchase_order_filter) plus the one governance-relevant cut
+// the native row didn't have (Tender-Linked RFQs, a new filter added in
+// govoo_procurement_kpi_views.xml). File upload (PurchaseFileUploader)
+// lives in the Controller template (purchase.ListView), not the
+// Renderer, so it's untouched by swapping the Renderer base here.
+function lateCutoff() {
+    return new Date().toISOString().slice(0, 19).replace("T", " ");
+}
+
 const RFQ_TILES = [
-    { label: "Tender-Linked RFQs", icon: "fa-gavel", color: "info", domain: () => [["govoo_tender_id", "!=", false], ["state", "in", ["draft", "sent"]]] },
-    { label: "Standalone RFQs", icon: "fa-file-text-o", color: "secondary", domain: () => [["govoo_tender_id", "=", false], ["state", "in", ["draft", "sent"]]] },
-    { label: "Pending Approval", icon: "fa-hourglass-half", color: "warning", domain: () => [["state", "=", "to approve"]] },
-    { label: "Confirmed Orders", icon: "fa-check-circle", color: "success", domain: () => [["state", "=", "purchase"]] },
+    { label: "New", icon: "fa-file-text-o", color: "info", domain: () => [["state", "=", "draft"]], filterNames: ["draft_rfqs"] },
+    { label: "Late RFQ", icon: "fa-exclamation-triangle", color: "danger", domain: () => [["state", "in", ["draft", "sent", "to approve"]], ["date_order", "<", lateCutoff()]], filterNames: ["late"] },
+    { label: "Not Acknowledged", icon: "fa-bell", color: "warning", domain: () => [["state", "in", ["purchase", "done"]], ["acknowledged", "=", false]], filterNames: ["not_acknowledged"] },
+    { label: "Pending Approval", icon: "fa-hourglass-half", color: "warning", domain: () => [["state", "=", "to approve"]], filterNames: ["to_approve"] },
+    { label: "Tender-Linked RFQs", icon: "fa-gavel", color: "primary", domain: () => [["govoo_tender_id", "!=", false], ["state", "in", ["draft", "sent"]]], filterNames: ["tender_linked"] },
 ];
 
-export class GovooPurchaseDashBoardRenderer extends PurchaseDashBoardRenderer {
-    static template = "govoo_procurement.PurchaseDashBoardKpiRenderer";
+export class GovooPurchaseKpiRenderer extends FileUploadListRenderer {
+    static template = "govoo_procurement.PurchaseKpiRenderer";
     static components = {
-        ...PurchaseDashBoardRenderer.components,
+        ...FileUploadListRenderer.components,
         GovooProcurementKpiStrip,
     };
 
@@ -31,6 +42,7 @@ export class GovooPurchaseDashBoardRenderer extends PurchaseDashBoardRenderer {
 }
 
 registry.category("views").add("purchase_dashboard_list_govoo_kpi", {
-    ...PurchaseDashBoardListView,
-    Renderer: GovooPurchaseDashBoardRenderer,
+    ...fileUploadListView,
+    Controller: PurchaseFileUploadListController,
+    Renderer: GovooPurchaseKpiRenderer,
 });

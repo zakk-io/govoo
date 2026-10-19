@@ -8,11 +8,13 @@ import { GovooProcurementKpiStrip } from "./kpi_strip";
 // The Tenders list had zero at-a-glance stats. Same js_class mechanism
 // govoo_portal's list_kpi pattern uses (extend ListController, point it
 // at a template that t-inherits "web.ListView" in "primary" mode).
+// filterNames reference the named filters already added to
+// view_govoo_tender_search (see views/govoo_tender_views.xml).
 const TENDER_TILES = [
-    { label: "Pre-Evaluation", icon: "fa-hourglass-start", color: "secondary", domain: () => [["evaluation_stage", "=", "pre_evaluation"]] },
-    { label: "Technical Evaluation", icon: "fa-search", color: "info", domain: () => [["evaluation_stage", "=", "technical_evaluation"]] },
-    { label: "Financial Evaluation", icon: "fa-calculator", color: "warning", domain: () => [["evaluation_stage", "=", "financial_evaluation"]] },
-    { label: "Awarded", icon: "fa-trophy", color: "success", domain: () => [["evaluation_stage", "=", "awarded"]] },
+    { label: "Pre-Evaluation", icon: "fa-hourglass-start", color: "secondary", domain: () => [["evaluation_stage", "=", "pre_evaluation"]], filterNames: ["stage_pre_evaluation"] },
+    { label: "Technical Evaluation", icon: "fa-search", color: "info", domain: () => [["evaluation_stage", "=", "technical_evaluation"]], filterNames: ["stage_technical_evaluation"] },
+    { label: "Financial Evaluation", icon: "fa-calculator", color: "warning", domain: () => [["evaluation_stage", "=", "financial_evaluation"]], filterNames: ["stage_financial_evaluation"] },
+    { label: "Awarded", icon: "fa-trophy", color: "success", domain: () => [["evaluation_stage", "=", "awarded"]], filterNames: ["stage_awarded"] },
 ];
 
 export class GovooTenderKpiListController extends ListController {
