@@ -165,13 +165,23 @@
         <field name="group_ids" eval="[(4, ref('govoo_procurement.group_govoo_procurement_officer'))]"/>
     </record>
 
-    <!-- Issue: the Officer's day-to-day vendor work is with companies, not
-         the individual people contacts other governance roles use this
-         same app for (e.g. Board Directors). A dedicated, company-only
-         entry point avoids making the Officer wade through unrelated
-         person contacts every time, without touching the shared
-         "Contacts" entry above (still unfiltered, as every other role
-         that can reach it expects). -->
+    <!-- The Officer must never reach the generic, unfiltered "Contacts"
+         entry: company-only access, full stop, no individual person
+         contacts (e.g. Board Directors) at all. This entry's own
+         group_ids was empty (inherits visibility from the parent app
+         alone), so giving the Officer the parent app above would have
+         let them reach this too; replacing it with an explicit list
+         (currently just Administrator, the only other group that can
+         reach the parent "Contacts" app) excludes the Officer while
+         leaving every existing viewer unaffected. -->
+    <record id="contacts.res_partner_menu_contacts" model="ir.ui.menu">
+        <field name="group_ids" eval="[(6, 0, [ref('base.group_system')])]"/>
+    </record>
+
+    <!-- The Officer's day-to-day vendor work is with companies, not the
+         individual people contacts other governance roles use this same
+         app for (e.g. Board Directors). This is their only entry point
+         into Contacts. -->
     <record id="action_govoo_vendor_companies" model="ir.actions.act_window">
         <field name="name">Vendor Companies</field>
         <field name="res_model">res.partner</field>
