@@ -3,7 +3,7 @@
 import logging
 
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -161,7 +161,19 @@ class GovooTender(models.Model):
         call (sudo() only bypasses access rights, it never changes
         self.env.uid), so it also applies to the Procurement Approver
         wizard's own sudo-elevated write path.
+
+        Issue #318: the Procurement Officer role no longer gets to Award a
+        tender at all, full stop, now that a dedicated Approver role
+        exists for it. Checked via has_group() rather than relying on the
+        model's own ACL, since this needs to hold even when the call comes
+        in through a sudo()-elevated path (sudo() never changes
+        self.env.user, only bypasses access rights).
         """
+        if self.env.user.has_group('govoo_procurement.group_govoo_procurement_officer'):
+            raise AccessError(_(
+                'Procurement Officers can no longer award a tender '
+                'directly. Ask a Procurement Approver to confirm the Award.'
+            ))
         self._check_evaluation_stage_transition('awarded')
         for rec in self:
             if not rec.awarded_bid_id:

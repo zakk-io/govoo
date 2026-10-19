@@ -25,15 +25,16 @@
                             class="btn-primary" invisible="evaluation_stage != 'pre_evaluation'"/>
                     <button name="action_start_financial_evaluation" string="Start Financial Evaluation" type="object"
                             class="btn-primary" invisible="evaluation_stage != 'technical_evaluation'"/>
-                    <button name="action_award" string="Award" type="object"
-                            class="btn-primary" invisible="evaluation_stage != 'financial_evaluation'"/>
-                    <!-- Issue #317: the Procurement Approver's own path to
-                         Award, through a narrow wizard that only ever sets
-                         the awarded bid and calls action_award(), never
-                         grants blanket write access to this record. The
-                         existing "Award" button above is left untouched
-                         for now; it keeps working for the Officer until
-                         #318 formally restricts it. -->
+                    <!-- Issue #317/#318: the Procurement Approver's own path
+                         to Award, through a narrow wizard that only ever
+                         sets the awarded bid and calls action_award(),
+                         never grants blanket write access to this record.
+                         The old plain "Award" button (direct call,
+                         relying on awarded_bid_id already being set) was
+                         removed here: #318 blocks the Officer from calling
+                         action_award() at all, and the Approver never had
+                         write access to set awarded_bid_id directly
+                         anyway, so it had no valid user left. -->
                     <button name="%(action_govoo_tender_award_wizard)d" string="Confirm Award" type="action"
                             class="btn-primary" invisible="evaluation_stage != 'financial_evaluation'"
                             groups="govoo_procurement.group_govoo_procurement_approver"
