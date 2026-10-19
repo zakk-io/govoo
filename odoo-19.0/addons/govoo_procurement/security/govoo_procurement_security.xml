@@ -15,7 +15,13 @@
              access to the product catalog, confirmed against
              odoo/addons/product/security/ir.model.access.csv), otherwise
              they can never create a priced line for a vendor who isn't
-             already in the catalog. -->
+             already in the catalog.
+
+             Issue #296: stock.group_stock_user is implied so the Officer
+             can validate the goods receipt that purchase_stock generates
+             on PO confirmation; without it, confirming a PO would work
+             but there'd be no way to ever complete the receipt step the
+             3-way match depends on. -->
         <record id="group_govoo_procurement_officer" model="res.groups">
             <field name="name">Procurement Officer</field>
             <field name="sequence">40</field>
@@ -24,6 +30,7 @@
                 (4, ref('govoo_base.group_govoo_user')),
                 (4, ref('purchase.group_purchase_user')),
                 (4, ref('product.group_product_manager')),
+                (4, ref('stock.group_stock_user')),
             ]"/>
         </record>
 
