@@ -8,4 +8,12 @@
     <record id="purchase_requisition.menu_purchase_requisition_pro_mgt" model="ir.ui.menu">
         <field name="active">False</field>
     </record>
+
+    <!-- Vendor contact management now goes through the Contacts app
+         (govoo_procurement.menu_govoo_vendor_companies, company-only)
+         instead of this native res.partner shortcut nested under
+         Purchase > Orders, which just duplicated it. -->
+    <record id="purchase.menu_procurement_management_supplier_name" model="ir.ui.menu">
+        <field name="active">False</field>
+    </record>
 </odoo>
