@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="govoo_procurement.PurchaseDashBoardKpiRenderer" t-inherit="purchase.ListRenderer" t-inherit-mode="primary">
+        <xpath expr="//PurchaseDashBoard" position="after">
+            <GovooProcurementKpiStrip tiles="kpiTiles" resModel="'purchase.order'"/>
+        </xpath>
+    </t>
+
+</templates>
