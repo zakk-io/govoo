@@ -68,8 +68,7 @@ class TestTenderDocuments(GovooProcurementTestBase):
         bid = self._make_bid(tender, self.vendor_a)
         tender.action_start_technical_evaluation()
         tender.action_start_financial_evaluation()
-        tender.awarded_bid_id = bid.id
-        tender.action_award()
+        self._award(tender, bid)
 
         with self.assertRaises(ValidationError):
             self._make_document(tender, 'Late Addition.pdf')
