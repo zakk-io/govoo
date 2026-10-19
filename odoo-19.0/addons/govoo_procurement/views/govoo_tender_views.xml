@@ -104,10 +104,45 @@
         </field>
     </record>
 
+    <!-- Issue #302: the native RFQ list right next to this one in the
+         same app has a full curated filter/group-by set; this one had
+         none beyond "Custom Filter...", a functional gap against that
+         bar. -->
+    <record id="view_govoo_tender_search" model="ir.ui.view">
+        <field name="name">govoo.tender.search</field>
+        <field name="model">govoo.tender</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="tender_category_id"/>
+                <separator/>
+                <filter name="stage_pre_evaluation" string="Pre-Evaluation"
+                        domain="[('evaluation_stage', '=', 'pre_evaluation')]"/>
+                <filter name="stage_technical_evaluation" string="Technical Evaluation"
+                        domain="[('evaluation_stage', '=', 'technical_evaluation')]"/>
+                <filter name="stage_financial_evaluation" string="Financial Evaluation"
+                        domain="[('evaluation_stage', '=', 'financial_evaluation')]"/>
+                <filter name="stage_awarded" string="Awarded"
+                        domain="[('evaluation_stage', '=', 'awarded')]"/>
+                <separator/>
+                <filter name="deadline_this_week" string="Submission Deadline This Week" domain="[
+                    ('submission_deadline', '&gt;=', '=week_start'),
+                    ('submission_deadline', '&lt;', '=week_start +1w'),
+                ]"/>
+                <separator/>
+                <filter name="group_by_category" string="Tender Category"
+                        context="{'group_by': 'tender_category_id'}"/>
+                <filter name="group_by_stage" string="Evaluation Stage"
+                        context="{'group_by': 'evaluation_stage'}"/>
+            </search>
+        </field>
+    </record>
+
     <record id="action_govoo_tender" model="ir.actions.act_window">
         <field name="name">Tenders</field>
         <field name="res_model">govoo.tender</field>
         <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_govoo_tender_search"/>
     </record>
 
     <menuitem id="menu_govoo_tender"
