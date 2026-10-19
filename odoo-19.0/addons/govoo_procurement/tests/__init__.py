@@ -5,6 +5,7 @@ from . import (
     test_procurement,
     test_procurement_approver_role,
     test_procurement_evaluator_role,
+    test_procurement_officer_restrictions,
     test_submission_deadline_reminder,
     test_tender_bid_copy,
     test_tender_bid_price,

@@ -1,6 +1,6 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import AccessError
 from odoo.tests import tagged
 from odoo.tests.common import new_test_user
 
@@ -38,8 +38,15 @@ class TestProcurementApproverRole(GovooProcurementTestBase):
         self.assertEqual(tender.awarded_bid_id, bid)
 
     def test_tender_creator_cannot_award_even_with_approver_group(self):
-        """The #300 check is role-agnostic: holding the Approver group
-        doesn't matter if you're also the one who created this tender."""
+        """Creating a tender requires Officer-level create rights on
+        govoo.tender -- a pure Approver can't do it at all (read-only
+        ACL). So anyone capable of creating their own tender necessarily
+        also holds the Officer group, and issue #318 now blocks the
+        Officer role from awarding at all, full stop -- which also means
+        holding the Approver group on top doesn't let a tender's own
+        creator award it either. The #300 creator-check still exists
+        underneath as defense in depth, but this exact scenario is caught
+        by the #318 role check first."""
         officer_approver = new_test_user(
             self.env, login='test_procurement_officer_approver',
             groups='govoo_procurement.group_govoo_procurement_officer,'
@@ -62,7 +69,7 @@ class TestProcurementApproverRole(GovooProcurementTestBase):
             'tender_id': tender.id,
             'awarded_bid_id': bid.id,
         })
-        with self.assertRaises(ValidationError):
+        with self.assertRaises(AccessError):
             wizard.action_submit()
 
     def test_approver_cannot_write_awarded_bid_directly(self):
