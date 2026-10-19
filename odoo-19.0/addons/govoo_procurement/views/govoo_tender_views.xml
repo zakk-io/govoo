@@ -149,4 +149,41 @@
             (4, ref('govoo_procurement.group_govoo_procurement_approver')),
         ]"/>
     </record>
+
+    <!-- The Procurement Officer needs to reach vendors as actual contacts
+         (not just the tender-linked bid form) and needs Discuss to field
+         vendor correspondence. Both native apps are already restricted to
+         Administrator-only in this deployment (not something this module
+         set up, found as-is); adding the Officer's own group here is
+         additive only; every other role's access to these two apps is
+         unchanged. -->
+    <record id="contacts.menu_contacts" model="ir.ui.menu">
+        <field name="group_ids" eval="[(4, ref('govoo_procurement.group_govoo_procurement_officer'))]"/>
+    </record>
+
+    <record id="mail.menu_root_discuss" model="ir.ui.menu">
+        <field name="group_ids" eval="[(4, ref('govoo_procurement.group_govoo_procurement_officer'))]"/>
+    </record>
+
+    <!-- Issue: the Officer's day-to-day vendor work is with companies, not
+         the individual people contacts other governance roles use this
+         same app for (e.g. Board Directors). A dedicated, company-only
+         entry point avoids making the Officer wade through unrelated
+         person contacts every time, without touching the shared
+         "Contacts" entry above (still unfiltered, as every other role
+         that can reach it expects). -->
+    <record id="action_govoo_vendor_companies" model="ir.actions.act_window">
+        <field name="name">Vendor Companies</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('is_company', '=', True)]</field>
+        <field name="context">{'default_is_company': True, 'default_supplier_rank': 1}</field>
+    </record>
+
+    <menuitem id="menu_govoo_vendor_companies"
+              name="Vendor Companies"
+              parent="contacts.menu_contacts"
+              action="action_govoo_vendor_companies"
+              sequence="1"
+              groups="govoo_procurement.group_govoo_procurement_officer"/>
 </odoo>
