@@ -1,11 +1,31 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import Command, _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
+
+_GOVOO_SCORE_FIELDS = ('govoo_technical_score', 'govoo_financial_score')
 
 
 class PurchaseOrder(models.Model):
     _inherit = 'purchase.order'
+
+    def _check_officer_not_scoring(self, vals):
+        """Issue #318: the Procurement Officer role no longer gets to enter
+        a bid score directly, full stop, now that a dedicated Evaluator
+        role exists for it. Checked via has_group() rather than relying on
+        this model's own ACL, since this needs to hold even when the call
+        comes in through a sudo()-elevated path (sudo() never changes
+        self.env.user, only bypasses access rights) -- the Evaluator's own
+        scoring wizard still works because the real calling user there is
+        the Evaluator, not the Officer.
+        """
+        if any(field_name in vals for field_name in _GOVOO_SCORE_FIELDS):
+            if self.env.user.has_group('govoo_procurement.group_govoo_procurement_officer'):
+                raise AccessError(_(
+                    'Procurement Officers can no longer enter a Technical/'
+                    'Financial score directly. Ask a Procurement Evaluator '
+                    'to submit the score instead.'
+                ))
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -34,6 +54,7 @@ class PurchaseOrder(models.Model):
                         'A new vendor bid cannot be added once a tender '
                         'is Awarded.'
                     ))
+            self._check_officer_not_scoring(vals)
         orders = super().create(vals_list)
         for order in orders:
             if order.govoo_tender_id and not order.order_line:
@@ -52,6 +73,10 @@ class PurchaseOrder(models.Model):
                         if not line.display_type
                     ]
         return orders
+
+    def write(self, vals):
+        self._check_officer_not_scoring(vals)
+        return super().write(vals)
 
     govoo_tender_id = fields.Many2one(
         comodel_name='govoo.tender',
