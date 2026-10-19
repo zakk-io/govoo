@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The Procurement Officer can manage a vendor's ordinary contact
+         details (name, email, phone, tags, etc.) through the new Vendor
+         Companies entry, but must never change a company's governance
+         role classification (Director/Shareholder/Officer/Beneficial
+         Owner); that's the Company Secretary/Board Administrator's
+         call, not procurement's. Seeing these flags is still useful to
+         the Officer (a vendor also flagged as e.g. a Director's company
+         is a related-party/conflict-of-interest signal worth noticing),
+         so they stay visible, just readonly; the standard Odoo
+         twin-field pattern (groups="!x" / groups="x" readonly="1") keeps
+         every other role's existing editable behavior untouched. This
+         inherits govoo_base's own Governance page rather than editing it
+         directly, since govoo_base has no knowledge of procurement's own
+         groups (and must not depend on this module to avoid a circular
+         dependency). The same treatment applies to the Director/
+         Shareholder toggle columns on the partner list view, which the
+         Officer would otherwise be able to flip inline without even
+         opening the form. -->
+    <record id="res_partner_form_govoo_officer_readonly" model="ir.ui.view">
+        <field name="name">res.partner.form.govoo.officer.readonly</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="govoo_base.res_partner_form_govoo"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='govoo_is_director']" position="replace">
+                <field name="govoo_is_director" groups="!govoo_procurement.group_govoo_procurement_officer"/>
+                <field name="govoo_is_director" readonly="1" groups="govoo_procurement.group_govoo_procurement_officer"/>
+            </xpath>
+            <xpath expr="//field[@name='govoo_is_shareholder']" position="replace">
+                <field name="govoo_is_shareholder" groups="!govoo_procurement.group_govoo_procurement_officer"/>
+                <field name="govoo_is_shareholder" readonly="1" groups="govoo_procurement.group_govoo_procurement_officer"/>
+            </xpath>
+            <xpath expr="//field[@name='govoo_is_officer']" position="replace">
+                <field name="govoo_is_officer" groups="!govoo_procurement.group_govoo_procurement_officer"/>
+                <field name="govoo_is_officer" readonly="1" groups="govoo_procurement.group_govoo_procurement_officer"/>
+            </xpath>
+            <xpath expr="//field[@name='govoo_is_beneficial_owner']" position="replace">
+                <field name="govoo_is_beneficial_owner" groups="!govoo_procurement.group_govoo_procurement_officer"/>
+                <field name="govoo_is_beneficial_owner" readonly="1" groups="govoo_procurement.group_govoo_procurement_officer"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="res_partner_tree_govoo_officer_readonly" model="ir.ui.view">
+        <field name="name">res.partner.tree.govoo.officer.readonly</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="govoo_base.res_partner_tree_govoo"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='govoo_is_director']" position="replace">
+                <field name="govoo_is_director" widget="boolean_toggle"
+                       groups="!govoo_procurement.group_govoo_procurement_officer"/>
+                <field name="govoo_is_director" widget="boolean_toggle" readonly="1"
+                       groups="govoo_procurement.group_govoo_procurement_officer"/>
+            </xpath>
+            <xpath expr="//field[@name='govoo_is_shareholder']" position="replace">
+                <field name="govoo_is_shareholder" widget="boolean_toggle"
+                       groups="!govoo_procurement.group_govoo_procurement_officer"/>
+                <field name="govoo_is_shareholder" widget="boolean_toggle" readonly="1"
+                       groups="govoo_procurement.group_govoo_procurement_officer"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
