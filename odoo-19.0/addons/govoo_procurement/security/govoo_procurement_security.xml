@@ -32,5 +32,38 @@
             <field name="model_id" ref="model_govoo_tender"/>
             <field name="domain_force">[('company_id', 'in', company_ids)]</field>
         </record>
+
+        <!-- Issue #315/#316/#317: split the all-powerful Procurement
+             Officer role into three separate responsibilities (run the
+             process / judge the bids / approve the outcome), matching
+             standard procurement segregation-of-duties practice. Each new
+             role gets its own privilege (not sharing the Officer's
+             res_groups_privilege_governance), so they render as
+             independent checkboxes on the Users form rather than a
+             mutually-exclusive selector, same construction already used
+             for Contract Manager/Approver in govoo_base_groups.xml. -->
+        <record model="res.groups.privilege" id="res_groups_privilege_procurement_evaluator">
+            <field name="name">Procurement Evaluator</field>
+            <field name="category_id" ref="base.module_category_extra"/>
+        </record>
+
+        <record id="group_govoo_procurement_evaluator" model="res.groups">
+            <field name="name">Procurement Evaluator</field>
+            <field name="privilege_id" ref="res_groups_privilege_procurement_evaluator"/>
+            <field name="implied_ids" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+            <field name="comment">Reviews vendor bids and scores Technical/Financial criteria only. Cannot create tenders, edit bid items, or Award.</field>
+        </record>
+
+        <record model="res.groups.privilege" id="res_groups_privilege_procurement_approver">
+            <field name="name">Procurement Approver</field>
+            <field name="category_id" ref="base.module_category_extra"/>
+        </record>
+
+        <record id="group_govoo_procurement_approver" model="res.groups">
+            <field name="name">Procurement Approver</field>
+            <field name="privilege_id" ref="res_groups_privilege_procurement_approver"/>
+            <field name="implied_ids" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
+            <field name="comment">Reviews completed scoring and Awards the tender. Cannot create tenders, edit bids, or enter scores.</field>
+        </record>
     </data>
 </odoo>

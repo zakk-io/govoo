@@ -33,8 +33,7 @@ class TestEvaluationStages(GovooProcurementTestBase):
         tender.action_start_financial_evaluation()
         self.assertEqual(tender.evaluation_stage, 'financial_evaluation')
         bid = self._make_bid(tender, self.vendor_a)
-        tender.awarded_bid_id = bid.id
-        tender.action_award()
+        self._award(tender, bid)
         self.assertEqual(tender.evaluation_stage, 'awarded')
 
     def test_cannot_skip_a_stage(self):
@@ -47,8 +46,7 @@ class TestEvaluationStages(GovooProcurementTestBase):
         tender.action_start_technical_evaluation()
         tender.action_start_financial_evaluation()
         bid = self._make_bid(tender, self.vendor_a)
-        tender.awarded_bid_id = bid.id
-        tender.action_award()
+        self._award(tender, bid)
         with self.assertRaises(ValidationError):
             tender.action_award()
 

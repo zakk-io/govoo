@@ -153,12 +153,27 @@ class GovooTender(models.Model):
         self.write({'evaluation_stage': 'financial_evaluation'})
 
     def action_award(self):
+        """Issue #300/#317: a single person could create a tender and
+        Award it themselves, with no second reviewer at all. This check is
+        deliberately role-agnostic -- it's what actually stops solo
+        tendering, not a label on who's allowed to click the button. It
+        still correctly sees the real calling user's id through a sudo()
+        call (sudo() only bypasses access rights, it never changes
+        self.env.uid), so it also applies to the Procurement Approver
+        wizard's own sudo-elevated write path.
+        """
         self._check_evaluation_stage_transition('awarded')
         for rec in self:
             if not rec.awarded_bid_id:
                 raise ValidationError(
                     _('Select the awarded bid before marking this tender as Awarded.')
                 )
+            if rec.create_uid.id == self.env.uid:
+                raise ValidationError(_(
+                    'You created this tender, so you cannot also be the '
+                    'one who awards it. Ask a different Procurement '
+                    'Approver to confirm the Award.'
+                ))
         self.write({'evaluation_stage': 'awarded'})
 
     @api.model
