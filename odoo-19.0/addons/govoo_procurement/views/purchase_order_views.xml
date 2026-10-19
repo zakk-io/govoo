@@ -9,6 +9,15 @@
                 <field name="govoo_tender_id"/>
                 <field name="govoo_technical_score" invisible="not govoo_tender_id"/>
                 <field name="govoo_financial_score" invisible="not govoo_tender_id"/>
+                <!-- Issue #316: a Procurement Evaluator has read-only
+                     access to purchase.order, so the two score fields
+                     above render readonly for them, so this button is
+                     their only way to actually submit a score, via a
+                     narrow wizard that writes nothing else. -->
+                <button name="%(action_govoo_bid_score_wizard)d" string="Submit Score" type="action"
+                        class="btn-secondary" invisible="not govoo_tender_id"
+                        groups="govoo_procurement.group_govoo_procurement_evaluator"
+                        context="{'default_bid_id': id}"/>
             </field>
         </field>
     </record>

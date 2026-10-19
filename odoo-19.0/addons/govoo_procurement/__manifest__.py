@@ -25,6 +25,8 @@ lifecycle.
         'data/ir_cron_data.xml',
         'data/mail_template_data.xml',
         'data/purchase_requisition_menu_data.xml',
+        'wizard/govoo_bid_score_wizard_views.xml',
+        'wizard/govoo_tender_award_wizard_views.xml',
         'views/govoo_tender_views.xml',
         'views/purchase_order_views.xml',
     ],

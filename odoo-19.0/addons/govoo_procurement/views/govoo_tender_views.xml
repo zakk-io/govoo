@@ -27,6 +27,17 @@
                             class="btn-primary" invisible="evaluation_stage != 'technical_evaluation'"/>
                     <button name="action_award" string="Award" type="object"
                             class="btn-primary" invisible="evaluation_stage != 'financial_evaluation'"/>
+                    <!-- Issue #317: the Procurement Approver's own path to
+                         Award, through a narrow wizard that only ever sets
+                         the awarded bid and calls action_award(), never
+                         grants blanket write access to this record. The
+                         existing "Award" button above is left untouched
+                         for now; it keeps working for the Officer until
+                         #318 formally restricts it. -->
+                    <button name="%(action_govoo_tender_award_wizard)d" string="Confirm Award" type="action"
+                            class="btn-primary" invisible="evaluation_stage != 'financial_evaluation'"
+                            groups="govoo_procurement.group_govoo_procurement_approver"
+                            context="{'default_tender_id': id}"/>
                     <field name="evaluation_stage" widget="statusbar"
                            statusbar_visible="pre_evaluation,technical_evaluation,financial_evaluation,awarded"/>
                 </header>
@@ -118,4 +129,23 @@
               action="action_govoo_tender"
               sequence="70"
               groups="govoo_base.group_govoo_auditor"/>
+
+    <!-- Issue #316/#317: Evaluator and Approver work inside the real
+         Procurement app, not a separate standalone view; unlike the
+         Auditor (whose group has no other reason to touch Purchase), these
+         two roles need the actual Tenders/Vendor Bids navigation. Adding
+         their groups to the native Purchase app's own menu_purchase_root
+         only affects menu visibility, never model access: their ACL rows
+         (ir.model.access.csv) stay strictly read-only regardless, since
+         Odoo access rights are additive across every group a user holds,
+         never narrowed back down by a separate group. Deliberately NOT
+         implying purchase.group_purchase_user on these roles, since that
+         group's own native ACL row grants write/create on purchase.order,
+         which no combination of additional groups could claw back. -->
+    <record id="purchase.menu_purchase_root" model="ir.ui.menu">
+        <field name="group_ids" eval="[
+            (4, ref('govoo_procurement.group_govoo_procurement_evaluator')),
+            (4, ref('govoo_procurement.group_govoo_procurement_approver')),
+        ]"/>
+    </record>
 </odoo>
