@@ -29,7 +29,13 @@ lifecycle.
         'wizard/govoo_tender_award_wizard_views.xml',
         'views/govoo_tender_views.xml',
         'views/purchase_order_views.xml',
+        'views/govoo_procurement_kpi_views.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'govoo_procurement/static/src/kpi_strip/**/*',
+        ],
+    },
     'installable': True,
     'application': False,
     'auto_install': False,

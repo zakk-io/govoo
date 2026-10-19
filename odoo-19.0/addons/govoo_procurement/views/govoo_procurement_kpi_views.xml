@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tenders had no stat cards at all. Requests for Quotation already
+         had Odoo's own native dashboard row; live feedback was that a
+         second, differently-styled row stacked on top of it was
+         cluttered, so purchase_rfq_kpi.js replaces it outright with one
+         consolidated Clagov-styled strip instead (keeping the native
+         row's most useful metrics plus a Tender-Linked cut it didn't
+         have), rather than adding a second row beside it. -->
+    <record id="view_govoo_tender_list_kpi" model="ir.ui.view">
+        <field name="name">govoo.tender.list.kpi</field>
+        <field name="model">govoo.tender</field>
+        <field name="inherit_id" ref="view_govoo_tender_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="js_class">govoo_tender_kpi_list</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="purchase_order_kpis_tree_govoo_kpi" model="ir.ui.view">
+        <field name="name">purchase.order.kpis.tree.govoo.kpi</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_kpis_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="js_class">purchase_dashboard_list_govoo_kpi</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- New named filter the Tender-Linked RFQs tile toggles in place
+         (same click-to-filter mechanism Odoo's own dashboard cards use,
+         GovooProcurementKpiStrip.openTile); the other four tiles reuse
+         filters this search view already has (draft_rfqs, late,
+         not_acknowledged, to_approve). -->
+    <record id="view_purchase_order_filter_govoo_kpi" model="ir.ui.view">
+        <field name="name">purchase.order.select.govoo.kpi</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.view_purchase_order_filter"/>
+        <field name="arch" type="xml">
+            <filter name="not_acknowledged" position="after">
+                <filter name="tender_linked" string="Tender-Linked"
+                        domain="[('govoo_tender_id', '!=', False), ('state', 'in', ['draft', 'sent'])]"/>
+            </filter>
+        </field>
+    </record>
+</odoo>
