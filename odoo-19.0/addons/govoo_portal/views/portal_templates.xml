@@ -12,6 +12,7 @@
                 <p class="text-muted">
                     <t t-if="portal_type == 'director'">Director Portal</t>
                     <t t-elif="portal_type == 'shareholder'">Shareholder Portal</t>
+                    <t t-elif="portal_type == 'procurement_committee'">Procurement Committee Portal</t>
                 </p>
 
                 <div class="row mt-4">
@@ -29,6 +30,10 @@
                                         <li class="list-group-item"><a href="/my/holdings">My Holdings</a></li>
                                         <li class="list-group-item"><a href="/my/holdings/votes">My Votes</a></li>
                                         <li class="list-group-item"><a href="/my/register">My Register</a></li>
+                                    </t>
+                                    <t t-if="portal_type == 'procurement_committee'">
+                                        <li class="list-group-item"><a href="/my/procurement/tenders">My Tender Evaluations</a></li>
+                                        <li class="list-group-item"><a href="/my/meetings">My Meetings</a></li>
                                     </t>
                                     <t t-if="portal_type == 'internal'">
                                         <li class="list-group-item"><a href="/web">Back to Odoo</a></li>
@@ -176,6 +181,122 @@
                         <t t-else="">
                             <p class="text-muted">Minutes not yet available.</p>
                         </t>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- Procurement Committee Portal: My Tender Evaluations           -->
+    <!-- ============================================================ -->
+
+    <template id="portal_my_procurement_tenders" name="My Tender Evaluations">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar"/>
+
+            <t t-if="not tenders">
+                <p class="text-muted">No tenders found.</p>
+            </t>
+
+            <t t-foreach="tenders" t-as="tender">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a t-attf-href="/my/procurement/tenders/#{tender.id}" t-esc="tender.name"/>
+                        </h5>
+                        <p class="card-text text-muted mb-1" t-if="tender.tender_category_id">
+                            <strong>Category:</strong> <t t-esc="tender.tender_category_id.name"/>
+                        </p>
+                        <span class="badge bg-info" t-esc="dict(tender._fields['evaluation_stage'].selection).get(tender.evaluation_stage)"/>
+                    </div>
+                </div>
+            </t>
+
+            <t t-call="portal.pager"/>
+        </t>
+    </template>
+
+    <!-- ============================================================ -->
+    <!-- Procurement Committee Portal: Tender Detail (read-only)       -->
+    <!-- ============================================================ -->
+
+    <template id="portal_my_procurement_tender" name="Tender Evaluation Detail">
+        <t t-call="portal.portal_layout">
+            <div class="card">
+                <div class="card-body">
+                    <h3 t-esc="tender.name"/>
+
+                    <table class="table table-sm">
+                        <tr t-if="tender.tender_category_id">
+                            <td><strong>Category:</strong></td>
+                            <td><t t-esc="tender.tender_category_id.name"/></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Evaluation Stage:</strong></td>
+                            <td><t t-esc="dict(tender._fields['evaluation_stage'].selection).get(tender.evaluation_stage)"/></td>
+                        </tr>
+                        <tr t-if="tender.submission_deadline">
+                            <td><strong>Submission Deadline:</strong></td>
+                            <td><t t-esc="tender.submission_deadline"/></td>
+                        </tr>
+                        <tr t-if="tender.evaluation_meeting_id">
+                            <td><strong>Evaluation Meeting:</strong></td>
+                            <td>
+                                <a t-attf-href="/my/meetings/#{tender.evaluation_meeting_id.id}">
+                                    <t t-esc="tender.evaluation_meeting_id.name"/> (<t t-esc="tender.evaluation_meeting_id.date"/>)
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <h4 class="mt-4">Vendor Bids</h4>
+                    <t t-if="tender.bid_ids">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Vendor</th>
+                                    <th>Technical Score</th>
+                                    <th>Financial Score</th>
+                                    <th>Documents</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="tender.bid_ids" t-as="bid">
+                                    <tr>
+                                        <td><t t-esc="bid.name"/></td>
+                                        <td><t t-esc="bid.partner_id.name"/></td>
+                                        <td><t t-esc="bid.govoo_technical_score"/></td>
+                                        <td><t t-esc="bid.govoo_financial_score"/></td>
+                                        <td>
+                                            <t t-if="not bid.document_ids">
+                                                <span class="text-muted">—</span>
+                                            </t>
+                                            <t t-foreach="bid.document_ids" t-as="bid_doc">
+                                                <a t-attf-href="/web/content/#{bid_doc.id}?download=true"
+                                                   class="d-block" t-esc="bid_doc.name"/>
+                                            </t>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+                    <t t-else="">
+                        <p class="text-muted">No vendor bids yet.</p>
+                    </t>
+
+                    <div class="mt-4" t-if="tender.document_ids">
+                        <h4>Tender Documents</h4>
+                        <ul class="list-group list-group-flush">
+                            <t t-foreach="tender.document_ids" t-as="doc">
+                                <li class="list-group-item">
+                                    <a t-attf-href="/web/content/#{doc.id}?download=true" t-esc="doc.name"/>
+                                </li>
+                            </t>
+                        </ul>
                     </div>
                 </div>
             </div>

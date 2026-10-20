@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Issue #333 follow-up: a Procurement Committee portal member
+             needs to see their own tender's evaluation meeting and its
+             minutes, not just the tender/bid records themselves; same
+             committee-membership scoping already used for the Director
+             Portal's own meeting/minutes rules in
+             govoo_board/security/govoo_board_security.xml, just extended
+             to the new group. Lives here (not in govoo_board or
+             govoo_procurement) because this is the only module that
+             depends on both the group (govoo_procurement) and the models
+             (govoo_board); govoo_procurement depends on govoo_board, not
+             the other way round, so neither of those modules alone can
+             reference both. -->
+        <record id="govoo_meeting_procurement_committee_portal_rule" model="ir.rule">
+            <field name="name">Meeting: Procurement Committee Portal scope</field>
+            <field name="model_id" ref="govoo_board.model_govoo_meeting"/>
+            <field name="domain_force">[('committee_id.member_ids.partner_id', '=', user.partner_id.id)]</field>
+            <field name="groups" eval="[(4, ref('govoo_procurement.group_govoo_procurement_committee_portal'))]"/>
+        </record>
+
+        <record id="govoo_minutes_procurement_committee_portal_rule" model="ir.rule">
+            <field name="name">Minutes: Procurement Committee Portal scope</field>
+            <field name="model_id" ref="govoo_board.model_govoo_minutes"/>
+            <field name="domain_force">[('meeting_id.committee_id.member_ids.partner_id', '=', user.partner_id.id)]</field>
+            <field name="groups" eval="[(4, ref('govoo_procurement.group_govoo_procurement_committee_portal'))]"/>
+        </record>
+    </data>
+</odoo>

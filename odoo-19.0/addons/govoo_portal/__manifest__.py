@@ -23,10 +23,13 @@ owned by other Govoo modules.
         'govoo_contracts',
         'govoo_rw',
         'govoo_evaluation',
+        'govoo_procurement',
         'portal',
         'website',
     ],
     'data': [
+        'security/govoo_portal_security.xml',
+        'security/ir.model.access.csv',
         'views/portal_templates.xml',
         'views/govoo_portal_menus.xml',
         'views/govoo_list_kpi_views.xml',
