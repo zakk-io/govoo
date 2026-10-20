@@ -23,6 +23,7 @@ owned by other Govoo modules.
         'govoo_contracts',
         'govoo_rw',
         'govoo_evaluation',
+        'govoo_procurement',
         'portal',
         'website',
     ],
