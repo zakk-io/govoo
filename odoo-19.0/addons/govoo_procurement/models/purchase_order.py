@@ -86,6 +86,27 @@ class PurchaseOrder(models.Model):
         help='Links this vendor bid (a normal RFQ/purchase order) to the '
              "governance-tracked tender case file it's part of.",
     )
+    tender_evaluation_stage = fields.Selection(
+        related='govoo_tender_id.evaluation_stage',
+        string='Tender Evaluation Stage',
+        help='Read-only passthrough so the Documents tab below can be '
+             'made readonly once the parent tender is Awarded -- view '
+             'readonly/invisible conditions can only reference a field on '
+             'this record itself, not a dotted path through a Many2one.',
+    )
+    # Issue #338: the tender itself already has its own document_ids
+    # (govoo.tender.document_ids) for the RFQ pack / TOR shared by every
+    # bidder; this is the bidder's own submitted documents (certificates,
+    # proposals, registration, etc.), scoped to this one bid only. Same
+    # shape as govoo.tender.document_ids, same lock-once-Awarded
+    # discipline (ir_attachment.py), reusing that discipline rather than
+    # a parallel one.
+    document_ids = fields.One2many(
+        comodel_name='ir.attachment',
+        inverse_name='res_id',
+        domain=[('res_model', '=', 'purchase.order')],
+        string='Bid Documents',
+    )
     govoo_technical_score = fields.Float(
         string='Technical Score',
         tracking=True,
