@@ -26,6 +26,8 @@ class GovooPortalMain(CustomerPortal):
             values['portal_type'] = 'director'
         elif user.has_group('govoo_base.group_govoo_shareholder_portal'):
             values['portal_type'] = 'shareholder'
+        elif user.has_group('govoo_procurement.group_govoo_procurement_committee_portal'):
+            values['portal_type'] = 'procurement_committee'
         else:
             values['portal_type'] = 'internal'
         return request.render('govoo_portal.portal_home', values)
@@ -40,6 +42,8 @@ class GovooPortalMain(CustomerPortal):
             values['resolution_count'] = self._get_resolution_count(partner)
         if 'holding_count' in counters:
             values['holding_count'] = self._get_holding_count(partner)
+        if 'procurement_tender_count' in counters:
+            values['procurement_tender_count'] = self._get_procurement_tender_count(partner)
         return values
 
     def _get_meeting_count(self, partner):
@@ -77,4 +81,18 @@ class GovooPortalMain(CustomerPortal):
         """Count share holdings for the portal user."""
         return request.env['govoo.share.holding'].sudo().search_count([
             ('partner_id', '=', partner.id),
+        ])
+
+    def _get_procurement_tender_count(self, partner):
+        """Count tenders for committees the portal user belongs to
+        (issue #333) -- same shape as _get_meeting_count()."""
+        committee_ids = request.env['govoo.appointment'].sudo().search([
+            ('partner_id', '=', partner.id),
+            ('role', '!=', 'secretary'),
+            ('state', '=', 'active'),
+        ]).mapped('committee_id')
+        if not committee_ids:
+            return 0
+        return request.env['govoo.tender'].sudo().search_count([
+            ('evaluation_meeting_id.committee_id', 'in', committee_ids.ids),
         ])

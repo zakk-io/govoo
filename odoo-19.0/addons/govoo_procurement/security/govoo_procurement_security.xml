@@ -72,5 +72,39 @@
             <field name="implied_ids" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
             <field name="comment">Reviews completed scoring and Awards the tender. Cannot create tenders, edit bids, or enter scores.</field>
         </record>
+
+        <!-- Issue #333: external/extra Procurement Committee members (the
+             Officer plus additional members, some outside the
+             organization) need read-only visibility into just their
+             assigned tender's evaluation, not a full internal role.
+             Mirrors govoo_base.group_govoo_director_portal exactly
+             (portal-only, no internal licence); the record rules below
+             mirror govoo_board's own committee-scoped Director Portal
+             rules (committee_id.member_ids.partner_id = user.partner_id.id),
+             the same mechanism already proven there, reused rather than
+             reinvented. Scoped to the tender's current single
+             evaluation_meeting_id; #337 (a second meeting per tender) will
+             extend this domain once that lands, not this issue's problem. -->
+        <record id="group_govoo_procurement_committee_portal" model="res.groups">
+            <field name="name">Procurement Committee Member (Portal)</field>
+            <field name="sequence">41</field>
+            <field name="privilege_id" ref="govoo_base.res_groups_privilege_governance"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
+            <field name="comment">External/extra committee member self-service. Portal-only, no internal licence. Read-only visibility into the tenders their committee is evaluating.</field>
+        </record>
+
+        <record id="govoo_tender_committee_portal_rule" model="ir.rule">
+            <field name="name">Tender: Procurement Committee Portal scope</field>
+            <field name="model_id" ref="model_govoo_tender"/>
+            <field name="domain_force">[('evaluation_meeting_id.committee_id.member_ids.partner_id', '=', user.partner_id.id)]</field>
+            <field name="groups" eval="[(4, ref('group_govoo_procurement_committee_portal'))]"/>
+        </record>
+
+        <record id="purchase_order_committee_portal_rule" model="ir.rule">
+            <field name="name">Purchase Order (Bid): Procurement Committee Portal scope</field>
+            <field name="model_id" ref="purchase.model_purchase_order"/>
+            <field name="domain_force">[('govoo_tender_id.evaluation_meeting_id.committee_id.member_ids.partner_id', '=', user.partner_id.id)]</field>
+            <field name="groups" eval="[(4, ref('group_govoo_procurement_committee_portal'))]"/>
+        </record>
     </data>
 </odoo>
