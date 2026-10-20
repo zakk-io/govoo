@@ -28,6 +28,8 @@ owned by other Govoo modules.
         'website',
     ],
     'data': [
+        'security/govoo_portal_security.xml',
+        'security/ir.model.access.csv',
         'views/portal_templates.xml',
         'views/govoo_portal_menus.xml',
         'views/govoo_list_kpi_views.xml',

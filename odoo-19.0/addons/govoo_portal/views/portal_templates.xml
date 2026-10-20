@@ -33,6 +33,7 @@
                                     </t>
                                     <t t-if="portal_type == 'procurement_committee'">
                                         <li class="list-group-item"><a href="/my/procurement/tenders">My Tender Evaluations</a></li>
+                                        <li class="list-group-item"><a href="/my/meetings">My Meetings</a></li>
                                     </t>
                                     <t t-if="portal_type == 'internal'">
                                         <li class="list-group-item"><a href="/web">Back to Odoo</a></li>
@@ -239,6 +240,14 @@
                         <tr t-if="tender.submission_deadline">
                             <td><strong>Submission Deadline:</strong></td>
                             <td><t t-esc="tender.submission_deadline"/></td>
+                        </tr>
+                        <tr t-if="tender.evaluation_meeting_id">
+                            <td><strong>Evaluation Meeting:</strong></td>
+                            <td>
+                                <a t-attf-href="/my/meetings/#{tender.evaluation_meeting_id.id}">
+                                    <t t-esc="tender.evaluation_meeting_id.name"/> (<t t-esc="tender.evaluation_meeting_id.date"/>)
+                                </a>
+                            </td>
                         </tr>
                     </table>
 

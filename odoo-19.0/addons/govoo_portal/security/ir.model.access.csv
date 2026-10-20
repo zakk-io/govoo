@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_govoo_meeting_procurement_committee_portal,govoo.meeting procurement committee portal,govoo_board.model_govoo_meeting,govoo_procurement.group_govoo_procurement_committee_portal,1,0,0,0
+access_govoo_minutes_procurement_committee_portal,govoo.minutes procurement committee portal,govoo_board.model_govoo_minutes,govoo_procurement.group_govoo_procurement_committee_portal,1,0,0,0
