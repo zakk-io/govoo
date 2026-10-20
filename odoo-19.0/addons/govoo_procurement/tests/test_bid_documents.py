@@ -80,6 +80,7 @@ class TestBidDocuments(GovooProcurementTestBase):
         tender = self._make_tender()
         bid = self._make_bid(tender, self.vendor_a)
         document = self._make_document(bid)
+        self._qualify_a_bid(tender)
         tender.action_start_technical_evaluation()
         tender.action_start_financial_evaluation()
         self._award(tender, bid)
@@ -93,6 +94,7 @@ class TestBidDocuments(GovooProcurementTestBase):
         tender = self._make_tender()
         bid = self._make_bid(tender, self.vendor_a)
         self._make_document(bid)
+        self._qualify_a_bid(tender)
         tender.action_start_technical_evaluation()
         # Should not raise.
         self._make_document(bid, 'Still Editable.pdf')

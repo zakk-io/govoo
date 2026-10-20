@@ -78,6 +78,27 @@
                                     <field name="partner_id"/>
                                     <field name="state"/>
                                     <field name="amount_total"/>
+                                    <field name="tender_evaluation_stage" column_invisible="1"/>
+                                    <!-- Issue #328: the Officer's own compliance
+                                         screening, before Technical Evaluation can
+                                         start. Qualify is a single click (most
+                                         compliant bidders need no reason);
+                                         Disqualify opens a small wizard that
+                                         requires one; both locked to
+                                         Pre-Evaluation only, via the bid's own
+                                         tender_evaluation_stage passthrough field
+                                         (a one2many sub-list can't reference the
+                                         parent tender's evaluation_stage directly
+                                         without the parent. prefix). -->
+                                    <field name="govoo_qualification_status" widget="badge"
+                                           decoration-success="govoo_qualification_status == 'qualified'"
+                                           decoration-danger="govoo_qualification_status == 'disqualified'"
+                                           decoration-muted="govoo_qualification_status == 'pending'"/>
+                                    <button name="action_mark_qualified" type="object" string="Qualify" icon="fa-check"
+                                            invisible="tender_evaluation_stage != 'pre_evaluation' or govoo_qualification_status == 'qualified'"/>
+                                    <button name="%(action_govoo_bid_disqualify_wizard)d" type="action" string="Disqualify" icon="fa-times"
+                                            invisible="tender_evaluation_stage != 'pre_evaluation' or govoo_qualification_status == 'disqualified'"
+                                            context="{'default_bid_id': id}"/>
                                     <field name="govoo_technical_score"/>
                                     <field name="govoo_financial_score"/>
                                 </list>
