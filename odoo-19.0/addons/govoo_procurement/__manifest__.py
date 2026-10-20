@@ -18,7 +18,7 @@ lifecycle.
     'category': 'Governance',
     'version': '19.0.1.0.1',
     'license': 'LGPL-3',
-    'depends': ['govoo_base', 'govoo_board', 'purchase', 'purchase_requisition'],
+    'depends': ['govoo_base', 'govoo_board', 'purchase', 'purchase_requisition', 'purchase_stock'],
     'data': [
         'security/govoo_procurement_security.xml',
         'security/ir.model.access.csv',
