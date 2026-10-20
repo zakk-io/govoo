@@ -1,7 +1,7 @@
 # Part of Govoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import _, api, fields, models
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, ValidationError
 
 
 class GovooBidScoreWizard(models.TransientModel):
@@ -30,6 +30,14 @@ class GovooBidScoreWizard(models.TransientModel):
         self.ensure_one()
         if not self.env.user.has_group('govoo_procurement.group_govoo_procurement_evaluator'):
             raise AccessError(_('Only a Procurement Evaluator can submit a bid score.'))
+        # Issue #328: a Disqualified bid failed the Officer's own
+        # compliance screening and should never carry a score, even if
+        # someone reaches this wizard for it directly.
+        if self.bid_id.govoo_qualification_status == 'disqualified':
+            raise ValidationError(_(
+                'This bid was Disqualified during Pre-Evaluation and '
+                'cannot be scored.'
+            ))
         self.bid_id.sudo().write({
             'govoo_technical_score': self.govoo_technical_score,
             'govoo_financial_score': self.govoo_financial_score,

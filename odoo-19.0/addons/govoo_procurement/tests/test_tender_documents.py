@@ -66,6 +66,7 @@ class TestTenderDocuments(GovooProcurementTestBase):
         tender = self._make_tender()
         document = self._make_document(tender)
         bid = self._make_bid(tender, self.vendor_a)
+        self._qualify_a_bid(tender)
         tender.action_start_technical_evaluation()
         tender.action_start_financial_evaluation()
         self._award(tender, bid)
@@ -81,6 +82,8 @@ class TestTenderDocuments(GovooProcurementTestBase):
         while a tender is still under evaluation."""
         tender = self._make_tender()
         self._make_document(tender)
+        self._make_bid(tender, self.vendor_a)
+        self._qualify_a_bid(tender)
         tender.action_start_technical_evaluation()
         # Should not raise.
         self._make_document(tender, 'Still Editable.pdf')

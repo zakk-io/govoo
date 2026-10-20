@@ -47,6 +47,7 @@ class TestTenderBidCopy(GovooProcurementTestBase):
     def test_cannot_add_bid_to_an_awarded_tender(self):
         tender = self._make_tender()
         bid = self._make_bid(tender, self.vendor_a)
+        self._qualify_a_bid(tender)
         tender.action_start_technical_evaluation()
         tender.action_start_financial_evaluation()
         self._award(tender, bid)

@@ -28,11 +28,12 @@ class TestEvaluationStages(GovooProcurementTestBase):
 
     def test_stages_advance_sequentially(self):
         tender = self._make_tender()
+        bid = self._make_bid(tender, self.vendor_a)
+        self._qualify_a_bid(tender)
         tender.action_start_technical_evaluation()
         self.assertEqual(tender.evaluation_stage, 'technical_evaluation')
         tender.action_start_financial_evaluation()
         self.assertEqual(tender.evaluation_stage, 'financial_evaluation')
-        bid = self._make_bid(tender, self.vendor_a)
         self._award(tender, bid)
         self.assertEqual(tender.evaluation_stage, 'awarded')
 
@@ -43,15 +44,18 @@ class TestEvaluationStages(GovooProcurementTestBase):
 
     def test_cannot_advance_past_awarded(self):
         tender = self._make_tender()
+        bid = self._make_bid(tender, self.vendor_a)
+        self._qualify_a_bid(tender)
         tender.action_start_technical_evaluation()
         tender.action_start_financial_evaluation()
-        bid = self._make_bid(tender, self.vendor_a)
         self._award(tender, bid)
         with self.assertRaises(ValidationError):
             tender.action_award()
 
     def test_cannot_award_without_selecting_a_bid(self):
         tender = self._make_tender()
+        self._make_bid(tender, self.vendor_a)
+        self._qualify_a_bid(tender)
         tender.action_start_technical_evaluation()
         tender.action_start_financial_evaluation()
         with self.assertRaises(ValidationError):

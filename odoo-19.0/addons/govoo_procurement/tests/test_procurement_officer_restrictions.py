@@ -53,6 +53,7 @@ class TestProcurementOfficerRestrictions(GovooProcurementTestBase):
             'govoo_tender_id': tender.id,
             'company_id': self.company.id,
         })
+        bid.with_user(creator).action_mark_qualified()
         tender.with_user(creator).action_start_technical_evaluation()
         tender.with_user(creator).action_start_financial_evaluation()
         tender.with_user(creator).write({'awarded_bid_id': bid.id})
@@ -76,6 +77,7 @@ class TestProcurementOfficerRestrictions(GovooProcurementTestBase):
             'govoo_tender_id': tender.id,
             'company_id': self.company.id,
         })
+        bid.with_user(officer).action_mark_qualified()
         tender.with_user(officer).action_start_technical_evaluation()
         tender.with_user(officer).action_start_financial_evaluation()
 
