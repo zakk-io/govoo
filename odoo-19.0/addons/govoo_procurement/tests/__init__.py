@@ -2,6 +2,7 @@
 
 from . import (
     test_auditor_access,
+    test_bid_documents,
     test_procurement,
     test_procurement_approver_role,
     test_procurement_evaluator_role,

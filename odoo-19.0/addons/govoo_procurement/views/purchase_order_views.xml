@@ -7,6 +7,7 @@
         <field name="arch" type="xml">
             <field name="partner_ref" position="after">
                 <field name="govoo_tender_id"/>
+                <field name="tender_evaluation_stage" invisible="1"/>
                 <field name="govoo_technical_score" invisible="not govoo_tender_id"/>
                 <field name="govoo_financial_score" invisible="not govoo_tender_id"/>
                 <!-- Issue #316: a Procurement Evaluator has read-only
@@ -19,6 +20,18 @@
                         groups="govoo_procurement.group_govoo_procurement_evaluator"
                         context="{'default_bid_id': id}"/>
             </field>
+            <!-- Issue #338: the bidder's own submitted documents (not the
+                 tender's shared RFQ/TOR, which stays on govoo.tender.
+                 document_ids), scoped to this one bid only. Readonly once
+                 the parent tender is Awarded, same "don't let the upload
+                 widget swallow the backend's rejection silently" UX fix
+                 already applied to the tender's own Documents tab. -->
+            <page name="purchase_delivery_invoice" position="after">
+                <page string="Documents" name="documents" invisible="not govoo_tender_id">
+                    <field name="document_ids" widget="many2many_binary"
+                           readonly="tender_evaluation_stage == 'awarded'"/>
+                </page>
+            </page>
         </field>
     </record>
 </odoo>
