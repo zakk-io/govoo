@@ -8,6 +8,12 @@
             <field name="partner_ref" position="after">
                 <field name="govoo_tender_id"/>
                 <field name="tender_evaluation_stage" invisible="1"/>
+                <field name="govoo_qualification_status" widget="badge" invisible="not govoo_tender_id"
+                       decoration-success="govoo_qualification_status == 'qualified'"
+                       decoration-danger="govoo_qualification_status == 'disqualified'"
+                       decoration-muted="govoo_qualification_status == 'pending'"/>
+                <field name="govoo_disqualification_reason"
+                       invisible="govoo_qualification_status != 'disqualified'" readonly="1"/>
                 <field name="govoo_technical_score" invisible="not govoo_tender_id"/>
                 <field name="govoo_financial_score" invisible="not govoo_tender_id"/>
                 <!-- Issue #316: a Procurement Evaluator has read-only

@@ -145,7 +145,19 @@ class GovooTender(models.Model):
                 ))
 
     def action_start_technical_evaluation(self):
+        """Issue #328: at least one bid must have passed the Officer's own
+        compliance screening (govoo_qualification_status = 'qualified')
+        before Technical Evaluation can start -- mirrors the transcript's
+        own description of the process (disqualified bidders "get off"
+        before the committee ever schedules a technical evaluation
+        meeting for them)."""
         self._check_evaluation_stage_transition('technical_evaluation')
+        for rec in self:
+            if not rec.bid_ids.filtered(lambda b: b.govoo_qualification_status == 'qualified'):
+                raise ValidationError(_(
+                    'At least one vendor bid must be marked Qualified '
+                    'before starting Technical Evaluation.'
+                ))
         self.write({'evaluation_stage': 'technical_evaluation'})
 
     def action_start_financial_evaluation(self):

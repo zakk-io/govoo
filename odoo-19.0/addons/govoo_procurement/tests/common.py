@@ -43,6 +43,16 @@ class GovooProcurementTestBase(TransactionCase):
             'company_id': self.company.id,
         })
 
+    def _qualify_a_bid(self, tender):
+        """Issue #328: advancing to Technical Evaluation now requires at
+        least one bid marked Qualified. Tests that aren't testing that
+        gate itself call this first, matching how _award() already
+        encapsulates the realistic path through a different gate for
+        tests that aren't testing it specifically. sudo() here for the
+        same reason _award() uses it: bypassing ACL noise unrelated to
+        whatever this particular test is actually checking."""
+        tender.bid_ids[:1].sudo().action_mark_qualified()
+
     def _award(self, tender, bid):
         """Award `tender` to `bid` as a Procurement Approver other than
         whoever created the tender. Issue #300/#317: a tender's own

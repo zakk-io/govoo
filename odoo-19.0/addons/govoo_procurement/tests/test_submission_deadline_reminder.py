@@ -64,6 +64,8 @@ class TestTenderSubmissionDeadlineReminder(GovooProcurementTestBase):
             'submission_deadline': datetime.date.today() + datetime.timedelta(days=2),
             'reminder_lead_days': 3,
         })
+        self._make_bid(tender, self.vendor_a)
+        self._qualify_a_bid(tender)
         tender.action_start_technical_evaluation()
         mail_count_before = self.env['mail.mail'].search_count([])
         self.env['govoo.tender']._cron_send_submission_deadline_reminders()

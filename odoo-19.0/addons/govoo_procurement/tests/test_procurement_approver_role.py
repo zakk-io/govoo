@@ -25,6 +25,7 @@ class TestProcurementApproverRole(GovooProcurementTestBase):
         approver = self._make_approver('test_procurement_approver_award')
         tender = self._make_tender()
         bid = self._make_bid(tender, self.vendor_a)
+        self._qualify_a_bid(tender)
         tender.action_start_technical_evaluation()
         tender.action_start_financial_evaluation()
 
@@ -62,6 +63,7 @@ class TestProcurementApproverRole(GovooProcurementTestBase):
             'govoo_tender_id': tender.id,
             'company_id': self.company.id,
         })
+        bid.with_user(officer_approver).action_mark_qualified()
         tender.with_user(officer_approver).action_start_technical_evaluation()
         tender.with_user(officer_approver).action_start_financial_evaluation()
 
@@ -101,6 +103,7 @@ class TestProcurementApproverRole(GovooProcurementTestBase):
         )
         tender = self._make_tender()
         bid = self._make_bid(tender, self.vendor_a)
+        self._qualify_a_bid(tender)
         tender.action_start_technical_evaluation()
         tender.action_start_financial_evaluation()
 

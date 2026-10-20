@@ -107,6 +107,50 @@ class PurchaseOrder(models.Model):
         domain=[('res_model', '=', 'purchase.order')],
         string='Bid Documents',
     )
+    # Issue #328: the Procurement Officer's own compliance screening of
+    # each bidder's submitted documents against the advertised
+    # requirements, before Technical Evaluation can start -- distinct
+    # from the Technical Score itself. 'pending' is the default so an
+    # unreviewed bid is visually distinguishable from one that's actually
+    # been checked and passed.
+    govoo_qualification_status = fields.Selection(
+        selection=[
+            ('pending', 'Pending'),
+            ('qualified', 'Qualified'),
+            ('disqualified', 'Disqualified'),
+        ],
+        string='Qualification Status',
+        default='pending',
+        required=True,
+        tracking=True,
+    )
+    govoo_disqualification_reason = fields.Text(
+        string='Disqualification Reason',
+        tracking=True,
+    )
+
+    @api.constrains('govoo_qualification_status', 'govoo_disqualification_reason')
+    def _check_disqualification_has_a_reason(self):
+        for rec in self:
+            if rec.govoo_qualification_status == 'disqualified' and not rec.govoo_disqualification_reason:
+                raise ValidationError(_(
+                    'A reason is required when marking a bid Disqualified.'
+                ))
+
+    def action_mark_qualified(self):
+        """One click, no wizard -- most compliant bidders don't need a
+        reason recorded, only disqualified ones do (see the wizard in
+        wizard/govoo_bid_disqualify_wizard.py, which does require one)."""
+        for rec in self:
+            if rec.govoo_tender_id.evaluation_stage != 'pre_evaluation':
+                raise ValidationError(_(
+                    'A bid can only be marked Qualified during Pre-Evaluation.'
+                ))
+        self.write({
+            'govoo_qualification_status': 'qualified',
+            'govoo_disqualification_reason': False,
+        })
+
     govoo_technical_score = fields.Float(
         string='Technical Score',
         tracking=True,
