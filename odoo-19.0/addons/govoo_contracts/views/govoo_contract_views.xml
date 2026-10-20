@@ -87,6 +87,7 @@
                             <field name="retention_until" readonly="1"/>
                             <field name="termination_reason" invisible="state not in ('active', 'terminated')"/>
                             <field name="resolution_id"/>
+                            <field name="tender_id"/>
                             <field name="sign_request_id"/>
                             <field name="sign_status" widget="badge"
                                    decoration-success="sign_status == 'signed'"

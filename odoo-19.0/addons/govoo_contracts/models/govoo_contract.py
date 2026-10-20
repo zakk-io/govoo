@@ -191,6 +191,18 @@ class GovooContract(models.Model):
              'approval or its value meets the type\'s approval threshold '
              '(BR-CM-001).',
     )
+    tender_id = fields.Many2one(
+        comodel_name='govoo.tender',
+        string='Originating Tender',
+        ondelete='set null',
+        tracking=True,
+        help='Traceability only -- optional, since not every contract '
+             'originates from a competitive tender. Purely narrows the '
+             'gap found investigating whether a tender/PO should link to '
+             'a contract; any gate that reads this field (e.g. requiring '
+             'the tender\'s minutes/evaluations before drafting) is a '
+             'separate feature built on top of this link, not part of it.',
+    )
     # Always ir.attachment (Many2one comodel is fixed at class-definition
     # time); when a signing document is generated for this field, check
     # self.env['govoo.feature.flags'].is_sign_app_installed() to use
