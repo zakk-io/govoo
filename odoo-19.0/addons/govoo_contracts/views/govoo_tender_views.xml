@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Issue #304: narrow traceability link from a tender to the
+         contract(s) it produced (govoo.contract.tender_id). Lives here,
+         not in govoo_procurement, since govoo_procurement has no
+         knowledge of govoo_contracts and must not depend on it; same
+         discipline already used for govoo_base/govoo_procurement's own
+         cross-module view extensions. -->
+    <record id="view_govoo_tender_form_contracts" model="ir.ui.view">
+        <field name="name">govoo.tender.form.contracts</field>
+        <field name="model">govoo.tender</field>
+        <field name="inherit_id" ref="govoo_procurement.view_govoo_tender_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button type="object" name="action_view_contracts" class="oe_stat_button" icon="fa-file-text-o"
+                        groups="govoo_base.group_govoo_contract_manager,govoo_base.group_govoo_contract_approver,govoo_base.group_govoo_auditor,govoo_base.group_govoo_admin">
+                    <field name="contract_count" widget="statinfo" string="Contracts"/>
+                </button>
+            </div>
+        </field>
+    </record>
+</odoo>
