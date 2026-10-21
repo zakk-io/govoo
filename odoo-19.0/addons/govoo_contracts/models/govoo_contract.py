@@ -272,13 +272,29 @@ class GovooContract(models.Model):
 
     @api.depends('obligation_ids')
     def _compute_obligation_count(self):
+        """Issue #352 follow-up: a viewer with narrow, read-only
+        contract access (Procurement Officer) but no ACL on
+        govoo.contract.obligation at all would otherwise hit a hard
+        AccessError just opening the record, the same failure mode
+        govoo_tender.py's own _compute_contract_count already guards
+        against for the equivalent case on the tender side -- counting
+        via sudo() avoids touching obligation_ids (and its own access
+        check) from this compute entirely."""
+        counts = self.env['govoo.contract.obligation'].sudo()._read_group(
+            [('contract_id', 'in', self.ids)], ['contract_id'], ['__count'],
+        )
+        count_by_contract = {contract.id: count for contract, count in counts}
         for rec in self:
-            rec.obligation_count = len(rec.obligation_ids)
+            rec.obligation_count = count_by_contract.get(rec.id, 0)
 
     @api.depends('milestone_ids')
     def _compute_milestone_count(self):
+        counts = self.env['govoo.contract.milestone'].sudo()._read_group(
+            [('contract_id', 'in', self.ids)], ['contract_id'], ['__count'],
+        )
+        count_by_contract = {contract.id: count for contract, count in counts}
         for rec in self:
-            rec.milestone_count = len(rec.milestone_ids)
+            rec.milestone_count = count_by_contract.get(rec.id, 0)
 
     @api.depends('create_date', 'contract_type_id.retention_years')
     def _compute_retention_until(self):
