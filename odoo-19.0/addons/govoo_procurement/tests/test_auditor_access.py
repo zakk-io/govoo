@@ -24,6 +24,23 @@ class TestAuditorAccess(GovooProcurementTestBase):
         tender.with_user(auditor).check_access('read')
         bid.with_user(auditor).check_access('read')
 
+    def test_auditor_can_read_bid_vendor_bids_fields_without_access_error(self):
+        """Issue #354: same gap as the Legal Officer's (see
+        test_legal_officer_access.py) -- opening a vendor bid via the
+        tender's "Vendor Bids" smart button falls back to the core
+        Purchase module's own views, which read invoice_ids and
+        order_line. The Auditor had no ACL on account.move/
+        account.move.line/purchase.order.line either."""
+        auditor = new_test_user(
+            self.env, login='test_procurement_auditor_bid_fields',
+            groups='govoo_base.group_govoo_auditor',
+            company_id=self.company.id,
+        )
+        tender = self._make_tender()
+        bid = self._make_bid(tender, self.vendor_a)
+
+        bid.with_user(auditor).read(['invoice_ids', 'order_line'])
+
     def test_auditor_cannot_write_create_or_unlink(self):
         auditor = new_test_user(
             self.env, login='test_procurement_auditor_2',
