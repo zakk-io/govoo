@@ -199,6 +199,19 @@
               sequence="70"
               groups="govoo_base.group_govoo_auditor"/>
 
+    <!-- Issue #329: same reasoning as the Auditor menu above; the
+         Legal Officer correctly holds no native Purchase group either
+         (read-only, no write/create), so they need the same kind of
+         standalone entry point. Read-only ACL + the Awarded-only
+         record rule (govoo_procurement_security.xml) already constrain
+         what renders on this reused form; no separate view needed. -->
+    <menuitem id="menu_govoo_tender_legal_officer"
+              name="Procurement (Legal View)"
+              parent="govoo_base.govoo_menu_root"
+              action="action_govoo_tender"
+              sequence="71"
+              groups="group_govoo_legal_officer"/>
+
     <!-- Issue #316/#317: Evaluator and Approver work inside the real
          Procurement app, not a separate standalone view; unlike the
          Auditor (whose group has no other reason to touch Purchase), these

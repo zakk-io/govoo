@@ -142,6 +142,36 @@ class GovooTender(models.Model):
         string='Documents',
     )
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        tenders = super().create(vals_list)
+        tenders._sync_evaluation_meeting_tender_links()
+        return tenders
+
+    def write(self, vals):
+        res = super().write(vals)
+        if 'technical_evaluation_meeting_id' in vals or 'financial_evaluation_meeting_id' in vals:
+            self._sync_evaluation_meeting_tender_links()
+        return res
+
+    def _sync_evaluation_meeting_tender_links(self):
+        """Issue #329: keeps govoo.meeting.evaluation_tender_id (the
+        Legal Officer record rule's back-reference) in sync. Self-
+        healing: resolves from each tender's current field values
+        rather than diffing before/after, so it stays correct
+        regardless of how the record reached its current state (write,
+        create, copy, XML data)."""
+        for tender in self:
+            current_meetings = tender.technical_evaluation_meeting_id | tender.financial_evaluation_meeting_id
+            stale = self.env['govoo.meeting'].sudo().search([
+                ('evaluation_tender_id', '=', tender.id),
+                ('id', 'not in', current_meetings.ids),
+            ])
+            stale.write({'evaluation_tender_id': False})
+            for meeting in current_meetings:
+                if meeting.evaluation_tender_id != tender:
+                    meeting.sudo().write({'evaluation_tender_id': tender.id})
+
     @api.depends('bid_ids')
     def _compute_bid_count(self):
         for rec in self:

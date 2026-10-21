@@ -20,3 +20,6 @@ access_account_move_line_procurement_evaluator,account.move.line procurement eva
 access_account_move_line_procurement_approver,account.move.line procurement approver,account.model_account_move_line,group_govoo_procurement_approver,1,0,0,0
 access_govoo_tender_committee_portal,govoo.tender committee portal,model_govoo_tender,group_govoo_procurement_committee_portal,1,0,0,0
 access_purchase_order_committee_portal,purchase.order committee portal,purchase.model_purchase_order,group_govoo_procurement_committee_portal,1,0,0,0
+access_govoo_tender_legal_officer,govoo.tender legal officer,model_govoo_tender,group_govoo_legal_officer,1,0,0,0
+access_purchase_order_legal_officer,purchase.order legal officer,purchase.model_purchase_order,group_govoo_legal_officer,1,0,0,0
+access_govoo_minutes_legal_officer,govoo.minutes legal officer,govoo_board.model_govoo_minutes,group_govoo_legal_officer,1,0,0,0
