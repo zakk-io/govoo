@@ -70,17 +70,29 @@
         <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
     </record>
 
+    <!-- Issue #352 follow-up: opening a contract's form view reads
+         obligation_ids/milestone_ids directly (embedded editable lists,
+         not just the count stat buttons), so the same narrowing used
+         for govoo_contract_comp_rule above has to apply here too, for
+         the same reason (a second Officer-scoped rule would get OR'd
+         away by this one, since every Officer also holds
+         group_govoo_user). Contract Clause is NOT narrowed the same
+         way; confirmed by reading govoo_contract_clause.py: it's a
+         reusable clause-library/catalog model (name/body/category),
+         with no contract_id field at all, so there's no per-contract
+         confidentiality concern and no way to narrow it per-contract
+         even if there were one. -->
     <record id="govoo_contract_obligation_comp_rule" model="ir.rule">
         <field name="name">Contract Obligation: multi-company</field>
         <field name="model_id" ref="model_govoo_contract_obligation"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="domain_force">[('company_id', 'in', company_ids)] if not user.has_group('govoo_procurement.group_govoo_procurement_officer') or user.has_group('govoo_base.group_govoo_contract_manager') or user.has_group('govoo_base.group_govoo_contract_approver') or user.has_group('govoo_base.group_govoo_auditor') or user.has_group('govoo_base.group_govoo_admin') else [('company_id', 'in', company_ids), ('contract_id.tender_id', '!=', False)]</field>
         <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
     </record>
 
     <record id="govoo_contract_milestone_comp_rule" model="ir.rule">
         <field name="name">Contract Milestone: multi-company</field>
         <field name="model_id" ref="model_govoo_contract_milestone"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="domain_force">[('company_id', 'in', company_ids)] if not user.has_group('govoo_procurement.group_govoo_procurement_officer') or user.has_group('govoo_base.group_govoo_contract_manager') or user.has_group('govoo_base.group_govoo_contract_approver') or user.has_group('govoo_base.group_govoo_auditor') or user.has_group('govoo_base.group_govoo_admin') else [('company_id', 'in', company_ids), ('contract_id.tender_id', '!=', False)]</field>
         <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
     </record>
 
