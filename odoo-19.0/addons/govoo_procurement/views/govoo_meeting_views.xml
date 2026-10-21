@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Issue #357: a Financial-Evaluation-only equivalent of the
+         meeting form's "Draft Minutes" button, scoped to the
+         Procurement Officer. Lives here, not edited directly in
+         govoo_board, since govoo_board has no knowledge of
+         govoo_procurement and must not depend on it, same discipline
+         already used for govoo_tender_views.xml's own cross-module
+         view extension. Anchored on the existing Secretary button via
+         xpath (the surrounding div has no name= to target directly). -->
+    <record id="view_govoo_meeting_form_officer_minutes" model="ir.ui.view">
+        <field name="name">govoo.meeting.form.procurement.officer.minutes</field>
+        <field name="model">govoo.meeting</field>
+        <field name="inherit_id" ref="govoo_board.govoo_meeting_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_create_minutes']" position="after">
+                <button name="action_create_minutes" type="object"
+                        string="Draft Minutes" class="btn-link"
+                        groups="govoo_procurement.group_govoo_procurement_officer"
+                        invisible="evaluation_phase != 'financial'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

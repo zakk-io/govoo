@@ -47,6 +47,15 @@
                         <button type="object" name="action_view_bids" class="oe_stat_button" icon="fa-list-alt">
                             <field name="bid_count" widget="statinfo" string="Vendor Bids"/>
                         </button>
+                        <!-- Issue #357 -->
+                        <button type="object" name="action_view_meetings" class="oe_stat_button" icon="fa-calendar"
+                                invisible="not meeting_count">
+                            <field name="meeting_count" widget="statinfo" string="Meetings"/>
+                        </button>
+                        <button type="object" name="action_view_minutes" class="oe_stat_button" icon="fa-file-text-o"
+                                invisible="not minutes_count">
+                            <field name="minutes_count" widget="statinfo" string="Minutes"/>
+                        </button>
                     </div>
                     <div class="oe_title">
                         <h1>

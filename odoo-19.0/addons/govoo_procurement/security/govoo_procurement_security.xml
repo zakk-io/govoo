@@ -153,5 +153,67 @@
             <field name="domain_force">[('meeting_id.evaluation_tender_id.evaluation_stage', '=', 'awarded')]</field>
             <field name="groups" eval="[(4, ref('group_govoo_legal_officer'))]"/>
         </record>
+
+<!-- Issue #357: the Procurement Officer may create/manage ANY
+             committee-type meeting, not narrowed to "already linked
+             to my tender", because a meeting has no evaluation_tender_id
+             yet at the moment it's created (the link is stamped on
+             afterward, once the tender itself is saved via
+             _sync_evaluation_meeting_tender_links in govoo_tender.py),
+             so that narrowing is structurally impossible at create
+             time. meeting_type == 'committee' is the narrowest thing
+             creatable at that point, same breadth-vs-depth tradeoff
+             this role already accepts elsewhere (full company-wide
+             tender visibility, no "my tenders" concept).
+
+             This is a global rule (no groups field), branched via
+             has_group(), so it ANDs with govoo_meeting_comp_rule
+             (govoo_board_security.xml) instead of being OR'd away by
+             it, the same construction already used by
+             govoo_meeting_confidential_comp_rule in that same file for
+             an analogous case, reused here rather than inventing a
+             different one. Secretary/Admin are exempted (they already
+             have broader access via their own ACL) so a dual-role user
+             is never narrowed below what their other role already
+             grants.
+
+             perm_read is explicitly False: this rule only exists to
+             narrow write/create/unlink. Leaving perm_read at its
+             default (True) would have silently taken away the
+             Officer's existing company-wide READ access to every
+             meeting (board, AGM, executive, ...), not just narrowed
+             what they can create/edit, confirmed by reading how this
+             rule combines with govoo_meeting_comp_rule above (ANDed,
+             not OR'd, since this is a global rule). -->
+
+        <record id="govoo_meeting_procurement_officer_rule" model="ir.rule">
+            <field name="name">Meeting: Procurement Officer may manage committee-type meetings only</field>
+            <field name="model_id" ref="govoo_board.model_govoo_meeting"/>
+            <field name="domain_force">[] if not user.has_group('govoo_procurement.group_govoo_procurement_officer') or user.has_group('govoo_base.group_govoo_secretary') or user.has_group('govoo_base.group_govoo_admin') else [('meeting_type', '=', 'committee')]</field>
+            <field name="perm_read" eval="False"/>
+        </record>
+
+        <!-- Issue #357: Minutes/Agenda Items are narrowed further than
+             the meeting itself, only the Financial Evaluation
+             meeting specifically, never Technical, per the business's
+             own segregation (Technical stays Secretary-only). Relies
+             on govoo.meeting.evaluation_phase (govoo_meeting.py), a
+             real stored field for the same reason evaluation_tender_id
+             is: ir.rule domain_force has no env access for a dynamic
+             lookup. Same global-rule/perm_read=False construction as
+             the meeting rule above, for the same two reasons. -->
+        <record id="govoo_minutes_procurement_officer_rule" model="ir.rule">
+            <field name="name">Minutes: Procurement Officer may manage Financial Evaluation minutes only</field>
+            <field name="model_id" ref="govoo_board.model_govoo_minutes"/>
+            <field name="domain_force">[] if not user.has_group('govoo_procurement.group_govoo_procurement_officer') or user.has_group('govoo_base.group_govoo_secretary') or user.has_group('govoo_base.group_govoo_admin') else [('meeting_id.evaluation_phase', '=', 'financial')]</field>
+            <field name="perm_read" eval="False"/>
+        </record>
+
+        <record id="govoo_agenda_item_procurement_officer_rule" model="ir.rule">
+            <field name="name">Agenda Item: Procurement Officer may manage Financial Evaluation agenda only</field>
+            <field name="model_id" ref="govoo_board.model_govoo_agenda_item"/>
+            <field name="domain_force">[] if not user.has_group('govoo_procurement.group_govoo_procurement_officer') or user.has_group('govoo_base.group_govoo_secretary') or user.has_group('govoo_base.group_govoo_admin') else [('meeting_id.evaluation_phase', '=', 'financial')]</field>
+            <field name="perm_read" eval="False"/>
+        </record>
     </data>
 </odoo>
