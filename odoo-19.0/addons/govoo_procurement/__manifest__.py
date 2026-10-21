@@ -29,6 +29,7 @@ lifecycle.
         'wizard/govoo_tender_award_wizard_views.xml',
         'wizard/govoo_bid_disqualify_wizard_views.xml',
         'views/govoo_tender_views.xml',
+        'views/govoo_meeting_views.xml',
         'views/purchase_order_views.xml',
         'views/res_partner_views.xml',
         'views/govoo_procurement_kpi_views.xml',

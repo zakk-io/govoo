@@ -22,3 +22,20 @@ class GovooMeeting(models.Model):
         readonly=True,
         copy=False,
     )
+    # Issue #357: which of the tender's two evaluation phases this
+    # meeting actually is -- evaluation_tender_id alone doesn't say,
+    # and the Procurement Officer's own narrowed agenda/minutes access
+    # needs that distinction (Financial Evaluation only, never
+    # Technical). Same reasoning and maintenance discipline as
+    # evaluation_tender_id above: a real, stored field kept in sync by
+    # _sync_evaluation_meeting_tender_links, since ir.rule domain_force
+    # has no env access for a dynamic lookup.
+    evaluation_phase = fields.Selection(
+        selection=[
+            ('technical', 'Technical Evaluation'),
+            ('financial', 'Financial Evaluation'),
+        ],
+        string='Evaluation Phase',
+        readonly=True,
+        copy=False,
+    )

@@ -141,6 +141,19 @@ class GovooTender(models.Model):
         domain=[('res_model', '=', 'govoo.tender')],
         string='Documents',
     )
+    # Issue #357: Meetings/Minutes smart buttons, same style as the
+    # existing Vendor Bids/Contracts ones. technical_evaluation_meeting_id/
+    # financial_evaluation_meeting_id are plain Many2one fields (not an
+    # O2M), so these counts are just "how many of the two are actually
+    # set" rather than a real _read_group count.
+    meeting_count = fields.Integer(
+        string='Meetings',
+        compute='_compute_meeting_count',
+    )
+    minutes_count = fields.Integer(
+        string='Minutes',
+        compute='_compute_minutes_count',
+    )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -160,22 +173,66 @@ class GovooTender(models.Model):
         healing: resolves from each tender's current field values
         rather than diffing before/after, so it stays correct
         regardless of how the record reached its current state (write,
-        create, copy, XML data)."""
+        create, copy, XML data).
+
+        Issue #357: also keeps evaluation_phase in sync the same way,
+        so the Procurement Officer's Financial-Evaluation-only
+        agenda/minutes access can tell the two meetings apart."""
         for tender in self:
             current_meetings = tender.technical_evaluation_meeting_id | tender.financial_evaluation_meeting_id
             stale = self.env['govoo.meeting'].sudo().search([
                 ('evaluation_tender_id', '=', tender.id),
                 ('id', 'not in', current_meetings.ids),
             ])
-            stale.write({'evaluation_tender_id': False})
+            stale.write({'evaluation_tender_id': False, 'evaluation_phase': False})
+            phase_by_meeting = {
+                tender.technical_evaluation_meeting_id.id: 'technical',
+                tender.financial_evaluation_meeting_id.id: 'financial',
+            }
             for meeting in current_meetings:
-                if meeting.evaluation_tender_id != tender:
-                    meeting.sudo().write({'evaluation_tender_id': tender.id})
+                phase = phase_by_meeting.get(meeting.id)
+                if meeting.evaluation_tender_id != tender or meeting.evaluation_phase != phase:
+                    meeting.sudo().write({
+                        'evaluation_tender_id': tender.id,
+                        'evaluation_phase': phase,
+                    })
 
     @api.depends('bid_ids')
     def _compute_bid_count(self):
         for rec in self:
             rec.bid_count = len(rec.bid_ids)
+
+    @api.depends('technical_evaluation_meeting_id', 'financial_evaluation_meeting_id')
+    def _compute_meeting_count(self):
+        for rec in self:
+            rec.meeting_count = len(rec.technical_evaluation_meeting_id | rec.financial_evaluation_meeting_id)
+
+    @api.depends('technical_evaluation_minutes_id', 'financial_evaluation_minutes_id')
+    def _compute_minutes_count(self):
+        for rec in self:
+            rec.minutes_count = len(rec.technical_evaluation_minutes_id | rec.financial_evaluation_minutes_id)
+
+    def action_view_meetings(self):
+        self.ensure_one()
+        meetings = self.technical_evaluation_meeting_id | self.financial_evaluation_meeting_id
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Evaluation Meetings'),
+            'res_model': 'govoo.meeting',
+            'view_mode': 'list,form',
+            'domain': [('id', 'in', meetings.ids)],
+        }
+
+    def action_view_minutes(self):
+        self.ensure_one()
+        minutes = self.technical_evaluation_minutes_id | self.financial_evaluation_minutes_id
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Evaluation Minutes'),
+            'res_model': 'govoo.minutes',
+            'view_mode': 'list,form',
+            'domain': [('id', 'in', minutes.ids)],
+        }
 
     @api.constrains('awarded_bid_id', 'bid_ids')
     def _check_awarded_bid_is_a_bid(self):
