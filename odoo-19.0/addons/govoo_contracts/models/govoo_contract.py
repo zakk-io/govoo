@@ -272,13 +272,29 @@ class GovooContract(models.Model):
 
     @api.depends('obligation_ids')
     def _compute_obligation_count(self):
+        """Issue #352 follow-up: a viewer with narrow, read-only
+        contract access (Procurement Officer) but no ACL on
+        govoo.contract.obligation at all would otherwise hit a hard
+        AccessError just opening the record, the same failure mode
+        govoo_tender.py's own _compute_contract_count already guards
+        against for the equivalent case on the tender side -- counting
+        via sudo() avoids touching obligation_ids (and its own access
+        check) from this compute entirely."""
+        counts = self.env['govoo.contract.obligation'].sudo()._read_group(
+            [('contract_id', 'in', self.ids)], ['contract_id'], ['__count'],
+        )
+        count_by_contract = {contract.id: count for contract, count in counts}
         for rec in self:
-            rec.obligation_count = len(rec.obligation_ids)
+            rec.obligation_count = count_by_contract.get(rec.id, 0)
 
     @api.depends('milestone_ids')
     def _compute_milestone_count(self):
+        counts = self.env['govoo.contract.milestone'].sudo()._read_group(
+            [('contract_id', 'in', self.ids)], ['contract_id'], ['__count'],
+        )
+        count_by_contract = {contract.id: count for contract, count in counts}
         for rec in self:
-            rec.milestone_count = len(rec.milestone_ids)
+            rec.milestone_count = count_by_contract.get(rec.id, 0)
 
     @api.depends('create_date', 'contract_type_id.retention_years')
     def _compute_retention_until(self):
@@ -448,7 +464,42 @@ class GovooContract(models.Model):
                     % (rec.state, target_state),
                 )
 
+    def _legal_officer_drafting_only(self):
+        """Issue #354: True when the current user's only path to this
+        record is the Legal Officer role -- i.e. create/write access
+        came from govoo_contract_comp_rule's Legal-Officer elif branch,
+        not from a broader contract role they also happen to hold.
+        ir.rule can narrow WHICH records are reachable (Awarded tenders
+        only), but it can't narrow the record rule's own domain
+        differently per CRUD operation without re-triggering the
+        OR-combination gotcha documented in govoo_contracts_security.xml
+        (a second, narrower group-scoped rule just gets OR'd away by
+        the existing company-scope rule). So the "may only edit while
+        still Draft" restriction is enforced here instead, in Python,
+        where it can apply to write/create without touching read at
+        all. Mirrors the exemption list already used in that same XML
+        rule's domain_force."""
+        user = self.env.user
+        if not user.has_group('govoo_procurement.group_govoo_legal_officer'):
+            return False
+        broader_roles = (
+            'govoo_base.group_govoo_contract_manager',
+            'govoo_base.group_govoo_contract_approver',
+            'govoo_base.group_govoo_auditor',
+            'govoo_base.group_govoo_admin',
+        )
+        return not any(user.has_group(role) for role in broader_roles)
+
     def write(self, vals):
+        if self._legal_officer_drafting_only():
+            for rec in self:
+                if rec.state != 'draft':
+                    raise UserError(_(
+                        'This contract has moved past Draft and can no '
+                        'longer be edited by the Legal Officer role; a '
+                        'Contract Manager or Approver must continue it '
+                        'from here.'
+                    ))
         if 'executed_document_id' in vals:
             for rec in self:
                 if rec.state in _LOCKED_STATES and rec.executed_document_id:

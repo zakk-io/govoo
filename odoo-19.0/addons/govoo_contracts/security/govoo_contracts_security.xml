@@ -5,11 +5,39 @@
          module: company_id scoping via the shared Governance User
          group, not a bespoke isolation mechanism). Portal-scoped record
          rules for Contract Viewer (Portal) are added by the Portal Access
-         feature cluster (issue #177), not here. -->
+         feature cluster (issue #177), not here.
+
+         Issue #352: the Procurement Officer's own narrowing (read-only,
+         only contracts that actually originated from a tender) has to
+         live INSIDE this rule's own domain_force, not as a second,
+         separate rule; every Procurement Officer is also a member of
+         group_govoo_user (via implied_ids), so a second rule scoped to
+         their own group would just get OR'd together with this one by
+         Odoo's rule combination (confirmed by reading
+         ir_rule.py:_compute_domain: every group-scoped rule the user
+         matches lands in the same OR'd group_domains list, regardless
+         of which specific group it's scoped to), silently widening
+         their access back to the full company scope instead of
+         narrowing it. Branches via user.has_group() instead, the same
+         construction already used by govoo_meeting_confidential_comp_rule
+         in govoo_board for an analogous single-rule special case. Any
+         Officer who also holds a broader contract role (Contract
+         Manager/Approver/Auditor/Admin) is explicitly exempted, so this
+         narrowing never fights their other role's own, broader grant.
+
+         Issue #354: the Legal Officer needs the same kind of narrowing
+         (also implies group_govoo_user, so a second rule for them would
+         hit the identical OR-gotcha), but scoped to Awarded tenders
+         specifically rather than just "came from a tender", consistent
+         with their own tender/purchase.order/minutes record rules in
+         govoo_procurement_security.xml, which are all Awarded-only.
+         Branched as its own elif inside the same ternary rather than
+         merged into the Officer's condition, since the two roles use a
+         different narrowing domain. -->
     <record id="govoo_contract_comp_rule" model="ir.rule">
         <field name="name">Contract: multi-company</field>
         <field name="model_id" ref="model_govoo_contract"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="domain_force">[('company_id', 'in', company_ids)] if (not user.has_group('govoo_procurement.group_govoo_procurement_officer') and not user.has_group('govoo_procurement.group_govoo_legal_officer')) or user.has_group('govoo_base.group_govoo_contract_manager') or user.has_group('govoo_base.group_govoo_contract_approver') or user.has_group('govoo_base.group_govoo_auditor') or user.has_group('govoo_base.group_govoo_admin') else ([('company_id', 'in', company_ids), ('tender_id', '!=', False)] if user.has_group('govoo_procurement.group_govoo_procurement_officer') else [('company_id', 'in', company_ids), ('tender_id.evaluation_stage', '=', 'awarded')])</field>
         <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
     </record>
 
@@ -52,17 +80,36 @@
         <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
     </record>
 
+    <!-- Issue #352 follow-up: opening a contract's form view reads
+         obligation_ids/milestone_ids directly (embedded editable lists,
+         not just the count stat buttons), so the same narrowing used
+         for govoo_contract_comp_rule above has to apply here too, for
+         the same reason (a second Officer-scoped rule would get OR'd
+         away by this one, since every Officer also holds
+         group_govoo_user). Contract Clause is NOT narrowed the same
+         way; confirmed by reading govoo_contract_clause.py: it's a
+         reusable clause-library/catalog model (name/body/category),
+         with no contract_id field at all, so there's no per-contract
+         confidentiality concern and no way to narrow it per-contract
+         even if there were one.
+
+         Issue #354: same Legal Officer elif-branch added here as in
+         govoo_contract_comp_rule above, and for the same reason:
+         opening a contract's form view reads obligation_ids/
+         milestone_ids directly, so the Legal Officer's own narrowing
+         has to apply to these two models too, not just the parent
+         contract. -->
     <record id="govoo_contract_obligation_comp_rule" model="ir.rule">
         <field name="name">Contract Obligation: multi-company</field>
         <field name="model_id" ref="model_govoo_contract_obligation"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="domain_force">[('company_id', 'in', company_ids)] if (not user.has_group('govoo_procurement.group_govoo_procurement_officer') and not user.has_group('govoo_procurement.group_govoo_legal_officer')) or user.has_group('govoo_base.group_govoo_contract_manager') or user.has_group('govoo_base.group_govoo_contract_approver') or user.has_group('govoo_base.group_govoo_auditor') or user.has_group('govoo_base.group_govoo_admin') else ([('company_id', 'in', company_ids), ('contract_id.tender_id', '!=', False)] if user.has_group('govoo_procurement.group_govoo_procurement_officer') else [('company_id', 'in', company_ids), ('contract_id.tender_id.evaluation_stage', '=', 'awarded')])</field>
         <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
     </record>
 
     <record id="govoo_contract_milestone_comp_rule" model="ir.rule">
         <field name="name">Contract Milestone: multi-company</field>
         <field name="model_id" ref="model_govoo_contract_milestone"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="domain_force">[('company_id', 'in', company_ids)] if (not user.has_group('govoo_procurement.group_govoo_procurement_officer') and not user.has_group('govoo_procurement.group_govoo_legal_officer')) or user.has_group('govoo_base.group_govoo_contract_manager') or user.has_group('govoo_base.group_govoo_contract_approver') or user.has_group('govoo_base.group_govoo_auditor') or user.has_group('govoo_base.group_govoo_admin') else ([('company_id', 'in', company_ids), ('contract_id.tender_id', '!=', False)] if user.has_group('govoo_procurement.group_govoo_procurement_officer') else [('company_id', 'in', company_ids), ('contract_id.tender_id.evaluation_stage', '=', 'awarded')])</field>
         <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
     </record>
 
