@@ -70,9 +70,26 @@ class ContractPortal(CustomerPortal):
         except (AccessError, MissingError):
             return request.redirect('/my')
 
+        # Issue #350: resolved server-side, same discipline as
+        # DirectorPortal's own pack_recipient -- never make the template
+        # itself re-derive access. Non-raising check (try/except, not
+        # _document_check_access) since the absence of tender access
+        # here isn't an error, it's just "don't show the link": most
+        # viewers of this page (counterparty, named approvers) have no
+        # procurement-committee access at all, and that's expected, not
+        # a failure.
+        can_view_tender = False
+        if contract_sudo.tender_id:
+            try:
+                contract_sudo.tender_id.with_user(request.env.user).check_access('read')
+                can_view_tender = True
+            except AccessError:
+                pass
+
         values = {
             'contract': contract_sudo,
             'page_name': 'contract',
             'token': access_token,
+            'can_view_tender': can_view_tender,
         }
         return request.render('govoo_contracts.portal_my_contract', values)
