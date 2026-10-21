@@ -66,6 +66,17 @@ class TestLegalOfficerAccess(GovooProcurementTestBase):
         with self.assertRaises(AccessError):
             tender.with_user(legal_officer).check_access('read')
 
+    def test_legal_officer_can_read_bid_vendor_bids_fields_without_access_error(self):
+        """Issue #354: opening a vendor bid via the tender's "Vendor
+        Bids" smart button (action_view_bids) falls back to the core
+        Purchase module's own list/form views, which read invoice_ids
+        and order_line -- the Legal Officer had no ACL on
+        account.move/account.move.line/purchase.order.line at all, so
+        this crashed with an Access Error instead of rendering."""
+        legal_officer = self._make_legal_officer('test_legal_officer_bid_fields')
+        tender, bid = self._make_awarded_tender()
+        bid.with_user(legal_officer).read(['invoice_ids', 'order_line'])
+
     def test_evaluation_tender_id_sync(self):
         """Issue #329: setting technical/financial_evaluation_meeting_id
         on a tender back-populates govoo.meeting.evaluation_tender_id --

@@ -23,11 +23,21 @@
          in govoo_board for an analogous single-rule special case. Any
          Officer who also holds a broader contract role (Contract
          Manager/Approver/Auditor/Admin) is explicitly exempted, so this
-         narrowing never fights their other role's own, broader grant. -->
+         narrowing never fights their other role's own, broader grant.
+
+         Issue #354: the Legal Officer needs the same kind of narrowing
+         (also implies group_govoo_user, so a second rule for them would
+         hit the identical OR-gotcha), but scoped to Awarded tenders
+         specifically rather than just "came from a tender", consistent
+         with their own tender/purchase.order/minutes record rules in
+         govoo_procurement_security.xml, which are all Awarded-only.
+         Branched as its own elif inside the same ternary rather than
+         merged into the Officer's condition, since the two roles use a
+         different narrowing domain. -->
     <record id="govoo_contract_comp_rule" model="ir.rule">
         <field name="name">Contract: multi-company</field>
         <field name="model_id" ref="model_govoo_contract"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)] if not user.has_group('govoo_procurement.group_govoo_procurement_officer') or user.has_group('govoo_base.group_govoo_contract_manager') or user.has_group('govoo_base.group_govoo_contract_approver') or user.has_group('govoo_base.group_govoo_auditor') or user.has_group('govoo_base.group_govoo_admin') else [('company_id', 'in', company_ids), ('tender_id', '!=', False)]</field>
+        <field name="domain_force">[('company_id', 'in', company_ids)] if (not user.has_group('govoo_procurement.group_govoo_procurement_officer') and not user.has_group('govoo_procurement.group_govoo_legal_officer')) or user.has_group('govoo_base.group_govoo_contract_manager') or user.has_group('govoo_base.group_govoo_contract_approver') or user.has_group('govoo_base.group_govoo_auditor') or user.has_group('govoo_base.group_govoo_admin') else ([('company_id', 'in', company_ids), ('tender_id', '!=', False)] if user.has_group('govoo_procurement.group_govoo_procurement_officer') else [('company_id', 'in', company_ids), ('tender_id.evaluation_stage', '=', 'awarded')])</field>
         <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
     </record>
 
@@ -81,18 +91,25 @@
          reusable clause-library/catalog model (name/body/category),
          with no contract_id field at all, so there's no per-contract
          confidentiality concern and no way to narrow it per-contract
-         even if there were one. -->
+         even if there were one.
+
+         Issue #354: same Legal Officer elif-branch added here as in
+         govoo_contract_comp_rule above, and for the same reason:
+         opening a contract's form view reads obligation_ids/
+         milestone_ids directly, so the Legal Officer's own narrowing
+         has to apply to these two models too, not just the parent
+         contract. -->
     <record id="govoo_contract_obligation_comp_rule" model="ir.rule">
         <field name="name">Contract Obligation: multi-company</field>
         <field name="model_id" ref="model_govoo_contract_obligation"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)] if not user.has_group('govoo_procurement.group_govoo_procurement_officer') or user.has_group('govoo_base.group_govoo_contract_manager') or user.has_group('govoo_base.group_govoo_contract_approver') or user.has_group('govoo_base.group_govoo_auditor') or user.has_group('govoo_base.group_govoo_admin') else [('company_id', 'in', company_ids), ('contract_id.tender_id', '!=', False)]</field>
+        <field name="domain_force">[('company_id', 'in', company_ids)] if (not user.has_group('govoo_procurement.group_govoo_procurement_officer') and not user.has_group('govoo_procurement.group_govoo_legal_officer')) or user.has_group('govoo_base.group_govoo_contract_manager') or user.has_group('govoo_base.group_govoo_contract_approver') or user.has_group('govoo_base.group_govoo_auditor') or user.has_group('govoo_base.group_govoo_admin') else ([('company_id', 'in', company_ids), ('contract_id.tender_id', '!=', False)] if user.has_group('govoo_procurement.group_govoo_procurement_officer') else [('company_id', 'in', company_ids), ('contract_id.tender_id.evaluation_stage', '=', 'awarded')])</field>
         <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
     </record>
 
     <record id="govoo_contract_milestone_comp_rule" model="ir.rule">
         <field name="name">Contract Milestone: multi-company</field>
         <field name="model_id" ref="model_govoo_contract_milestone"/>
-        <field name="domain_force">[('company_id', 'in', company_ids)] if not user.has_group('govoo_procurement.group_govoo_procurement_officer') or user.has_group('govoo_base.group_govoo_contract_manager') or user.has_group('govoo_base.group_govoo_contract_approver') or user.has_group('govoo_base.group_govoo_auditor') or user.has_group('govoo_base.group_govoo_admin') else [('company_id', 'in', company_ids), ('contract_id.tender_id', '!=', False)]</field>
+        <field name="domain_force">[('company_id', 'in', company_ids)] if (not user.has_group('govoo_procurement.group_govoo_procurement_officer') and not user.has_group('govoo_procurement.group_govoo_legal_officer')) or user.has_group('govoo_base.group_govoo_contract_manager') or user.has_group('govoo_base.group_govoo_contract_approver') or user.has_group('govoo_base.group_govoo_auditor') or user.has_group('govoo_base.group_govoo_admin') else ([('company_id', 'in', company_ids), ('contract_id.tender_id', '!=', False)] if user.has_group('govoo_procurement.group_govoo_procurement_officer') else [('company_id', 'in', company_ids), ('contract_id.tender_id.evaluation_stage', '=', 'awarded')])</field>
         <field name="groups" eval="[(4, ref('govoo_base.group_govoo_user'))]"/>
     </record>
 
