@@ -36,7 +36,12 @@ class ProcurementCommitteePortal(CustomerPortal):
             ('state', '=', 'active'),
         ]).mapped('committee_id')
 
-        domain = [('evaluation_meeting_id.committee_id', 'in', committee_ids.ids)]
+        # Issue #337: a tender's Technical and Financial Evaluation are
+        # separate meetings/committees -- in scope via either one.
+        domain = ['|',
+            ('technical_evaluation_meeting_id.committee_id', 'in', committee_ids.ids),
+            ('financial_evaluation_meeting_id.committee_id', 'in', committee_ids.ids),
+        ]
         tender_count = request.env['govoo.tender'].sudo().search_count(domain)
 
         pager = portal_pager(

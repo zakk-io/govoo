@@ -37,7 +37,7 @@ class TestCommitteePortalAccess(GovooProcurementTestBase):
         tender = self._make_tender()
         bid = self._make_bid(tender, self.vendor_a)
         meeting = self._make_committee_meeting()
-        tender.evaluation_meeting_id = meeting.id
+        tender.technical_evaluation_meeting_id = meeting.id
 
         tender.with_user(member).check_access('read')
         bid.with_user(member).check_access('read')
@@ -58,7 +58,7 @@ class TestCommitteePortalAccess(GovooProcurementTestBase):
             'company_id': self.company.id,
         })
         other_tender = self._make_tender()
-        other_tender.evaluation_meeting_id = other_meeting.id
+        other_tender.technical_evaluation_meeting_id = other_meeting.id
         other_bid = self._make_bid(other_tender, self.vendor_a)
 
         with self.assertRaises(AccessError):
@@ -73,7 +73,7 @@ class TestCommitteePortalAccess(GovooProcurementTestBase):
         non_member = self._make_committee_portal_user('test_committee_portal_non_member')
         tender = self._make_tender()
         meeting = self._make_committee_meeting()
-        tender.evaluation_meeting_id = meeting.id
+        tender.technical_evaluation_meeting_id = meeting.id
 
         with self.assertRaises(AccessError):
             tender.with_user(non_member).check_access('read')
@@ -83,7 +83,7 @@ class TestCommitteePortalAccess(GovooProcurementTestBase):
         appointment = self._appoint_to_committee(member.partner_id, self.committee)
         tender = self._make_tender()
         meeting = self._make_committee_meeting()
-        tender.evaluation_meeting_id = meeting.id
+        tender.technical_evaluation_meeting_id = meeting.id
 
         tender.with_user(member).check_access('read')
 
@@ -98,7 +98,7 @@ class TestCommitteePortalAccess(GovooProcurementTestBase):
         self._appoint_to_committee(member.partner_id, self.committee)
         tender = self._make_tender()
         meeting = self._make_committee_meeting()
-        tender.evaluation_meeting_id = meeting.id
+        tender.technical_evaluation_meeting_id = meeting.id
 
         with self.assertRaises(AccessError):
             tender.with_user(member).write({'name': 'Renamed'})

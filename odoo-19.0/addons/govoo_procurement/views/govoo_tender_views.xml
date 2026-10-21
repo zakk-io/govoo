@@ -61,8 +61,20 @@
                             <field name="reminder_lead_days" invisible="not submission_deadline"/>
                         </group>
                         <group>
-                            <field name="evaluation_meeting_id"/>
-                            <field name="evaluation_minutes_id"/>
+                            <!-- Issue #337: Technical and Financial
+                                 Evaluation are separate committee meetings,
+                                 shown only once that stage is actually
+                                 reached so the form doesn't ask for a
+                                 Financial meeting before Technical
+                                 Evaluation has even started. -->
+                            <field name="technical_evaluation_meeting_id"
+                                   invisible="evaluation_stage == 'pre_evaluation'"/>
+                            <field name="technical_evaluation_minutes_id"
+                                   invisible="evaluation_stage == 'pre_evaluation'"/>
+                            <field name="financial_evaluation_meeting_id"
+                                   invisible="evaluation_stage not in ('financial_evaluation', 'awarded')"/>
+                            <field name="financial_evaluation_minutes_id"
+                                   invisible="evaluation_stage not in ('financial_evaluation', 'awarded')"/>
                             <field name="awarded_bid_id" invisible="evaluation_stage != 'financial_evaluation' and evaluation_stage != 'awarded'"/>
                         </group>
                     </group>

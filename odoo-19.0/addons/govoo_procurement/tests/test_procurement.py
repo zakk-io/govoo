@@ -101,17 +101,40 @@ class TestEvaluationMinutes(GovooProcurementTestBase):
     def test_evaluation_meeting_links_to_tender(self):
         tender = self._make_tender()
         meeting = self._make_committee_meeting()
-        tender.evaluation_meeting_id = meeting.id
-        self.assertEqual(tender.evaluation_meeting_id, meeting)
+        tender.technical_evaluation_meeting_id = meeting.id
+        self.assertEqual(tender.technical_evaluation_meeting_id, meeting)
 
     def test_evaluation_minutes_reuses_govoo_minutes_not_a_new_model(self):
         """Issue #205 sub-task: committee evaluation minutes must reuse
         govoo.minutes via the linked meeting, not a parallel model."""
         tender = self._make_tender()
         meeting = self._make_committee_meeting()
-        tender.evaluation_meeting_id = meeting.id
-        self.assertFalse(tender.evaluation_minutes_id)
+        tender.technical_evaluation_meeting_id = meeting.id
+        self.assertFalse(tender.technical_evaluation_minutes_id)
 
         minutes = self.env['govoo.minutes'].create({'meeting_id': meeting.id})
         meeting.minutes_id = minutes.id
-        self.assertEqual(tender.evaluation_minutes_id, minutes)
+        self.assertEqual(tender.technical_evaluation_minutes_id, minutes)
+
+    def test_technical_and_financial_meetings_are_independent(self):
+        """Issue #337: Technical and Financial Evaluation are two
+        separate committee meetings, each with its own minutes -- not one
+        shared meeting link."""
+        tender = self._make_tender()
+        technical_meeting = self._make_committee_meeting()
+        financial_meeting = self._make_committee_meeting()
+        self.assertNotEqual(technical_meeting, financial_meeting)
+
+        tender.technical_evaluation_meeting_id = technical_meeting.id
+        tender.financial_evaluation_meeting_id = financial_meeting.id
+
+        technical_minutes = self.env['govoo.minutes'].create({'meeting_id': technical_meeting.id})
+        technical_meeting.minutes_id = technical_minutes.id
+        financial_minutes = self.env['govoo.minutes'].create({'meeting_id': financial_meeting.id})
+        financial_meeting.minutes_id = financial_minutes.id
+
+        self.assertEqual(tender.technical_evaluation_meeting_id, technical_meeting)
+        self.assertEqual(tender.financial_evaluation_meeting_id, financial_meeting)
+        self.assertEqual(tender.technical_evaluation_minutes_id, technical_minutes)
+        self.assertEqual(tender.financial_evaluation_minutes_id, financial_minutes)
+        self.assertNotEqual(tender.technical_evaluation_minutes_id, tender.financial_evaluation_minutes_id)

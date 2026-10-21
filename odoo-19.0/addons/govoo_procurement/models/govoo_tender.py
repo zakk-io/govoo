@@ -66,19 +66,40 @@ class GovooTender(models.Model):
         required=True,
         tracking=True,
     )
-    evaluation_meeting_id = fields.Many2one(
+    # Issue #337: Technical and Financial Evaluation are two separate
+    # committee meetings, often with different attendee lists (bidders
+    # eliminated at Technical stage aren't part of the Financial
+    # Evaluation meeting) and separate minutes -- not one shared meeting,
+    # which is what a single evaluation_meeting_id/evaluation_minutes_id
+    # pair (removed by this change) could only represent.
+    technical_evaluation_meeting_id = fields.Many2one(
         comodel_name='govoo.meeting',
-        string='Evaluation Committee Meeting',
+        string='Technical Evaluation Meeting',
         domain=[('meeting_type', '=', 'committee')],
         tracking=True,
-        help='The committee meeting where bids were evaluated -- reuses '
-             'govoo.meeting/govoo.minutes rather than a parallel model '
-             '(issue #205 sub-task).',
+        help='The committee meeting where bids were technically evaluated '
+             '-- reuses govoo.meeting/govoo.minutes rather than a parallel '
+             'model (issue #205 sub-task).',
     )
-    evaluation_minutes_id = fields.Many2one(
+    technical_evaluation_minutes_id = fields.Many2one(
         comodel_name='govoo.minutes',
-        string='Evaluation Minutes',
-        related='evaluation_meeting_id.minutes_id',
+        string='Technical Evaluation Minutes',
+        related='technical_evaluation_meeting_id.minutes_id',
+        readonly=True,
+    )
+    financial_evaluation_meeting_id = fields.Many2one(
+        comodel_name='govoo.meeting',
+        string='Financial Evaluation Meeting',
+        domain=[('meeting_type', '=', 'committee')],
+        tracking=True,
+        help='The committee meeting where bids were financially evaluated '
+             '-- a separate meeting from Technical Evaluation, often with '
+             'a narrower attendee list once bidders are eliminated.',
+    )
+    financial_evaluation_minutes_id = fields.Many2one(
+        comodel_name='govoo.minutes',
+        string='Financial Evaluation Minutes',
+        related='financial_evaluation_meeting_id.minutes_id',
         readonly=True,
     )
     awarded_bid_id = fields.Many2one(
