@@ -16,3 +16,5 @@ from . import test_dashboards
 from . import test_financial_linkage
 from . import test_end_to_end_board_approval_demo
 from . import test_tender_link
+from . import test_procurement_officer_access
+from . import test_legal_officer_contract_access
