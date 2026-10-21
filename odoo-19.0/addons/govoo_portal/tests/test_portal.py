@@ -284,3 +284,57 @@ class TestPortal(HttpCase):
 
         self.assertNotIn(confidential_item.title, response.text)
         self.assertIn(open_item.title, response.text)
+
+    def test_008_agenda_item_description_shown_for_non_confidential_items(self):
+        """Issue #344: a non-confidential agenda item's description (not
+        just its title) should be visible -- the field existed on the
+        model but was never rendered in the portal."""
+        item = self.env['govoo.agenda.item'].create({
+            'meeting_id': self.meeting_a.id,
+            'title': 'Approve Budget',
+            'description': 'Reviewed the FY2026 operating budget line by line.',
+            'item_type': 'decision',
+            'sequence': 1,
+            'is_confidential': False,
+        })
+
+        self.authenticate('test_director_a', self._password('test_director_a'))
+        response = self.url_open('/my/meetings/%s' % self.meeting_a.id)
+
+        self.assertIn(item.title, response.text)
+        self.assertIn('Reviewed the FY2026 operating budget', response.text)
+
+    def test_009_minutes_body_hidden_until_approved(self):
+        """Issue #344: minutes content stays hidden while still
+        draft/for_approval -- only the status word shows until the
+        content is actually finalized."""
+        self.meeting_a.write({'state': 'held'})
+        minutes = self.env['govoo.minutes'].create({
+            'meeting_id': self.meeting_a.id,
+            'body': '<p>Draft discussion notes not yet finalized.</p>',
+        })
+        self.meeting_a.write({'minutes_id': minutes.id})
+
+        self.authenticate('test_director_a', self._password('test_director_a'))
+        response = self.url_open('/my/meetings/%s' % self.meeting_a.id)
+
+        self.assertIn('Minutes status: draft', response.text)
+        self.assertNotIn('Draft discussion notes not yet finalized', response.text)
+
+    def test_010_minutes_body_visible_once_approved(self):
+        """Issue #344: once minutes reach 'approved', their actual
+        content becomes visible, not just the status word."""
+        self.meeting_a.write({'state': 'held'})
+        minutes = self.env['govoo.minutes'].create({
+            'meeting_id': self.meeting_a.id,
+            'body': '<p>The committee approved the proposed budget unanimously.</p>',
+        })
+        self.meeting_a.write({'minutes_id': minutes.id})
+        minutes.action_submit_for_approval()
+        minutes.action_approve()
+
+        self.authenticate('test_director_a', self._password('test_director_a'))
+        response = self.url_open('/my/meetings/%s' % self.meeting_a.id)
+
+        self.assertIn('Minutes status: approved', response.text)
+        self.assertIn('The committee approved the proposed budget unanimously', response.text)

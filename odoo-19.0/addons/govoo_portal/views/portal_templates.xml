@@ -134,7 +134,8 @@
                                                 <em class="text-muted">[Confidential — see board pack]</em>
                                             </t>
                                             <t t-else="">
-                                                <t t-esc="item.title"/>
+                                                <div><t t-esc="item.title"/></div>
+                                                <div t-if="item.description" class="text-muted small" t-field="item.description"/>
                                             </t>
                                         </td>
                                         <td>
@@ -173,10 +174,25 @@
                         </t>
                     </div>
 
+                    <!-- Issue #344: the minutes' own actual content
+                         (body), not just its status word, so a committee
+                         member can see what was actually recorded;
+                         gated on state rather than a separate ACL, same
+                         principle already used for confidential agenda
+                         items (shown once appropriate, not exposed
+                         early). draft/for_approval content isn't final
+                         yet, so only the status shows until the minutes
+                         reach approved/signed. -->
                     <div class="mt-4" t-if="meeting.state in ('held', 'minuted', 'closed')">
                         <h4>Minutes</h4>
                         <t t-if="meeting.minutes_id">
                             <p>Minutes status: <t t-esc="meeting.minutes_id.state"/></p>
+                            <t t-if="meeting.minutes_id.state in ('approved', 'signed')">
+                                <div t-field="meeting.minutes_id.body"/>
+                            </t>
+                            <t t-else="">
+                                <p class="text-muted">The full minutes will be visible here once approved.</p>
+                            </t>
                         </t>
                         <t t-else="">
                             <p class="text-muted">Minutes not yet available.</p>
