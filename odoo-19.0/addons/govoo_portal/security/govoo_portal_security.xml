@@ -26,5 +26,28 @@
             <field name="domain_force">[('meeting_id.committee_id.member_ids.partner_id', '=', user.partner_id.id)]</field>
             <field name="groups" eval="[(4, ref('govoo_procurement.group_govoo_procurement_committee_portal'))]"/>
         </record>
+
+        <!-- Issue #342: a committee member who evaluated a tender should
+             be able to see the contract that resulted from the award
+             they voted on; reuses govoo_contracts's own already-built
+             Contract Viewer Portal (ContractPortal, /my/contracts/<id>)
+             rather than a new route/template, so this rule is the only
+             piece that's actually new. Lives here for the same reason
+             as the two rules above: govoo_contracts depends on
+             govoo_procurement (not the other way round), so neither
+             module alone can reference both the group and
+             govoo.contract. Scoped via tender_id (govoo_contracts'
+             own #304 link) then an OR across both evaluation meetings,
+             same shape already used for govoo_tender_committee_portal_rule/
+             purchase_order_committee_portal_rule in
+             govoo_procurement_security.xml since #337 split evaluation
+             into two meetings; in scope via either one, not just the
+             first. -->
+        <record id="govoo_contract_committee_portal_rule" model="ir.rule">
+            <field name="name">Contract: Procurement Committee Portal scope</field>
+            <field name="model_id" ref="govoo_contracts.model_govoo_contract"/>
+            <field name="domain_force">['|', ('tender_id.technical_evaluation_meeting_id.committee_id.member_ids.partner_id', '=', user.partner_id.id), ('tender_id.financial_evaluation_meeting_id.committee_id.member_ids.partner_id', '=', user.partner_id.id)]</field>
+            <field name="groups" eval="[(4, ref('govoo_procurement.group_govoo_procurement_committee_portal'))]"/>
+        </record>
     </data>
 </odoo>

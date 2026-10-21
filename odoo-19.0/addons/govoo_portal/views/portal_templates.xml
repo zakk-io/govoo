@@ -322,6 +322,22 @@
                             </t>
                         </ul>
                     </div>
+
+                    <!-- Issue #342: shown only once a contract actually
+                         exists for this tender; reuses the existing
+                         Contract Viewer Portal (/my/contracts/<id>, the
+                         same page a named approver or counterparty
+                         sees), not a new page. -->
+                    <div class="mt-4" t-if="tender.contract_ids">
+                        <h4>Contract</h4>
+                        <ul class="list-group list-group-flush">
+                            <t t-foreach="tender.contract_ids" t-as="contract">
+                                <li class="list-group-item">
+                                    <a t-attf-href="/my/contracts/#{contract.id}" t-esc="contract.name"/>
+                                </li>
+                            </t>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </t>
