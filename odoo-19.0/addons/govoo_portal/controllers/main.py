@@ -93,6 +93,9 @@ class GovooPortalMain(CustomerPortal):
         ]).mapped('committee_id')
         if not committee_ids:
             return 0
-        return request.env['govoo.tender'].sudo().search_count([
-            ('evaluation_meeting_id.committee_id', 'in', committee_ids.ids),
+        # Issue #337: Technical and Financial Evaluation meetings are
+        # separate -- in scope via either one.
+        return request.env['govoo.tender'].sudo().search_count(['|',
+            ('technical_evaluation_meeting_id.committee_id', 'in', committee_ids.ids),
+            ('financial_evaluation_meeting_id.committee_id', 'in', committee_ids.ids),
         ])

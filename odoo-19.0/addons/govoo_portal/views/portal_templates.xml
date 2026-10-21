@@ -241,11 +241,19 @@
                             <td><strong>Submission Deadline:</strong></td>
                             <td><t t-esc="tender.submission_deadline"/></td>
                         </tr>
-                        <tr t-if="tender.evaluation_meeting_id">
-                            <td><strong>Evaluation Meeting:</strong></td>
+                        <tr t-if="tender.technical_evaluation_meeting_id">
+                            <td><strong>Technical Evaluation Meeting:</strong></td>
                             <td>
-                                <a t-attf-href="/my/meetings/#{tender.evaluation_meeting_id.id}">
-                                    <t t-esc="tender.evaluation_meeting_id.name"/> (<t t-esc="tender.evaluation_meeting_id.date"/>)
+                                <a t-attf-href="/my/meetings/#{tender.technical_evaluation_meeting_id.id}">
+                                    <t t-esc="tender.technical_evaluation_meeting_id.name"/> (<t t-esc="tender.technical_evaluation_meeting_id.date"/>)
+                                </a>
+                            </td>
+                        </tr>
+                        <tr t-if="tender.financial_evaluation_meeting_id">
+                            <td><strong>Financial Evaluation Meeting:</strong></td>
+                            <td>
+                                <a t-attf-href="/my/meetings/#{tender.financial_evaluation_meeting_id.id}">
+                                    <t t-esc="tender.financial_evaluation_meeting_id.name"/> (<t t-esc="tender.financial_evaluation_meeting_id.date"/>)
                                 </a>
                             </td>
                         </tr>
