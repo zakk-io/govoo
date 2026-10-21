@@ -5,6 +5,7 @@ from . import (
     test_bid_documents,
     test_committee_portal_access,
     test_legal_officer_access,
+    test_officer_evaluation_meetings,
     test_procurement,
     test_procurement_approver_role,
     test_procurement_evaluator_role,

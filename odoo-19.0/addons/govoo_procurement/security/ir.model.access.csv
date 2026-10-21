@@ -28,3 +28,6 @@ access_purchase_order_line_legal_officer,purchase.order.line legal officer,purch
 access_account_move_auditor,account.move auditor,account.model_account_move,govoo_base.group_govoo_auditor,1,0,0,0
 access_account_move_line_auditor,account.move.line auditor,account.model_account_move_line,govoo_base.group_govoo_auditor,1,0,0,0
 access_purchase_order_line_auditor,purchase.order.line auditor,purchase.model_purchase_order_line,govoo_base.group_govoo_auditor,1,0,0,0
+access_govoo_meeting_procurement_officer,govoo.meeting procurement officer,govoo_board.model_govoo_meeting,group_govoo_procurement_officer,1,1,1,0
+access_govoo_minutes_procurement_officer,govoo.minutes procurement officer,govoo_board.model_govoo_minutes,group_govoo_procurement_officer,1,1,1,1
+access_govoo_agenda_item_procurement_officer,govoo.agenda.item procurement officer,govoo_board.model_govoo_agenda_item,group_govoo_procurement_officer,1,1,1,1
