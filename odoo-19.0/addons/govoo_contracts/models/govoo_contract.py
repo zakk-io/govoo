@@ -213,6 +213,8 @@ class GovooContract(models.Model):
         string='Sign Request',
         tracking=True,
     )
+    # Issue #199: tracks the e-signature lifecycle for the document
+    # attached to Sign Request, independent of the main contract Status.
     sign_status = fields.Selection(
         selection=[
             ('not_sent', 'Not Sent'),
@@ -225,10 +227,8 @@ class GovooContract(models.Model):
         default='not_sent',
         required=True,
         tracking=True,
-        help='Issue #199: tracks the e-signature lifecycle for the '
-             'document attached to Sign Request. Independent of the main '
-             'contract Status -- a contract can be sent for signature at '
-             'any point once Sign Request is set.',
+        help='A contract can be sent for signature at any point once '
+             'Sign Request is set.',
     )
     state = fields.Selection(
         selection=[
@@ -408,6 +408,36 @@ class GovooContract(models.Model):
         for rec in self:
             if rec.date_start and rec.date_end and rec.date_end < rec.date_start:
                 raise ValidationError(_('End Date cannot be earlier than Start Date.'))
+
+    # Issue #330: the Legal Officer only starts drafting a contract once
+    # the full package -- Technical and Financial Evaluation, both
+    # formally recorded -- has been handed over, per the business's own
+    # sequential handoff. "Recorded" means the evaluation meeting's
+    # minutes have reached approved/signed, not just draft/for_approval
+    # -- same completion bar already used for showing minutes content in
+    # the portal (issue #344), reused here rather than inventing a
+    # second notion of "done." Only fires when tender_id is actually
+    # being set (create, or re-linking later), not on every unrelated
+    # edit to an already-drafted contract.
+    @api.constrains('tender_id')
+    def _check_tender_evaluation_complete_before_drafting(self):
+        for rec in self:
+            if not rec.tender_id:
+                continue
+            tender = rec.tender_id
+            missing = []
+            if not (tender.technical_evaluation_minutes_id
+                    and tender.technical_evaluation_minutes_id.state in ('approved', 'signed')):
+                missing.append(_('Technical Evaluation minutes (approved)'))
+            if not (tender.financial_evaluation_minutes_id
+                    and tender.financial_evaluation_minutes_id.state in ('approved', 'signed')):
+                missing.append(_('Financial Evaluation minutes (approved)'))
+            if missing:
+                raise ValidationError(_(
+                    'Cannot start drafting a contract for tender "%(tender)s" yet. '
+                    'Still missing: %(missing)s.',
+                    tender=tender.name, missing=', '.join(missing),
+                ))
 
     def _validate_state_transition(self, target_state):
         for rec in self:
