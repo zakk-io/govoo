@@ -151,19 +151,26 @@ class PurchaseOrder(models.Model):
             'govoo_disqualification_reason': False,
         })
 
+    # [CONFIRM] The scoring scale and technical-vs-financial weighting for
+    # tender evaluation are not specified anywhere (issue #205 sub-task).
+    # Recorded as a plain 0-100 score per the committee's own methodology;
+    # no combined/weighted score is computed until that weighting is
+    # confirmed with the business.
     govoo_technical_score = fields.Float(
         string='Technical Score',
         tracking=True,
-        help='[CONFIRM] The scoring scale and technical-vs-financial '
-             'weighting for tender evaluation are not specified (issue '
-             '#205 sub-task). Recorded here as a plain 0-100 score per '
-             'the committee\'s own methodology; no combined/weighted '
-             'score is computed until that weighting is confirmed.',
+        help='Score out of 100, per the committee\'s own evaluation '
+             'methodology. Confirm the official scoring scale and the '
+             'technical-vs-financial weighting with Procurement '
+             'leadership before relying on this for a combined ranking.',
     )
     govoo_financial_score = fields.Float(
         string='Financial Score',
         tracking=True,
-        help='[CONFIRM] See govoo_technical_score -- weighting not yet confirmed.',
+        help='Score out of 100, per the committee\'s own evaluation '
+             'methodology. Confirm the official scoring scale and the '
+             'technical-vs-financial weighting with Procurement '
+             'leadership before relying on this for a combined ranking.',
     )
 
     @api.constrains('govoo_technical_score', 'govoo_financial_score')

@@ -29,16 +29,16 @@ class GovooTender(models.Model):
         tracking=True,
         ondelete='cascade',
     )
+    # Issue #205: reuses Odoo's native Contact Tags model
+    # (res.partner.category) so a tender's category and a vendor's own
+    # tags share the same vocabulary, rather than inventing a parallel
+    # category model.
     tender_category_id = fields.Many2one(
         comodel_name='res.partner.category',
         string='Tender Category',
         tracking=True,
-        help="Issue #205: reuses Odoo's native Contact Tags model "
-             '(res.partner.category) so a tender\'s category and a '
-             "vendor's own tags share the same vocabulary, rather than "
-             'inventing a parallel category model. Tag a vendor with '
-             "this same tag to record they're registered for this "
-             'category of tender.',
+        help="Tag a vendor with this same tag to record they're "
+             'registered for this category of tender.',
     )
     bid_ids = fields.One2many(
         comodel_name='purchase.order',
@@ -71,15 +71,17 @@ class GovooTender(models.Model):
     # eliminated at Technical stage aren't part of the Financial
     # Evaluation meeting) and separate minutes -- not one shared meeting,
     # which is what a single evaluation_meeting_id/evaluation_minutes_id
-    # pair (removed by this change) could only represent.
+    # pair (removed by this change) could only represent. Both reuse
+    # govoo.meeting/govoo.minutes rather than a parallel model (issue
+    # #205 sub-task) -- that detail stays in this comment, not in the
+    # field's user-facing help text (project convention: no issue
+    # numbers/traceability markers in anything a user actually reads).
     technical_evaluation_meeting_id = fields.Many2one(
         comodel_name='govoo.meeting',
         string='Technical Evaluation Meeting',
         domain=[('meeting_type', '=', 'committee')],
         tracking=True,
-        help='The committee meeting where bids were technically evaluated '
-             '-- reuses govoo.meeting/govoo.minutes rather than a parallel '
-             'model (issue #205 sub-task).',
+        help='The committee meeting where bids were technically evaluated.',
     )
     technical_evaluation_minutes_id = fields.Many2one(
         comodel_name='govoo.minutes',
@@ -92,9 +94,9 @@ class GovooTender(models.Model):
         string='Financial Evaluation Meeting',
         domain=[('meeting_type', '=', 'committee')],
         tracking=True,
-        help='The committee meeting where bids were financially evaluated '
-             '-- a separate meeting from Technical Evaluation, often with '
-             'a narrower attendee list once bidders are eliminated.',
+        help='The committee meeting where bids were financially evaluated, '
+             'often with a narrower attendee list once some bidders have '
+             'already been eliminated.',
     )
     financial_evaluation_minutes_id = fields.Many2one(
         comodel_name='govoo.minutes',
@@ -109,14 +111,14 @@ class GovooTender(models.Model):
         tracking=True,
         copy=False,
     )
+    # Issue #236: ordinary per-tender operational data (like a contract's
+    # own End Date), not a legal/compliance threshold, so it needs no
+    # [CONFIRM]-gated caveat in its help text -- unlike the statutory
+    # deadlines elsewhere in that issue.
     submission_deadline = fields.Date(
         string='Submission Deadline',
         tracking=True,
-        help='Issue #236: when bids for this tender must be submitted by. '
-             'Ordinary per-tender operational data (like a contract\'s own '
-             'End Date), not a legal threshold, so it needs no [CONFIRM] '
-             'gate -- unlike the statutory deadlines elsewhere in that '
-             'issue.',
+        help='When bids for this tender must be submitted by.',
     )
     reminder_lead_days = fields.Integer(
         string='Reminder Lead Time (Days)',
