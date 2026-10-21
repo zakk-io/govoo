@@ -82,34 +82,34 @@ class GovooContract(models.Model):
         string='Milestones',
         compute='_compute_milestone_count',
     )
+    # BR-CM-003: related-party determination, read from the existing
+    # govoo_base/govoo_secretarial classification -- never a second,
+    # independent classification.
     is_related_party = fields.Boolean(
         string='Related Party',
         compute='_compute_is_related_party',
         store=True,
-        help='BR-CM-003: True when the counterparty is a director, '
-             'shareholder, officer, or beneficial owner of this company '
-             '-- read from the existing govoo_base/govoo_secretarial '
-             'classification, never a second, independent classification.',
+        help='True when the counterparty is a director, shareholder, '
+             'officer, or beneficial owner of this company.',
     )
+    # BR-CM-003/BR-BOARD-007: mirrors govoo.vote.is_conflicted's
+    # declared-interest pattern.
     conflict_declared = fields.Boolean(
         string='Conflict of Interest Declared',
         tracking=True,
-        help='Required before a related-party contract can be approved '
-             '(BR-CM-003) -- mirrors govoo.vote.is_conflicted\'s '
-             'declared-interest pattern (BR-BOARD-007).',
+        help='Required before a related-party contract can be approved.',
     )
     conflict_declaration_notes = fields.Text(
         string='Conflict Declaration Notes',
     )
+    # BR-CM-007, security/record-rules.md section 6b: resolves the
+    # previously-open "named approver" data-model gap explicitly,
+    # rather than assuming it always equals counterparty_id.
     portal_approver_ids = fields.Many2many(
         comodel_name='res.partner',
         string='Named Approvers (Portal)',
         help='Partners other than the counterparty who should see this '
-             'contract in the Contract Viewer Portal as a named approver '
-             '(BR-CM-007, security/record-rules.md section 6b) -- resolves '
-             'the previously-open "named approver" data-model gap '
-             'explicitly, rather than assuming it always equals '
-             'counterparty_id.',
+             'contract in the Contract Viewer Portal as a named approver.',
     )
     currency_id = fields.Many2one(
         comodel_name='res.currency',
@@ -140,41 +140,47 @@ class GovooContract(models.Model):
         required=True,
         tracking=True,
     )
+    # Issue #198: distinct from End Date, which is when the current
+    # term expires.
     renewal_date = fields.Date(
         string='Renewal Date',
         tracking=True,
         help='The date this contract is due to renew, where applicable '
-             '(issue #198) -- distinct from End Date, which is when the '
-             'current term expires.',
+             '-- distinct from End Date, which is when the current term '
+             'expires.',
     )
+    # FR-CM-18: computed from contract_type_id.retention_years at
+    # compute time, same discipline as govoo.minutes.retention_until
+    # reading govoo_rw config -- never a Python literal. Unlike
+    # minutes, no statutory default is assumed here if retention_years
+    # is unset: contract retention has no established default in this
+    # project (unlike minutes' confirmed 10-year rule, BR-BOARD-004),
+    # so an unconfigured type simply computes no retention date rather
+    # than guessing one.
     retention_until = fields.Date(
         string='Retention Until',
         compute='_compute_retention_until',
         store=True,
-        help='FR-CM-18: computed from contract_type_id.retention_years at '
-             'compute time, same discipline as govoo.minutes.'
-             'retention_until reading govoo_rw config -- never a Python '
-             'literal. Unlike minutes, no statutory default is assumed '
-             'here if retention_years is unset: contract retention has '
-             'no established default in this project (unlike minutes\' '
-             'confirmed 10-year rule, BR-BOARD-004), so an unconfigured '
-             'type simply computes no retention date rather than '
-             'guessing one.',
+        help='How long this contract must be retained, computed from its '
+             'Contract Type. Left blank if the type has no configured '
+             'retention period.',
     )
+    # FR-CM-14: same "field must already be set, the action only
+    # transitions" pattern as govoo.compliance.instance.action_file
+    # requiring reference_no/filed_date.
     termination_reason = fields.Text(
         string='Termination Reason',
-        help='Required before action_terminate() can be called (FR-CM-14) '
-             '-- same "field must already be set, the action only '
-             'transitions" pattern as govoo.compliance.instance.action_file '
-             'requiring reference_no/filed_date.',
+        help='Required before this contract can be marked Terminated.',
     )
+    # BR-CM-004: an amendment or renewal must attach a new document,
+    # never edit this one in place.
     executed_document_id = fields.Many2one(
         comodel_name='ir.attachment',
         string='Executed Document',
         tracking=True,
-        help='Write-once once the contract reaches "executed" (BR-CM-004): '
-             'an amendment or renewal must attach a new document, never '
-             'edit this one in place.',
+        help='Locked once the contract reaches "Executed": attach a new '
+             'document for an amendment or renewal instead of editing '
+             'this one.',
     )
     executed_document_upload = fields.Binary(
         string='Upload a File',
@@ -182,14 +188,15 @@ class GovooContract(models.Model):
              'selected as the Executed Document above automatically.',
     )
     executed_document_upload_filename = fields.Char()
+    # BR-CM-001: required when contract_type_id.requires_board_approval
+    # or value >= contract_type_id.approval_threshold.
     resolution_id = fields.Many2one(
         comodel_name='govoo.resolution',
         string='Board Resolution',
         tracking=True,
-        help='Required, and must be in state "passed", before this '
+        help='Required, and must be in state "Passed", before this '
              'contract can be approved when its type requires board '
-             'approval or its value meets the type\'s approval threshold '
-             '(BR-CM-001).',
+             'approval or its value meets the type\'s approval threshold.',
     )
     tender_id = fields.Many2one(
         comodel_name='govoo.tender',
@@ -344,9 +351,9 @@ class GovooContract(models.Model):
             if rec.sign_request_id:
                 raise ValidationError(_(
                     'E-signature is not yet confirmed as legally valid '
-                    'under Rwandan law (BR-CM-005); Sign Request cannot '
-                    'be used. Attach the manually signed copy as the '
-                    'Executed Document instead.'
+                    'under Rwandan law; Sign Request cannot be used. '
+                    'Attach the manually signed copy as the Executed '
+                    'Document instead.'
                 ))
 
     def _check_esignature_enabled_for_type(self):
@@ -500,22 +507,23 @@ class GovooContract(models.Model):
                         'Contract Manager or Approver must continue it '
                         'from here.'
                     ))
+        # BR-CM-004
         if 'executed_document_id' in vals:
             for rec in self:
                 if rec.state in _LOCKED_STATES and rec.executed_document_id:
                     raise UserError(_(
                         'The executed document is locked once a contract '
-                        'reaches "Executed" (BR-CM-004). Attach a new '
-                        'document for an amendment or renewal instead of '
-                        'editing this one.'
+                        'reaches "Executed". Attach a new document for an '
+                        'amendment or renewal instead of editing this one.'
                     ))
         return super().write(vals)
 
     def unlink(self):
+        # BR-CM-004
         for rec in self:
             if rec.state in _LOCKED_STATES:
                 raise UserError(_(
-                    'An executed contract cannot be deleted (BR-CM-004).'
+                    'An executed contract cannot be deleted.'
                 ))
         return super().unlink()
 
@@ -572,9 +580,8 @@ class GovooContract(models.Model):
                 continue
             if not rec.resolution_id or rec.resolution_id.state != 'passed':
                 raise ValidationError(_(
-                    'This contract requires board approval (BR-CM-001): '
-                    'link a board resolution in "Passed" state before '
-                    'approving it.'
+                    'This contract requires board approval: link a board '
+                    'resolution in "Passed" state before approving it.'
                 ))
 
     def _check_related_party_gate(self):
@@ -586,9 +593,9 @@ class GovooContract(models.Model):
         for rec in self:
             if rec.is_related_party and not rec.conflict_declared:
                 raise ValidationError(_(
-                    'This contract\'s counterparty is a related party '
-                    '(BR-CM-003): record a conflict-of-interest '
-                    'declaration before approving it.'
+                    'This contract\'s counterparty is a related party: '
+                    'record a conflict-of-interest declaration before '
+                    'approving it.'
                 ))
 
     def action_approve(self):
@@ -616,9 +623,9 @@ class GovooContract(models.Model):
             ], limit=1)
             if not matching:
                 raise ValidationError(_(
-                    'You are not authorized to execute this contract '
-                    '(BR-CM-002): no delegation-of-authority entry covers '
-                    'your user for this contract type and value.'
+                    'You are not authorized to execute this contract: no '
+                    'delegation-of-authority entry covers your user for '
+                    'this contract type and value.'
                 ))
 
     def action_execute(self):
