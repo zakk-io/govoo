@@ -38,8 +38,24 @@
         <t t-call="portal.portal_layout">
             <div class="container mt-4">
                 <h3 t-esc="contract.name"/>
+                <p>
+                    <!-- Issue #350: same state-color logic already used
+                         in the My Contracts list (portal_my_contracts
+                         above), reused here for visual consistency
+                         between the list and detail pages. -->
+                    <span t-attf-class="badge #{contract.state in ('executed', 'active') and 'bg-success' or contract.state in ('draft', 'in_approval') and 'bg-secondary' or 'bg-info'}"
+                          t-esc="dict(contract._fields['state'].selection).get(contract.state)"/>
+                </p>
                 <p class="text-muted">
                     <strong>Type:</strong> <t t-esc="contract.contract_type_id.name"/>
+                </p>
+                <p class="text-muted">
+                    <strong>Counterparty:</strong> <t t-esc="contract.counterparty_id.name"/>
+                </p>
+                <p class="text-muted" t-if="contract.value">
+                    <strong>Contract Value:</strong>
+                    <t t-esc="contract.value"
+                       t-options="{'widget': 'monetary', 'display_currency': contract.currency_id}"/>
                 </p>
                 <p class="text-muted" t-if="contract.date_start">
                     <strong>Start Date:</strong> <t t-esc="contract.date_start"/>
@@ -47,14 +63,30 @@
                 <p class="text-muted" t-if="contract.date_end">
                     <strong>End Date:</strong> <t t-esc="contract.date_end"/>
                 </p>
-                <p>
-                    <span class="badge bg-info" t-esc="contract.state"/>
-                </p>
+
                 <t t-if="contract.state in ('executed', 'active', 'expired', 'terminated') and contract.executed_document_id">
                     <a t-attf-href="/web/content/#{contract.executed_document_id.id}?download=true">
                         Download Executed Document
                     </a>
                 </t>
+                <t t-elif="contract.state == 'draft'">
+                    <p class="text-muted">No document yet; this contract is still being drafted.</p>
+                </t>
+                <t t-elif="contract.state == 'in_approval'">
+                    <p class="text-muted">No document yet; this contract is awaiting internal approval.</p>
+                </t>
+                <t t-elif="contract.state == 'approved'">
+                    <p class="text-muted">Approved; the executed document will appear here once it's signed.</p>
+                </t>
+                <t t-else="">
+                    <p class="text-muted">No document has been attached yet.</p>
+                </t>
+
+                <p class="mt-3" t-if="can_view_tender">
+                    <a t-attf-href="/my/procurement/tenders/#{contract.tender_id.id}">
+                        &#8592; View originating tender
+                    </a>
+                </p>
             </div>
         </t>
     </template>
