@@ -1,0 +1,53 @@
+// Liquid Glass delta (themes/clagov theme/CLAGOV-Liquid-Glass-Only),
+// extended to every native business view at the user's explicit request
+// (asked to confirm scope first, since the package's own
+// AI-AGENT-INSTRUCTIONS.md explicitly warns against "blindly matching
+// all view controllers" -- the user chose app-wide over a per-screen
+// pilot). Uses Odoo's own `o_view_controller` class, the first-party
+// root marker common to every rendered form/list/kanban/etc. view,
+// instead of hand-adding clg_lg_workspace to each view's template one
+// by one (hundreds of components, not maintainable).
+//
+// Confirmed live (chrome-devtools DOM query) before writing this:
+// - .o_view_controller never appears under the Home Menu (0 matches)
+//   or the login page (rendered outside the action manager entirely),
+//   so this selector cannot reach either even without excluding them
+//   by name.
+// - .o_view_controller's own parent is always .o_action_manager
+//   (confirmed live), never .o_home_menu or the login page's markup,
+//   so scoping under .o_action_manager is a second, independent guard
+//   against reaching either -- NOT .o_content, which turned out on
+//   first attempt to be an inner wrapper INSIDE .o_view_controller
+//   (e.g. wrapping .o_form_renderer), not an ancestor of it; that
+//   first version's descendant selector never matched anything.
+// - backend.scss's own .o_control_panel/.o_form_sheet/.o_kanban_record
+//   rules are nested entirely inside .o_home_menu_background (only
+//   active while the Home Menu itself is shown), so there is no
+//   collision with this file applying to ordinary business views.
+// - A dialog's embedded form also carries .o_view_controller but
+//   dialogs render outside .o_action_manager, so this does not reach
+//   modals; left that way deliberately rather than guessing it should.
+.o_action_manager .o_view_controller {
+    @include clg-lg-canvas;
+
+    .o_control_panel {
+        @include clg-lg-surface(.90);
+    }
+
+    // Settings' own two-pane layout (.o_setting_container) isn't a
+    // .o_form_sheet -- give its content pane the same "form content
+    // panel" finish so Settings (the screen this was reported against)
+    // actually gets it, not just ordinary record forms.
+    .o_form_sheet,
+    .o_setting_container {
+        @include clg-lg-surface(.97);
+    }
+
+    .o_kanban_record:not(.o_kanban_ghost):not(.o_record_selected):not(:focus):not(:focus-visible):not([class*="o_kanban_color_"]) {
+        @include clg-lg-surface(.97);
+    }
+
+    .btn-primary:not(:disabled):not(.disabled) {
+        @include clg-lg-gold;
+    }
+}
