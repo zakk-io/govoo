@@ -32,5 +32,5 @@ appointment (role-over-time) and committee models.
     'installable': True,
     'application': False,
     'auto_install': False,
-    'post_init_hook': '_hide_unused_top_level_menus',
+    'post_init_hook': '_post_init',
 }

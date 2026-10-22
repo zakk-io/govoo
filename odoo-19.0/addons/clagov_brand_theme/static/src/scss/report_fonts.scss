@@ -1,0 +1,15 @@
+// Static TrueType faces keep the PDF renderer independent of WOFF2/variable-font support.
+@each $name, $weight in ("Regular": 400, "Medium": 500, "SemiBold": 600, "Bold": 700) {
+    @font-face {
+        font-family: "Inter";
+        font-style: normal;
+        font-weight: $weight;
+        src: url("/clagov_brand_theme/static/src/fonts/Inter-#{$name}.ttf") format("truetype");
+    }
+}
+@font-face {
+    font-family: "CLAGOV Display";
+    font-style: normal;
+    font-weight: 600;
+    src: url("/clagov_brand_theme/static/src/fonts/CLAGOVDisplay-SemiBold.ttf") format("truetype");
+}

@@ -3,6 +3,11 @@
 from . import models
 
 
+def _post_init(env):
+    _hide_unused_top_level_menus(env)
+    _fix_color_scheme_default_to_light(env)
+
+
 def _hide_unused_top_level_menus(env):
     """Hide top-level app menus Kivu Capital doesn't actually use. Once a
     user holds Administrator (needed for Settings/user management), Odoo
@@ -26,3 +31,12 @@ def _hide_unused_top_level_menus(env):
         menu = env.ref(xmlid, raise_if_not_found=False)
         if menu:
             menu.active = False
+
+
+def _fix_color_scheme_default_to_light(env):
+    """One-time migration for users created before res.users.settings'
+    color_scheme default changed from "System" to "Light" (see
+    models/res_users_settings.py for why). Only touches rows still on
+    "system" -- a user who explicitly chose Dark keeps that choice."""
+    settings = env['res.users.settings'].sudo().search([('color_scheme', '=', 'system')])
+    settings.write({'color_scheme': 'light'})

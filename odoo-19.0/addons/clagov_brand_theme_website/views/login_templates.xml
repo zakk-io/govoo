@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Priority 21: higher than website's own login_layout override
+         (website.views.website_templates#login_layout, priority 20),
+         so this edit applies AFTER website's replace and sees the
+         .oe_website_login_container div it creates. Replaces (not
+         "inside") that div with an expanded version carrying the same
+         t-out="0" placeholder for the original form content, plus the
+         CLAGOV identity header as a preceding sibling. Replacing
+         rather than inserting avoids any ambiguity between t-out="0"
+         (which implies "this element's content is exactly this
+         expression") and adding static child nodes alongside it. -->
+    <template id="login_layout_clagov_website"
+              inherit_id="web.login_layout"
+              priority="21"
+              name="CLAGOV login branding (website-wrapped)">
+        <xpath expr="//div[hasclass('oe_website_login_container')]" position="replace">
+            <!-- Liquid Glass delta (themes/clagov theme/CLAGOV-Liquid-
+                 Glass-Only): clg_lg_scope marked once here; clg_lg_surface_
+                 solid/clg_lg_ink below are its descendants, no extra scope
+                 marker needed on them. clg_lg_canvas is the background
+                 this container is already responsible for (login.scss's
+                 own background-color); clg_lg_surface_solid (not the
+                 lighter clg_lg_surface) because the card holds form
+                 inputs/labels, per the package's own "data/form content
+                 panel" guidance. -->
+            <div class="oe_website_login_container clg_lg_scope clg_lg_canvas">
+                <div class="clagov_login_card clg_lg_surface_solid">
+                    <div class="clagov_login_identity clg_lg_ink text-center">
+                        <img src="/clagov_brand_theme/static/src/img/signet.svg" alt="" width="52" height="52"/>
+                        <h1 class="clagov_login_wordmark">Clagov</h1>
+                        <p class="clagov_login_tagline">Govern with clarity.</p>
+                    </div>
+                    <div t-out="0"/>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- Separate inherit of web.login itself (not web.login_layout): the
+         submit button lives in the form content injected via t-out="0"
+         above, so it can only be reached by extending the template that
+         actually renders it. It's already a descendant of the clg_lg_scope
+         marker added above, so only the effect class is needed here. No
+         functional attribute (type, name, action) touched. -->
+    <template id="login_button_glass"
+              inherit_id="web.login"
+              name="CLAGOV login button glass">
+        <xpath expr="//div[hasclass('oe_login_buttons')]/button[@type='submit'][1]" position="attributes">
+            <attribute name="class" add="clg_lg_gold" separator=" "/>
+        </xpath>
+    </template>
+</odoo>
