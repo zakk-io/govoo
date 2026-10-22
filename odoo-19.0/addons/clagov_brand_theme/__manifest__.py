@@ -38,6 +38,10 @@
             # fixes (Home Menu background, navbar, etc.) keep cascade
             # precedence over the opt-in glass classes where they collide.
             "clagov_brand_theme/static/src/scss/lg_opt_in.scss",
+            # App-wide glass on every native business view (.o_view_controller),
+            # extending the opt-in delta beyond login/Home Menu -- see the
+            # file's own header comment for why this is safe to apply broadly.
+            "clagov_brand_theme/static/src/scss/glass_workspace.scss",
             "clagov_brand_theme/static/src/scss/backend.scss",
             "clagov_brand_theme/static/src/xml/navbar.xml",
             "clagov_brand_theme/static/src/xml/home_menu.xml",
