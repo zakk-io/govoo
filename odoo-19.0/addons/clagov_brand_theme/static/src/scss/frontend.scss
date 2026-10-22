@@ -1,0 +1,117 @@
+// Issue: website's own "Contact Us" CTA (.btn_cta, also .btn-primary)
+// renders sitewide, not only inside the scoped .o_clagov_login/
+// .o_clagov_portal roots below -- unscoped on purpose, matching the
+// brand guide's own "Main CTA: Gold fill, slate text" guidance for
+// every primary call-to-action, not just branded-scope pages. Once
+// frontend_variables.scss fixed $o-brand-primary (previously unset on
+// the frontend bundle, so .btn-primary fell back to #714B67), this is
+// belt-and-suspenders for the specific brighter champagne CTA treatment
+// the guide calls for, rather than the more muted accessible dark gold
+// $o-brand-primary resolves to for ordinary primary text/links.
+.btn_cta {
+    background-color: $clg-gold !important;
+    border-color: $clg-gold !important;
+    color: $clg-ink !important;
+
+    &:hover, &:focus, &:active {
+        background-color: $clg-gold-hover !important;
+        border-color: $clg-gold-hover !important;
+        color: $clg-ink !important;
+    }
+}
+
+.o_clagov_login, #wrapwrap.o_clagov_portal {
+    @include clagov-tokens;
+    @include clagov-controls;
+    @include clagov-utilities;
+    color: $clg-text;
+    font-family: $clg-font-body;
+    a:not(.btn):not(.nav-link):not(.dropdown-item) { color: $clg-slate; }
+    a:not(.btn):focus-visible { text-decoration: underline; }
+    .btn-link { color: $clg-slate; }
+    .text-primary { color: $clg-gold-text !important; }
+}
+
+.o_clagov_login {
+    // bg-100 is an Odoo utility with !important; override only this login scope.
+    background-color: $clg-ivory !important;
+    #wrapwrap { background: $clg-ivory; }
+    .o_database_list {
+        background-color: white !important;
+        border: 1px solid $clg-border !important;
+        border-radius: 16px;
+        box-shadow: 0 12px 36px rgba($clg-ink, .08);
+        overflow: hidden;
+        .card-body { padding: 28px; }
+        .card-body > .text-center:first-child {
+            margin: -28px -28px 24px !important;
+            padding: 24px !important;
+            background: $clg-ink;
+            border-color: $clg-gold !important;
+        }
+    }
+    .clagov_login_identity img { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+    .clagov_login_tagline { color: $clg-gold; margin: 10px 0 0; }
+    .oe_login_form label { color: $clg-slate; font-weight: 500; }
+    .oe_login_form .btn { border-radius: 8px; }
+    .oe_login_form input { min-height: 40px; }
+    .oe_login_buttons { margin-top: 20px; }
+    .alert-danger a { color: inherit; }
+}
+
+#wrapwrap.o_clagov_portal {
+    background: $clg-ivory;
+    > main { background: $clg-ivory; }
+    #top .navbar {
+        background: $clg-ink !important;
+        .nav-link { color: $clg-ivory; }
+        .nav-link:hover, .nav-link:focus-visible { color: $clg-gold; }
+        :focus-visible { outline-color: $clg-gold; }
+    }
+    // Preserve the customer's company identity while keeping its logo readable.
+    #top .navbar-brand.logo { background: white; border-radius: 8px; padding: 6px 10px; }
+    .o_portal_wrap h1, .o_portal h1, .o_portal_wrap > .container > .wrapper > h3 {
+        font-family: $clg-font-heading;
+        color: $clg-slate;
+        font-weight: 600;
+    }
+    .o_portal_wrap .card {
+        background: white;
+        border-color: $clg-border;
+        border-radius: 14px;
+    }
+    // Odoo 19 renders portal entry cards as anchors inside this wrapper.
+    // Target only default cards; explicit contextual background colors stay native.
+    .o_portal_index_card > a.bg-100 {
+        background-color: white !important;
+        border: 1px solid $clg-border;
+        border-radius: 14px !important;
+    }
+    .table { color: $clg-text; }
+    .table > thead { background: $clg-ivory; }
+    .page-link { color: $clg-slate; }
+    .page-item.active .page-link { color: $clg-slate; background: $clg-gold; border-color: $clg-gold-text; }
+}
+
+@media (max-width: 575.98px) {
+    .o_clagov_login .o_database_list .card-body { padding: 24px; }
+    .o_clagov_login .o_database_list .card-body > .text-center:first-child { margin: -24px -24px 24px !important; }
+    .o_clagov_login .form-control, #wrapwrap.o_clagov_portal .form-control { font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .o_clagov_login .btn, #wrapwrap.o_clagov_portal .btn { transition: none; }
+}
+
+// Issue: when the `website` module is installed, it inherits
+// web.login_layout at priority 20 and REPLACES its entire <t t-call>
+// subtree wholesale, discarding this module's own web.login_layout
+// edits (body_classname, the lockup swap) -- confirmed empirically by
+// reading the combined/resolved arch of web.login_layout in an
+// environment with website installed. Rather than make this
+// website-agnostic module assume website is present (it may not be,
+// and depending on it here would make an optional integration a hard
+// requirement), that specific fix lives in the clagov_brand_theme_website
+// bridge module (auto-installs only when both clagov_brand_theme and
+// website are present), which targets .oe_website_login_container --
+// website's own, always-present wrapper class -- directly.

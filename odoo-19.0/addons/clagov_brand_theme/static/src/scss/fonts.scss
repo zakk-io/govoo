@@ -1,0 +1,18 @@
+@each $name, $weight in ("Regular": 400, "Medium": 500, "SemiBold": 600, "Bold": 700) {
+    @font-face {
+        font-family: "Inter";
+        font-style: normal;
+        font-weight: $weight;
+        font-display: swap;
+        src: url("/clagov_brand_theme/static/src/fonts/Inter-#{$name}.woff2") format("woff2"),
+             url("/clagov_brand_theme/static/src/fonts/Inter-#{$name}.ttf") format("truetype");
+    }
+}
+@font-face {
+    font-family: "CLAGOV Display";
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("/clagov_brand_theme/static/src/fonts/CLAGOVDisplay-SemiBold.woff2") format("woff2"),
+         url("/clagov_brand_theme/static/src/fonts/CLAGOVDisplay-SemiBold.ttf") format("truetype");
+}

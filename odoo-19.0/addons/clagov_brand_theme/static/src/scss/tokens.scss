@@ -1,0 +1,126 @@
+// No global selectors: each consuming surface explicitly includes the mixins.
+$clg-ink: #0D141C !default;
+$clg-slate: #121822 !default;
+$clg-gold: #C8A561 !default;
+$clg-gold-hover: #D8BB80 !default;
+$clg-ivory: #F5EFE3 !default;
+$clg-text: #151C27 !default;
+$clg-muted: #5B6473 !default;
+$clg-border: #E4DBC6 !default;
+$clg-control: #8D8064 !default;
+$clg-gold-text: #80632D !default;
+$clg-font-body: "Inter", Arial, sans-serif !default;
+// Static instance of Playfair Display, renamed to respect its OFL reserved name.
+$clg-font-heading: "CLAGOV Display", Georgia, serif !default;
+
+@mixin clagov-tokens {
+    --clg-ink: #{$clg-ink};
+    --clg-slate: #{$clg-slate};
+    --clg-champagne: #{$clg-gold};
+    --clg-ivory: #{$clg-ivory};
+    --clg-text: #{$clg-text};
+    --clg-text-muted: #{$clg-muted};
+    --clg-border: #{$clg-border};
+    --clg-border-control: #{$clg-control};
+    --clg-gold-text: #{$clg-gold-text};
+    --clg-radius-control: 8px;
+    --clg-radius-card: 14px;
+    --clg-radius-panel: 16px;
+    --clg-chart-1: #{$clg-gold};
+    --clg-chart-2: #{$clg-slate};
+    --clg-chart-3: #8B95A8;
+    --clg-chart-4: #{$clg-ivory};
+}
+
+@mixin clagov-controls {
+    .btn-primary {
+        --btn-color: #{$clg-slate};
+        --btn-bg: #{$clg-gold};
+        --btn-border-color: #{$clg-gold-text};
+        --btn-hover-color: #{$clg-slate};
+        --btn-hover-bg: #{$clg-gold-hover};
+        --btn-hover-border-color: #{$clg-gold-text};
+        --btn-active-color: #{$clg-slate};
+        --btn-active-bg: #{$clg-gold-hover};
+        --btn-active-border-color: #{$clg-gold-text};
+        --btn-disabled-color: #{$clg-slate};
+        --btn-disabled-bg: #{$clg-gold};
+        --btn-disabled-border-color: #{$clg-gold-text};
+        --btn-focus-shadow-rgb: 18, 24, 34;
+        font-weight: 600;
+    }
+
+    .btn-outline-primary {
+        --btn-color: #{$clg-slate};
+        --btn-border-color: #{$clg-control};
+        --btn-hover-color: #{$clg-slate};
+        --btn-hover-bg: #{$clg-ivory};
+        --btn-hover-border-color: #{$clg-gold-text};
+        --btn-active-color: #{$clg-slate};
+        --btn-active-bg: #{$clg-gold};
+        --btn-active-border-color: #{$clg-gold-text};
+        --btn-disabled-color: #{$clg-muted};
+    }
+
+    .form-control, .form-select {
+        border-color: $clg-control;
+        border-radius: 8px;
+        color: $clg-text;
+        font-family: $clg-font-body;
+
+        &:focus {
+            border-color: $clg-slate;
+            box-shadow: 0 0 0 2px rgba($clg-slate, .16);
+        }
+        &::placeholder { color: $clg-muted; opacity: 1; }
+        &.is-invalid { border-color: $danger; }
+        &.is-valid { border-color: $success; }
+    }
+
+    input[type="checkbox"], input[type="radio"] { accent-color: $clg-slate; }
+
+    .form-check-input:checked {
+        background-color: $clg-slate;
+        border-color: $clg-slate;
+    }
+
+    // Keep keyboard focus distinct on both white and ivory surfaces.
+    :where(a, button, input, select, textarea, [role="button"], [tabindex]):focus-visible {
+        outline: 2px solid $clg-slate;
+        outline-offset: 2px;
+    }
+}
+
+@mixin clagov-utilities {
+    .clagov-heading {
+        color: $clg-slate;
+        font-family: $clg-font-heading;
+        font-weight: 600;
+        letter-spacing: -.025em;
+    }
+    .clagov-card {
+        background: white;
+        border: 1px solid $clg-border;
+        border-radius: 14px;
+        padding: 24px;
+    }
+    .clagov-icon-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: $clg-slate;
+        color: $clg-gold;
+        flex-shrink: 0;
+    }
+    .clagov-premium {
+        display: inline-block;
+        padding: .25em .7em;
+        border-radius: 99px;
+        background: $clg-gold;
+        color: $clg-slate;
+        font-weight: 600;
+    }
+}

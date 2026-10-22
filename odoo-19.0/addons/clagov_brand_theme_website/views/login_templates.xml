@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Priority 21: higher than website's own login_layout override
+         (website.views.website_templates#login_layout, priority 20),
+         so this edit applies AFTER website's replace and sees the
+         .oe_website_login_container div it creates. Replaces (not
+         "inside") that div with an expanded version carrying the same
+         t-out="0" placeholder for the original form content, plus the
+         CLAGOV identity header as a preceding sibling. Replacing
+         rather than inserting avoids any ambiguity between t-out="0"
+         (which implies "this element's content is exactly this
+         expression") and adding static child nodes alongside it. -->
+    <template id="login_layout_clagov_website"
+              inherit_id="web.login_layout"
+              priority="21"
+              name="CLAGOV login branding (website-wrapped)">
+        <xpath expr="//div[hasclass('oe_website_login_container')]" position="replace">
+            <div class="oe_website_login_container">
+                <div class="clagov_login_card">
+                    <div class="clagov_login_identity text-center">
+                        <img src="/clagov_brand_theme/static/src/img/signet.svg" alt="" width="52" height="52"/>
+                        <h1 class="clagov_login_wordmark">Clagov</h1>
+                        <p class="clagov_login_tagline">Govern with clarity.</p>
+                    </div>
+                    <div t-out="0"/>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

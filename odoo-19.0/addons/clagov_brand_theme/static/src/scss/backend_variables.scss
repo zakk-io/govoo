@@ -1,0 +1,25 @@
+// Backend-only defaults, loaded before Odoo's helpers and variable consumers.
+// Keep these literal: Sass helpers are unavailable at this point in the bundle.
+$o-brand-odoo: #0D141C !default;
+$o-brand-primary: #80632D !default;
+$o-action: #80632D !default;
+
+$o-system-fonts: ("Inter", Arial, sans-serif) !default;
+$o-headings-font-family: ("Inter", Arial, sans-serif) !default;
+$o-main-text-color: #151C27 !default;
+$o-main-color-muted: #5B6473 !default;
+$o-main-headings-color: #121822 !default;
+$o-main-link-color: #121822 !default;
+
+$o-view-background-color: #FFFFFF !default;
+$o-webclient-background-color: #F5EFE3 !default;
+$o-component-active-color: #121822 !default;
+$o-component-active-bg: #EFE8D8 !default;
+$o-component-active-border: #80632D !default;
+
+$o-border-radius: .5rem !default;
+$o-border-radius-sm: .25rem !default;
+$o-border-radius-lg: .875rem !default;
+
+// Native success, warning, information, danger, and record color palettes remain
+// Odoo's own values. Gold is a brand action/selection color, not a status color.
