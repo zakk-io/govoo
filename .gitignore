@@ -41,6 +41,13 @@ node_modules/
 !/odoo-19.0/addons/
 /odoo-19.0/addons/*
 !/odoo-19.0/addons/govoo_*/
+# CLAGOV brand theme + its Enterprise Home Menu dependency: not govoo_*-
+# named, but genuinely part of this repo's own source (built/vendored in
+# for this project), not an unrelated vendor addon -- tracked so a fresh
+# checkout has the branding, not just the Govoo business modules.
+!/odoo-19.0/addons/clagov_brand_theme/
+!/odoo-19.0/addons/clagov_brand_theme_website/
+!/odoo-19.0/addons/zxs_entp_theme/
 # vendor's own .gitignore re-includes these three via its own negation rules
 /odoo-19.0/.github/
 /odoo-19.0/.gitignore

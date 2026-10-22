@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="webclient_brand_scope" inherit_id="web.webclient_bootstrap" name="CLAGOV backend branding">
+        <xpath expr="//t[@t-set='body_classname']" position="attributes">
+            <attribute name="t-value">'o_web_client o_clagov_backend' + (' o_clagov_light' if color_scheme != 'dark' else '')</attribute>
+        </xpath>
+        <xpath expr="//t[@t-set='head_web']" position="before">
+            <t t-set="x_icon" t-value="'/clagov_brand_theme/static/src/img/favicon.svg'"/>
+        </xpath>
+        <xpath expr="//meta[@name='theme-color']" position="attributes">
+            <attribute name="content">#0D141C</attribute>
+        </xpath>
+    </template>
+
+    <template id="login_brand_scope" inherit_id="web.login_layout" name="CLAGOV login branding">
+        <xpath expr="//t[@t-set='body_classname']" position="attributes">
+            <attribute name="t-value">'bg-100 o_clagov_login'</attribute>
+        </xpath>
+        <xpath expr="//t[@t-set='html_data']" position="before">
+            <t t-set="x_icon" t-value="'/clagov_brand_theme/static/src/img/favicon.svg'"/>
+        </xpath>
+        <xpath expr="//div[contains(@t-attf-class, 'o_database_list')]" position="attributes">
+            <attribute name="style">max-width: 420px;</attribute>
+        </xpath>
+        <xpath expr="//img[contains(@t-attf-src, '/web/binary/company_logo')]" position="replace">
+            <div class="clagov_login_identity">
+                <img src="/clagov_brand_theme/static/src/img/lockup.svg" alt="Clagov" width="228" height="70"/>
+                <p class="clagov_login_tagline">Govern with clarity.</p>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- is_portal is set by Portal's layout; plain Website pages remain unmarked.
+         Using Web's parent avoids requiring/installing the Portal application. -->
+    <template id="portal_brand_scope" inherit_id="web.frontend_layout" priority="90" name="CLAGOV portal scope">
+        <xpath expr="//div[@id='wrapwrap']" position="attributes">
+            <attribute name="t-attf-class" add="#{'o_clagov_portal' if is_portal else ''}" separator=" "/>
+        </xpath>
+    </template>
+</odoo>

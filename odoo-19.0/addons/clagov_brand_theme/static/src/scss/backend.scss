@@ -1,0 +1,542 @@
+// Home Menu (the app-grid screen at /odoo, body.o_home_menu_background):
+// the hero-photograph treatment from the public site's own homepage
+// (dark city photo + ink gradient overlay), per the brand guide's own
+// "Odoo adaptation" for a welcome/introduction screen. Needs BOTH of
+// these, confirmed live via DOM/computed-style inspection (not
+// guessed): body's own background (3 classes, beats .o_clagov_backend.
+// o_clagov_light's 2 -- same technique as before, that part already
+// worked), AND .o_action_manager, the DIRECT PARENT of .o_home_menu,
+// which this same module's own rule further down sets to a solid
+// $clg-ivory background and sits ON TOP of body covering everything
+// below the navbar -- confirmed live to be exactly why the earlier
+// attempt only ever ink'd the navbar strip and nothing below it.
+.o_clagov_backend.o_clagov_light.o_home_menu_background {
+    background-color: $clg-ink !important;
+    background-image:
+        linear-gradient(rgba($clg-ink, .6), rgba($clg-ink, .82)),
+        url("/clagov_brand_theme/static/src/img/hero-city.jpg") !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-attachment: fixed !important;
+
+    .o_action_manager {
+        background: transparent !important;
+    }
+
+    // The navbar.xml clagov_nav_brand insert (further below) never
+    // actually renders on ANY page, confirmed live via DOM inspection
+    // (querySelector returns null everywhere) -- zxs_entp_theme's own
+    // EnterpriseNavBar is t-inherit-mode="primary" on web.NavBar,
+    // deriving its own independent copy rather than extending the
+    // live template in place, so this module's extension-mode edit
+    // never makes it into what actually renders. That's a separate,
+    // deeper fix (out of scope here); on every other page the current
+    // app's own name/icon at least gives some identity in that spot,
+    // but the Home Menu has no current app and that spot is empty, so
+    // the lockup goes here instead, as a background image on the
+    // navbar itself rather than a template insert.
+    //
+    // zxs's own rule forces this navbar transparent specifically while
+    // the Home Menu is active (to let the background behind it show
+    // through); give it the public site's own solid header colour
+    // instead, matching clagov.com's own navbar treatment, rather than
+    // leaving the photo visible behind it.
+    .o_main_navbar {
+        height: 64px !important;
+        background-color: $clg-ink !important;
+        background-image: url("/clagov_brand_theme/static/src/img/lockup.svg") !important;
+        background-repeat: no-repeat !important;
+        background-position: 28px center !important;
+        background-size: auto 48px !important;
+        border-bottom: 1px solid rgba($clg-gold, .25) !important;
+
+        // The systray's message/activity icons correctly inherit the
+        // navbar's own ivory entry colour, but the small presence dot
+        // on the user avatar (Online/Away/Offline, fa-circle-o with a
+        // Bootstrap text-700 dark-slate utility class) doesn't -- it's
+        // colour-coded by actual status (green/orange/grey), not tied
+        // to the navbar's own colour scheme, so it reads as invisible
+        // specifically on this ink background. A light ring around it
+        // keeps the colour coding intact (still correctly reads as
+        // "not green" = not online) while making it visible against
+        // ink, matching how it would read against this module's own
+        // ordinary light panels.
+        .fa-circle-o.text-700 {
+            box-shadow: 0 0 0 1px rgba($clg-ivory, .6);
+            border-radius: 50%;
+        }
+    }
+
+    // Brand guide's own hero illustration calls for ivory app captions
+    // with a dark text-shadow over photography, the same treatment
+    // zxs_entp_theme's own CSS already uses for its "custom background
+    // image" feature (.o_home_menu_background_custom .o_caption) --
+    // this module sets the photo directly via CSS rather than through
+    // that DB-configured feature, so that existing rule never fires;
+    // this is the same treatment, scoped to this module's own class.
+    .o_home_menu .o_app .o_caption {
+        color: $clg-ivory !important;
+        text-shadow: 0 1px 2px rgba($clg-ink, .75), 0 2px 5px rgba($clg-ink, .5);
+    }
+
+    // "Govern with clarity." -- the public site's own hero headline
+    // (home_menu.xml inserts the element; styled here). Sits above the
+    // app grid, matching the brand guide's own hero typography
+    // (Playfair/CLAGOV Display, large, ivory) and the "dark gradient
+    // creates a dark reading zone while allowing the image to remain
+    // visible" treatment already used for the background itself.
+    .clagov_home_menu_tagline {
+        margin: 0 0 1.5rem;
+        color: $clg-ivory;
+        font-family: $clg-font-heading;
+        font-size: 2.75rem;
+        font-weight: 600;
+        letter-spacing: -.02em;
+        text-shadow: 0 2px 10px rgba($clg-ink, .6);
+    }
+}
+
+// Font identity and the compact lockup are safe in either client color scheme.
+.o_clagov_backend {
+    font-family: $clg-font-body;
+
+    .clagov_nav_brand {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: .5rem;
+        margin-inline-end: .75rem;
+        padding-inline: .5rem;
+        color: $clg-ivory;
+        text-decoration: none;
+        white-space: nowrap;
+
+        &:hover {
+            color: $clg-ivory;
+        }
+
+        &:focus-visible {
+            outline: 2px solid $clg-gold;
+            outline-offset: -3px;
+            border-radius: .25rem;
+        }
+    }
+
+    .clagov_nav_mark {
+        display: block;
+        width: 1.875rem;
+        height: 1.875rem;
+        flex: 0 0 auto;
+        object-fit: contain;
+    }
+
+    .clagov_nav_wordmark {
+        font-family: $clg-font-heading;
+        font-size: 1.375rem;
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: -.015em;
+    }
+
+    @media (max-width: 575.98px) {
+        .clagov_nav_brand {
+            margin-inline-end: .25rem;
+            padding-inline: .25rem;
+        }
+
+        .clagov_nav_wordmark {
+            display: none;
+        }
+    }
+}
+
+// Light workspace styling is conditional; this is not a partial dark theme.
+.o_clagov_backend.o_clagov_light {
+    @include clagov-tokens;
+    @include clagov-controls;
+    @include clagov-utilities;
+
+    --o-input-border-color: #{$clg-control};
+    --o-caret-color: #{$clg-slate};
+
+    color: $clg-text;
+    background-color: $clg-ivory;
+
+    .o_action_manager,
+    .o_action_manager > .o_action,
+    .o_content,
+    .o_form_view,
+    .o_form_sheet_bg {
+        background-color: $clg-ivory;
+    }
+
+    // Use the navbar's own hooks; leave its height, menu sizing, and overflow
+    // management to Odoo.
+    .o_main_navbar {
+        --NavBar-entry-color: #{$clg-ivory};
+        --NavBar-entry-color--hover: #{$clg-gold};
+        --NavBar-entry-color--active: #{$clg-gold};
+        --NavBar-entry-backgroundColor: transparent;
+        --NavBar-entry-backgroundColor--hover: rgba(245, 239, 227, .07);
+        --NavBar-entry-backgroundColor--focus: rgba(245, 239, 227, .09);
+        --NavBar-entry-backgroundColor--active: rgba(245, 239, 227, .09);
+        --NavBar-brand-color: #{$clg-ivory};
+
+        background: $clg-ink;
+        border-bottom-color: rgba($clg-gold, .3);
+
+        .o_menu_brand {
+            font-family: $clg-font-body;
+            font-weight: 600;
+        }
+
+        .o_menu_sections .dropdown.show.dropdown-toggle,
+        .o_menu_sections .o_nav_entry[aria-current="page"] {
+            box-shadow: inset 0 -2px 0 $clg-gold;
+        }
+
+        :where(a, button, [role="button"], [tabindex]):focus-visible {
+            outline: 2px solid $clg-gold;
+            outline-offset: -3px;
+        }
+    }
+
+    .o_app_menu_sidebar {
+        background-color: #FFFFFF;
+        color: $clg-text;
+
+        .o_sidebar_topbar {
+            background-color: $clg-ink;
+            color: $clg-ivory;
+
+            :where(a, button):focus-visible {
+                outline-color: $clg-gold;
+                outline-offset: -3px;
+            }
+        }
+    }
+
+    .o_control_panel {
+        --ControlPanel-border-bottom: 1px solid #{$clg-border};
+
+        background-color: #FFFFFF;
+
+        .breadcrumb {
+            --breadcrumb-divider-color: #{$clg-muted};
+        }
+
+        .o_last_breadcrumb_item {
+            color: $clg-slate;
+            font-family: $clg-font-body;
+            font-weight: 600;
+        }
+
+        .o_cp_switch_buttons .btn.active {
+            box-shadow: inset 0 -2px 0 $clg-gold-text;
+        }
+    }
+
+    .o_searchview {
+        --SearchBar-background-color: #FFFFFF;
+
+        border-color: $clg-control;
+
+        &:focus-within {
+            border-color: $clg-slate;
+            box-shadow: 0 0 0 2px rgba($clg-slate, .18);
+
+            + .o_searchview_dropdown_toggler {
+                border-color: $clg-slate;
+            }
+        }
+    }
+
+    .o_searchview_dropdown_toggler {
+        border-color: $clg-control;
+    }
+
+    // Retain Odoo's validation variables, input padding, dropdown caret space,
+    // and compact editable-list geometry. Compound input interiors stay bare.
+    :where(input.o_input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+        textarea.o_input, select.o_input) {
+        border: 1px solid var(--o-input-border-color, #{$clg-control});
+        border-radius: .5rem;
+        background-color: var(--o-input-background-color, #FFFFFF);
+
+        &::placeholder {
+            color: $clg-muted;
+            opacity: 1;
+        }
+
+        &:focus-visible {
+            outline: 2px solid $clg-slate;
+            outline-offset: 1px;
+        }
+    }
+
+    .o_form_view:not(.o_field_highlight) .o_field_widget:not(.o_field_invalid):not(.o_field_highlight) {
+        input.o_input:not(:hover):not(:focus),
+        textarea.o_input:not(:hover):not(:focus),
+        select.o_input:not(:hover):not(:focus) {
+            --o-input-border-color: inherit;
+        }
+    }
+
+    .o_input input.o_input,
+    .o_input textarea.o_input,
+    .o_searchview input.o_searchview_input {
+        border: 0;
+        border-radius: 0;
+        background-color: transparent;
+    }
+
+    // The search container already supplies a visible focus-within ring.
+    .o_searchview input.o_searchview_input:focus-visible {
+        outline: 0;
+        box-shadow: none;
+    }
+
+    .o_list_renderer {
+        --ListRenderer-thead-bg-color: #{$clg-ivory};
+        --ListRenderer-thead-border-end-color: #{$clg-border};
+        --ListRenderer-data-row-focused-striped-bg: #EFE8D8;
+
+        background-color: #FFFFFF;
+
+        .o_list_table {
+            --table-bg: #FFFFFF;
+            --table-border-color: #{$clg-border};
+            --table-hover-bg: #FBF8F2;
+            --table-active-bg: #EFE8D8;
+            --table-striped-bg: rgba(245, 239, 227, .35);
+
+            thead th {
+                color: $clg-slate;
+                font-family: $clg-font-body;
+                font-weight: 600;
+            }
+
+            .o_data_row.o_data_row_selected {
+                --table-bg: #EFE8D8;
+                --table-color: #{$clg-text};
+                --table-border-color: #{$clg-gold-text};
+                --table-striped-bg: #EFE8D8;
+                --table-hover-bg: #EFE8D8;
+                --table-hover-color: #{$clg-text};
+            }
+
+            .o_list_number,
+            .o_list_number_th {
+                font-variant-numeric: tabular-nums;
+            }
+
+            // The native edit row removes borders and padding deliberately.
+            .o_data_row.o_selected_row .o_input {
+                border-radius: 0;
+            }
+        }
+    }
+
+    .o_form_view {
+        .o_form_sheet,
+        .o_form_nosheet {
+            background-color: #FFFFFF;
+            border-color: $clg-border;
+        }
+
+        .o_form_sheet {
+            --formView-sheet-border-radius: .875rem;
+            --formView-sheet-border-radius-md: .875rem;
+
+            box-shadow: 0 2px 12px rgba($clg-ink, .035);
+        }
+
+        .o_form_statusbar {
+            background-color: $clg-ivory;
+        }
+
+        .oe_title > h1,
+        .oe_title > h2 {
+            color: $clg-slate;
+            font-family: $clg-font-heading;
+            font-weight: 600;
+            letter-spacing: -.02em;
+
+            .o_field_widget,
+            .o_input {
+                font-family: inherit;
+            }
+        }
+
+        .o_horizontal_separator {
+            color: $clg-slate;
+            font-weight: 600;
+        }
+    }
+
+    // Workflow stages retain their native shape and meaning; only the current
+    // stage receives the brand's selected-state treatment.
+    .o_field_statusbar > .o_statusbar_status > .o_arrow_button.o_arrow_button_current {
+        --o-statusbar-background-active: #{$clg-gold};
+        --o-statusbar-border-active: #{$clg-gold-text};
+
+        color: $clg-slate;
+        background-color: $clg-gold;
+        font-weight: 600;
+    }
+
+    .o_notebook {
+        --Notebook__link-border-color--active: #{$clg-border};
+        --Notebook__link-border-color--hover: #{$clg-border};
+        --Notebook__link-border-top-color--active: #{$clg-gold-text};
+
+        .nav,
+        > .tab-content {
+            border-color: $clg-border;
+        }
+
+        .nav-link.active:not(.o_page_invalid) {
+            color: $clg-slate;
+            font-weight: 600;
+            box-shadow: inset 0 2px 0 $clg-gold-text;
+        }
+
+        &.vertical .nav-link.active:not(.o_page_invalid) {
+            box-shadow: inset 2px 0 0 $clg-gold-text;
+        }
+    }
+
+    .o_kanban_renderer {
+        --Kanban-background: #{$clg-ivory};
+        --KanbanColumn__highlight-background: #EFE8D8;
+        --KanbanColumn__highlight-border: #{$clg-gold-text};
+        --KanbanColumn__highlight-selected: #EFE8D8;
+        --KanbanColumn__highlight-selected-border: #{$clg-slate};
+
+        .o_kanban_header {
+            color: $clg-slate;
+        }
+
+        .o_kanban_record:not(.o_kanban_ghost) {
+            background-color: #FFFFFF;
+            border-color: $clg-border;
+            border-radius: .875rem;
+            box-shadow: 0 2px 8px rgba($clg-ink, .035);
+        }
+
+        .o_kanban_record.o_record_selected {
+            background-color: #EFE8D8;
+        }
+    }
+
+    // Popups render in Odoo's overlay container under the marked body.
+    .dropdown-menu,
+    .o-dropdown--menu {
+        --dropdown-bg: #FFFFFF;
+        --dropdown-color: #{$clg-text};
+        --dropdown-border-color: #{$clg-border};
+        --dropdown-border-radius: .5rem;
+        --dropdown-link-hover-bg: #{$clg-ivory};
+        --dropdown-link-active-bg: #EFE8D8;
+        --dropdown-link-active-color: #{$clg-slate};
+
+        border-color: $clg-border;
+        border-radius: .5rem;
+        box-shadow: 0 8px 28px rgba($clg-ink, .12);
+
+        .dropdown-item.focus:not(.disabled):not(:disabled) {
+            background-color: $clg-ivory;
+        }
+    }
+
+    .popover {
+        --popover-bg: #FFFFFF;
+        --popover-border-color: #{$clg-border};
+        --popover-header-bg: #{$clg-ivory};
+        --popover-header-color: #{$clg-slate};
+        --popover-body-color: #{$clg-text};
+
+        box-shadow: 0 8px 28px rgba($clg-ink, .12);
+    }
+
+    .modal-content {
+        --modal-bg: #FFFFFF;
+        --modal-color: #{$clg-text};
+        --modal-border-color: #{$clg-border};
+        --modal-header-border-color: #{$clg-border};
+        --modal-footer-border-color: #{$clg-border};
+
+        border-color: $clg-border;
+        border-radius: 1rem;
+        box-shadow: 0 16px 56px rgba($clg-ink, .2);
+
+        .modal-title {
+            color: $clg-slate;
+            font-family: $clg-font-body;
+            font-weight: 600;
+        }
+
+        .o_form_statusbar {
+            background-color: #FFFFFF;
+        }
+    }
+
+    .o_notification_manager .o_notification {
+        border-color: $clg-border;
+        border-radius: .875rem;
+        box-shadow: 0 8px 28px rgba($clg-ink, .12);
+    }
+
+    .o-mail-Chatter,
+    .o-mail-Chatter-top,
+    .o-mail-Chatter-content {
+        background-color: #FFFFFF;
+    }
+
+    .o-mail-Chatter-top {
+        border-bottom: 1px solid $clg-border;
+    }
+
+    .o_calendar_renderer {
+        --o-cw-border-color: #{$clg-border};
+
+        .o_calendar_widget {
+            --fc-border-color: #{$clg-border};
+
+            .fc-col-header-cell {
+                background-color: $clg-ivory;
+            }
+
+            .fc-col-header-cell-cushion {
+                font-weight: 600;
+            }
+
+            .fc-day-today:not(.o_calendar_disabled) {
+                --fc-today-bg-color: #FBF8F2;
+            }
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .o_form_view .o_form_sheet {
+            --formView-sheet-border-radius: 0;
+
+            box-shadow: none;
+        }
+
+        .o_kanban_renderer.o_kanban_ungrouped .o_kanban_record:not(.o_kanban_ghost) {
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .modal.o_modal_full .modal-content {
+            border-radius: 0;
+        }
+
+        input.o_input:not([type="checkbox"]):not([type="radio"]),
+        textarea.o_input,
+        select.o_input {
+            font-size: 1rem;
+        }
+    }
+}
