@@ -1,0 +1,86 @@
+// Liquid Glass material recipes only. No selectors or existing variables are changed.
+// Load after the current project's brand tokens. Map these private aliases if
+// that project uses other token names; keep its established palette authoritative.
+$clg-lg-ink: if(global-variable-exists("clg-ink"), $clg-ink, #0D141C) !default;
+$clg-lg-slate: if(global-variable-exists("clg-slate"), $clg-slate, #121822) !default;
+$clg-lg-gold: if(global-variable-exists("clg-gold"), $clg-gold, #C8A561) !default;
+$clg-lg-ivory: if(global-variable-exists("clg-ivory"), $clg-ivory, #F5EFE3) !default;
+$clg-lg-control: if(global-variable-exists("clg-control"), $clg-control, #8D8064) !default;
+$clg-lg-gold-text: if(global-variable-exists("clg-gold-text"), $clg-gold-text, #80632D) !default;
+
+@mixin clg-lg-canvas {
+    background-color: $clg-lg-ivory;
+    background-image:
+        radial-gradient(ellipse at 5% 6%, rgba($clg-lg-gold, .24), transparent 52%),
+        radial-gradient(ellipse at 94% 18%, rgba(255, 255, 255, .95), transparent 54%),
+        linear-gradient(135deg, mix(#FFFFFF, $clg-lg-ivory, 40%), mix($clg-lg-ivory, $clg-lg-gold, 88%));
+    @media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+        background-image: none;
+    }
+}
+
+@mixin clg-lg-surface($opacity: .86) {
+    background-color: rgba(255, 255, 255, $opacity);
+    background-image: linear-gradient(135deg,
+        rgba(255, 255, 255, .76), rgba(255, 255, 255, .08) 54%, rgba($clg-lg-gold, .045));
+    // Color only: existing border width, style and radius keep their geometry.
+    border-color: rgba(255, 255, 255, .9);
+    // Do not replace a native keyboard/selection focus shadow.
+    &:not(:focus):not(:focus-visible) {
+        box-shadow: 0 12px 32px rgba($clg-lg-ink, .075),
+            inset 0 1px 0 rgba(255, 255, 255, .96), inset 0 -1px 0 rgba($clg-lg-gold, .17);
+    }
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+        background-color: #FFFFFF;
+    }
+    @media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+        background-color: #FFFFFF;
+        background-image: none;
+        border-color: $clg-lg-control;
+        &:not(:focus):not(:focus-visible) { box-shadow: none; }
+    }
+}
+
+@mixin clg-lg-ink {
+    // Apply only to a surface that already has legible light foreground text.
+    background-color: rgba($clg-lg-ink, .93);
+    background-image: linear-gradient(120deg,
+        rgba(255, 255, 255, .13), rgba(255, 255, 255, .015) 46%, rgba($clg-lg-gold, .1));
+    border-color: rgba($clg-lg-gold, .35);
+    &:not(:focus):not(:focus-visible) {
+        box-shadow: 0 6px 24px rgba($clg-lg-ink, .17), inset 0 1px 0 rgba(255, 255, 255, .15);
+    }
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+        background-color: $clg-lg-ink;
+    }
+    @media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+        background-color: $clg-lg-ink;
+        background-image: none;
+        &:not(:focus):not(:focus-visible) { box-shadow: none; }
+    }
+}
+
+@mixin clg-lg-gold {
+    // Keep the current button's base color, foreground and all state variables.
+    background-image: linear-gradient(180deg,
+        rgba(255, 255, 255, .43), rgba(255, 255, 255, .02) 58%, rgba($clg-lg-gold-text, .12));
+    &:not(:focus):not(:focus-visible) {
+        box-shadow: 0 4px 10px rgba($clg-lg-gold-text, .16),
+            inset 0 1px 0 rgba(255, 255, 255, .72), inset 0 -1px 0 rgba($clg-lg-gold-text, .14);
+    }
+    @media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+        background-image: none;
+        &:not(:focus):not(:focus-visible) { box-shadow: none; }
+    }
+}
+
+@mixin clg-lg-icon {
+    // Rim and shadow only: retain background-image icons, dimensions, colors and masks.
+    &:not(:focus):not(:focus-visible) {
+        box-shadow: 0 5px 14px rgba($clg-lg-ink, .14),
+            inset 0 1px 0 rgba(255, 255, 255, .75), inset 0 0 0 1px rgba($clg-lg-gold, .20);
+    }
+    @media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+        &:not(:focus):not(:focus-visible) { box-shadow: none; }
+    }
+}

@@ -23,7 +23,11 @@ body:has(.oe_website_login_container) {
     .clagov_login_card {
         width: 100%;
         max-width: 420px;
-        background: white;
+        // Longhand, not `background: white` -- the Liquid Glass delta's
+        // clg_lg_surface_solid class (lg_opt_in.scss) adds a
+        // background-image gradient on this same element; the shorthand
+        // would reset it back to none since this file loads after.
+        background-color: white;
         border: 1px solid $clg-border;
         border-radius: 16px;
         box-shadow: 0 12px 36px rgba($clg-ink, .08);
@@ -31,7 +35,9 @@ body:has(.oe_website_login_container) {
     }
 
     .clagov_login_identity {
-        background: $clg-ink;
+        // Longhand -- same reason as .clagov_login_card above, so the
+        // clg_lg_ink gradient this element also carries isn't reset.
+        background-color: $clg-ink;
         border-bottom: 3px solid $clg-gold;
         padding: 28px;
 
