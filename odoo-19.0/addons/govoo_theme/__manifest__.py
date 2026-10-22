@@ -18,15 +18,21 @@ module's variables.scss must compile before zxs_entp_theme's own, so the
 Clagov colours (set without !default) win over zxs's own Enterprise purple
 defaults (set with !default). No code from this module calls into
 zxs_entp_theme; it only needs to load after it.
+
+Also pins every user's colour scheme to Light instead of zxs's own
+"System" default, which silently follows the browser's OS dark-mode
+preference -- this module has no dark-mode SCSS of its own yet, so
+landing in dark mode made the Clagov brand look like it had vanished.
     """,
     'author': 'Govoo',
     'category': 'Governance',
-    'version': '19.0.1.0.3',
+    'version': '19.0.1.0.4',
     'license': 'LGPL-3',
     'depends': ['web', 'govoo_base', 'zxs_entp_theme'],
     'data': [
         'views/login_templates.xml',
     ],
+    'post_init_hook': '_fix_color_scheme_default_to_light',
     'assets': {
         'web._assets_primary_variables': [
             ('prepend', 'govoo_theme/static/src/scss/variables.scss'),
