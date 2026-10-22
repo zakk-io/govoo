@@ -1,0 +1,41 @@
+// Opt-in screen decoration. Loading this file alone changes no existing Odoo UI.
+// Add clg_lg_scope on a reviewed existing container, then effect classes only
+// on its approved surfaces. The scope marker itself emits no visual property.
+@media screen {
+    .clg_lg_scope {
+        &.clg_lg_canvas, .clg_lg_canvas { @include clg-lg-canvas; }
+        &.clg_lg_surface, .clg_lg_surface { @include clg-lg-surface(.86); }
+        &.clg_lg_surface_solid, .clg_lg_surface_solid { @include clg-lg-surface(.97); }
+        &.clg_lg_ink, .clg_lg_ink { @include clg-lg-ink; }
+
+        &.clg_lg_gold:not(:disabled):not(.disabled),
+        .clg_lg_gold:not(:disabled):not(.disabled) { @include clg-lg-gold; }
+        &.clg_lg_icon, .clg_lg_icon { @include clg-lg-icon; }
+
+        // Optional optical blur. Do not add this class to positioning ancestors
+        // for home menus, fixed dropdowns, login overlays, sticky or fullscreen UI.
+        // Pair with an approved surface/ink class. No blur is enabled by default.
+        &.clg_lg_blur, .clg_lg_blur {
+            -webkit-backdrop-filter: blur(var(--clg-lg-blur, 18px)) saturate(135%);
+            backdrop-filter: blur(var(--clg-lg-blur, 18px)) saturate(135%);
+            @media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+                -webkit-backdrop-filter: none;
+                backdrop-filter: none;
+            }
+        }
+
+        // Optional convenience layer for native business views only. Put this
+        // marker on a reviewed form/list/kanban controller, never on the shared
+        // action manager/body/home root. It deliberately avoids navbar, menus,
+        // dialog containers, login, inputs, dimensions and positioning rules.
+        &.clg_lg_workspace, .clg_lg_workspace {
+            @include clg-lg-canvas;
+            .o_control_panel { @include clg-lg-surface(.90); }
+            .o_form_sheet { @include clg-lg-surface(.97); }
+            .o_kanban_record:not(.o_kanban_ghost):not(.o_record_selected):not(:focus):not(:focus-visible):not([class*="o_kanban_color_"]) {
+                @include clg-lg-surface(.97);
+            }
+            .btn-primary:not(:disabled):not(.disabled) { @include clg-lg-gold; }
+        }
+    }
+}

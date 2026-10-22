@@ -11,5 +11,26 @@
         <xpath expr="//input[hasclass('o_search_hidden')]" position="after">
             <h1 class="clagov_home_menu_tagline text-center">Govern with clarity.</h1>
         </xpath>
+
+        <!-- Liquid Glass delta (themes/clagov theme/CLAGOV-Liquid-Glass-Only):
+             scope marker on the specific apps grid, not on .o_home_menu or
+             any ancestor shared with the navbar/background, since that
+             container already carries the hero-city.jpg background
+             (backend.scss), which clg_lg_canvas/clg_lg_surface would
+             overwrite via background-image, so no material class goes on
+             it here. -->
+        <xpath expr="//div[hasclass('o_apps')]" position="attributes">
+            <attribute name="class" add="clg_lg_scope" separator=" "/>
+        </xpath>
+
+        <!-- clg_lg_icon is rim/shadow only (no background-image), so the
+             existing custom-icon image and the icon-class fallback's own
+             background-color/mask stay exactly as rendered today. -->
+        <xpath expr="//img[hasclass('o_app_icon')]" position="attributes">
+            <attribute name="class" add="clg_lg_icon" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('o_app_icon')]" position="attributes">
+            <attribute name="class" add="clg_lg_icon" separator=" "/>
+        </xpath>
     </t>
 </templates>

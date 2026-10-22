@@ -26,10 +26,18 @@
         "clagov_brand_theme._assets_common": [
             "clagov_brand_theme/static/src/scss/fonts.scss",
             "clagov_brand_theme/static/src/scss/tokens.scss",
+            # Liquid Glass delta (themes/clagov theme/CLAGOV-Liquid-Glass-Only):
+            # material mixins only, emits no CSS by itself -- must be
+            # available before lg_opt_in.scss in every bundle that uses it.
+            "clagov_brand_theme/static/src/scss/lg_materials.scss",
         ],
         "web.assets_backend": [
             ("prepend", "clagov_brand_theme/static/src/scss/backend_variables.scss"),
             ("include", "clagov_brand_theme._assets_common"),
+            # Loads before backend.scss so backend.scss's own regression
+            # fixes (Home Menu background, navbar, etc.) keep cascade
+            # precedence over the opt-in glass classes where they collide.
+            "clagov_brand_theme/static/src/scss/lg_opt_in.scss",
             "clagov_brand_theme/static/src/scss/backend.scss",
             "clagov_brand_theme/static/src/xml/navbar.xml",
             "clagov_brand_theme/static/src/xml/home_menu.xml",
@@ -47,6 +55,12 @@
             ("prepend", "clagov_brand_theme/static/src/scss/frontend_variables.scss"),
             ("include", "clagov_brand_theme._assets_common"),
             "clagov_brand_theme/static/src/scss/frontend.scss",
+            # clagov_brand_theme_website's own login.scss (a downstream
+            # module, depends=clagov_brand_theme) always loads after this
+            # module's own web.assets_frontend contributions, so placing
+            # lg_opt_in.scss here is still "before the final regression-fix
+            # stylesheet" for the login page specifically.
+            "clagov_brand_theme/static/src/scss/lg_opt_in.scss",
         ],
         "web.report_assets_common": [
             "clagov_brand_theme/static/src/scss/report_fonts.scss",
