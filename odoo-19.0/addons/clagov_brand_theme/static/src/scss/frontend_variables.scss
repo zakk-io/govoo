@@ -1,0 +1,31 @@
+// Frontend-only defaults, loaded before Odoo's helpers and variable
+// consumers -- mirrors backend_variables.scss exactly (same variable
+// names, same literal-value discipline, Sass helpers unavailable at
+// this point in the bundle), because web.assets_frontend is a
+// separate compilation from web.assets_backend and backend_variables.scss
+// is deliberately only prepended there. Without this file, frontend
+// primary-coloured elements (the public site's own CTA buttons, links)
+// fell back to whatever other installed module last set $o-brand-primary
+// (confirmed empirically: zxs_entp_theme's Enterprise purple #714B67 was
+// winning on web.assets_frontend specifically, even though CLAGOV's
+// colours correctly won on web.assets_backend).
+// $o-enterprise-color (not $o-brand-primary) is the actual root of the
+// public website/frontend's colour: html_editor/static/src/scss/
+// html_editor.variables.scss sets the default colour palette's
+// 'o-color-1' to $o-enterprise-color specifically, which website's own
+// primary_variables.scss compiles into --primary-rgb/.btn-primary that
+// the public site actually reads from -- confirmed the same way this
+// was found and fixed once before, for the earlier govoo_theme module
+// (grepping the recompiled web.assets_frontend.min.css for the stray
+// hex and tracing it back through source), not assumed from memory.
+$o-enterprise-color: #0D141C !default;
+$o-brand-odoo: #0D141C !default;
+$o-brand-primary: #80632D !default;
+$o-action: #80632D !default;
+
+$o-system-fonts: ("Inter", Arial, sans-serif) !default;
+$o-headings-font-family: ("Inter", Arial, sans-serif) !default;
+$o-main-text-color: #151C27 !default;
+$o-main-color-muted: #5B6473 !default;
+$o-main-headings-color: #121822 !default;
+$o-main-link-color: #121822 !default;

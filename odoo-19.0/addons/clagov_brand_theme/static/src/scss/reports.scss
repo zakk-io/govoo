@@ -1,0 +1,23 @@
+// Literal compiled colors (not CSS custom properties) for wkhtmltopdf support.
+.o_clagov_report {
+    color: $clg-text;
+    font-family: $clg-font-body;
+    font-size: 10pt;
+    h1, h2, .clagov-heading {
+        color: $clg-slate;
+        font-family: $clg-font-heading;
+        font-weight: 600;
+    }
+    h3, h4, h5, h6, table, td, th { font-family: $clg-font-body; }
+    .clagov_report_brand { margin-bottom: 10px; }
+    .clagov_report_brand img { width: auto; height: 36px; }
+    .o_footer_content { border-color: $clg-gold !important; }
+    .clagov-report-table {
+        width: 100%;
+        border-collapse: collapse;
+        th { background: $clg-ivory; color: $clg-slate; font-weight: 600; }
+        td, th { padding: 6px 8px; border-bottom: 1px solid $clg-border; }
+        .clagov-number { text-align: right; font-variant-numeric: tabular-nums; }
+    }
+    .clagov-report-section { border-bottom: 1px solid $clg-gold; padding-bottom: 6px; }
+}

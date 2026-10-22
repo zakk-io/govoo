@@ -1,0 +1,76 @@
+// Hides the general site header/footer chrome on the login page
+// specifically -- a standalone branded login screen, not the full
+// site shell wrapped around a form. :has() is well-supported in all
+// current evergreen browsers (Chrome/Edge 105+, Firefox 121+, Safari
+// 15.4+); this page has no functional purpose if it fails to match,
+// it would just show the header/footer again.
+body:has(.oe_website_login_container) {
+    #wrapwrap > header,
+    #wrapwrap > footer {
+        display: none !important;
+    }
+}
+
+.oe_website_login_container {
+    @include clagov-controls;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 48px 16px;
+    background-color: $clg-ivory;
+
+    .clagov_login_card {
+        width: 100%;
+        max-width: 420px;
+        background: white;
+        border: 1px solid $clg-border;
+        border-radius: 16px;
+        box-shadow: 0 12px 36px rgba($clg-ink, .08);
+        overflow: hidden;
+    }
+
+    .clagov_login_identity {
+        background: $clg-ink;
+        border-bottom: 3px solid $clg-gold;
+        padding: 28px;
+
+        img { display: block; margin: 0 auto 10px; }
+    }
+
+    .clagov_login_wordmark {
+        color: $clg-ivory;
+        font-family: $clg-font-heading;
+        font-size: 26px;
+        font-weight: 600;
+        letter-spacing: -.01em;
+        margin: 0;
+    }
+
+    .clagov_login_tagline {
+        color: $clg-gold;
+        margin: 6px 0 0;
+        font-size: 14px;
+    }
+
+    .oe_login_form {
+        padding: 28px;
+        color: $clg-text;
+        font-family: $clg-font-body;
+
+        label { color: $clg-slate; font-weight: 500; }
+        .btn { border-radius: 8px; }
+        input { min-height: 40px; }
+    }
+
+    .oe_login_buttons { margin-top: 20px; }
+    .alert-danger a { color: inherit; }
+}
+
+@media (max-width: 575.98px) {
+    .oe_website_login_container .clagov_login_identity { padding: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .oe_website_login_container .btn { transition: none; }
+}

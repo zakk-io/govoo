@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <!-- Issue: zxs_entp_theme.HomeMenu has a single owner (zxs_entp_theme
+         itself), unlike web.NavBar which a SECOND module (zxs's own
+         EnterpriseNavBar) re-derives via t-inherit-mode="primary":
+         confirmed that specific mechanism is what silently discarded
+         this module's own navbar.xml extension-mode edit. No such
+         competing "primary" derivation exists for the Home Menu, so a
+         normal extension-mode edit here should actually apply. -->
+    <t t-name="clagov_brand_theme.HomeMenuTagline" t-inherit="zxs_entp_theme.HomeMenu" t-inherit-mode="extension">
+        <xpath expr="//input[hasclass('o_search_hidden')]" position="after">
+            <h1 class="clagov_home_menu_tagline text-center">Govern with clarity.</h1>
+        </xpath>
+    </t>
+</templates>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="clagov_brand_theme.NavBar" t-inherit="web.NavBar" t-inherit-mode="extension">
+        <xpath expr="//nav[hasclass('o_main_navbar')]/t[@t-call='web.NavBar.AppsMenu']" position="after">
+            <a href="/odoo" class="clagov_nav_brand" aria-label="CLAGOV home" title="CLAGOV home">
+                <img class="clagov_nav_mark" src="/clagov_brand_theme/static/src/img/signet.svg" alt=""/>
+                <span class="clagov_nav_wordmark">Clagov</span>
+            </a>
+        </xpath>
+    </t>
+</templates>
