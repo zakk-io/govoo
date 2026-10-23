@@ -11,7 +11,15 @@ appointment (role-over-time) and committee models.
     'category': 'Governance',
     'version': '19.0.1.0.4',
     'license': 'LGPL-3',
-    'depends': ['base', 'mail', 'contacts'],
+    # zxs_entp_theme is what actually defines res.users.settings.color_scheme
+    # (its own field, with the selection values) -- models/res_users_settings.py
+    # below only extends it (default='light', no selection=). Without this
+    # dependency Odoo's module graph has no reason to load zxs_entp_theme
+    # before govoo_base, and when it doesn't, that extension crashes with
+    # "Field res.users.settings.color_scheme without selection" (hit on a
+    # from-scratch install where there's no prior accidental load order to
+    # mask it). Never rely on implicit install order for a field extension.
+    'depends': ['base', 'mail', 'contacts', 'zxs_entp_theme'],
     'data': [
         'security/govoo_base_groups.xml',
         'security/ir.model.access.csv',
