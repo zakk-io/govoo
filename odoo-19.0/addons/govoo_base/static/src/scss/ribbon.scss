@@ -1,0 +1,33 @@
+// Part of Govoo. See LICENSE file for full copyright and licensing details.
+//
+// Issue #253: terminal-state ribbon for form views. The OCA web_ribbon
+// module isn't present in this install (confirmed -- not in the addons
+// path), so this is a small native equivalent: a flat corner tag rather
+// than web_ribbon's diagonal banner, to avoid overflow/clipping issues
+// with Odoo's own sheet padding. Colour comes from plain Bootstrap
+// bg-{color} utility classes on the XML side (not defined here), the
+// same approach already proven for the #251/#252/#261 kanban colour bars
+// and KPI tiles -- those automatically pick up the Clagov brand palette
+// without this module needing to depend on govoo_theme.
+//
+// Usage: <div class="o_ribbon bg-success" invisible="state != 'done'">Done</div>
+// as the first child of <sheet>.
+
+.o_form_sheet {
+    position: relative;
+}
+
+.o_ribbon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 0.25rem 0.75rem;
+    border-bottom-left-radius: 0.375rem;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    z-index: 1;
+    pointer-events: none;
+}
