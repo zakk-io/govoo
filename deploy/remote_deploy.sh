@@ -110,9 +110,21 @@ else
     echo "    no changed installed modules"
 fi
 
+# Always rebuild+recreate via compose, even when no addon changed: this is
+# what the old deploy.yml workflow did, and it's the only thing that picks
+# up a Dockerfile/system-dependency change (addon code itself is bind-
+# mounted, so it's already live without a rebuild -- but the image layers
+# aren't). Cheap/no-op when nothing actually changed, thanks to Docker's
+# build cache.
+echo "==> Rebuilding/recreating via docker compose (catches Dockerfile/dependency changes)"
+(cd /opt/govoo && docker compose up -d --build)
+sleep 6
+
 if [ "${#TO_INSTALL[@]}" -eq 0 ] && [ "${#TO_UPGRADE[@]}" -eq 0 ]; then
-    echo "==> Nothing addon-related changed, nothing to redeploy"
-    exit 0
+    echo "==> No addon changes, container refreshed, nothing further to migrate"
+    STATUS="$(curl -sS -o /dev/null -w '%{http_code}' http://localhost:8069/web/login)"
+    [ "$STATUS" = "200" ] && echo "==> Deploy succeeded (login page HTTP $STATUS)" && exit 0
+    echo "==> DEPLOY COMPLETED WITH WARNINGS: login page HTTP $STATUS" && exit 1
 fi
 
 run_upgrade() {
@@ -122,10 +134,6 @@ run_upgrade() {
         --db_user="$DB_USER" --db_password="$DB_PASS" \
         -d "$DB_NAME" "${INSTALL_ARGS[@]}" --stop-after-init
 }
-
-echo "==> Restarting container before upgrade"
-docker restart "$CONTAINER"
-sleep 6
 
 echo "==> Running module install/upgrade"
 if run_upgrade > /tmp/govoo_deploy_upgrade.log 2>&1; then
