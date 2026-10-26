@@ -48,6 +48,14 @@ node_modules/
 !/odoo-19.0/addons/clagov_brand_theme/
 !/odoo-19.0/addons/clagov_brand_theme_website/
 !/odoo-19.0/addons/zxs_entp_theme/
+# The actual image build definition -- this repo's own, not vendor
+# Odoo's. Was never tracked, so a Python dependency added locally (e.g.
+# govoo_ai's PyMuPDF/fitz) never reached any other environment's image
+# build; confirmed live (2026-10-26) this is why a fresh/separate
+# server's container never had it installed despite the module
+# declaring it, breaking module upgrades that cascade into govoo_ai.
+!/odoo-19.0/Dockerfile
+!/odoo-19.0/requirements.txt
 # vendor's own .gitignore re-includes these three via its own negation rules
 /odoo-19.0/.github/
 /odoo-19.0/.gitignore
