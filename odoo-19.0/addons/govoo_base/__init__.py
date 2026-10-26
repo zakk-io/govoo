@@ -26,6 +26,7 @@ def _hide_unused_top_level_menus(env):
         'calendar.mail_menu_calendar',
         'spreadsheet_dashboard.spreadsheet_dashboard_menu_root',
         'base.menu_management',
+        'utm.menu_link_tracker_root',
     ]
     for xmlid in menu_xmlids:
         menu = env.ref(xmlid, raise_if_not_found=False)
