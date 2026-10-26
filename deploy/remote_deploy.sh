@@ -31,21 +31,53 @@
 #     loudly, which is correct (the missing dependency is a real,
 #     separate, pre-existing gap in the image -- not something to
 #     silently paper over here).
+#   - the upgrade list is diffed against the last commit that was
+#     actually, successfully applied to the database -- NOT against
+#     whatever commit happened to be checked out before this run. Those
+#     two can differ: confirmed live (2026-10-26) that a run whose `git
+#     reset --hard` succeeds but whose module upgrade then fails (e.g.
+#     the fitz case above) leaves the repo checkout pointing at the new
+#     commit even though nothing was actually applied to the DB. A
+#     naive "diff against current HEAD before pull" would then treat
+#     that module as already handled on the next run and silently skip
+#     it forever. $DEPLOYED_MARKER tracks the real "last applied"
+#     state separately, and is only advanced after a run fully
+#     succeeds, so a failed run's changes stay in the diff until a
+#     later run actually applies them.
 set -euo pipefail
 
 REPO_DIR=/opt/govoo/repo
 CONTAINER=govoo-app
 DB_CONTAINER=govoo-db
 ADDONS_DIR="$REPO_DIR/odoo-19.0/addons"
+DEPLOYED_MARKER=/opt/govoo/.last_deployed_commit
 
 cd "$REPO_DIR"
-OLD_HEAD="$(git rev-parse HEAD)"
+if [ -f "$DEPLOYED_MARKER" ]; then
+    OLD_HEAD="$(cat "$DEPLOYED_MARKER")"
+else
+    # First run ever: capture the pre-pull baseline and persist it
+    # immediately, before anything else runs. Deliberately NOT just
+    # "git rev-parse HEAD" read fresh on every marker-less run -- if
+    # this very run fails after the git pull below, HEAD will already
+    # have moved, and re-deriving OLD_HEAD that way on the next run
+    # would silently reproduce the exact bug this marker exists to fix
+    # (confirmed live while testing this fix). Writing it out now, once,
+    # means the marker is authoritative from this point forward no
+    # matter what happens next in this run.
+    OLD_HEAD="$(git rev-parse HEAD)"
+    echo "$OLD_HEAD" > "$DEPLOYED_MARKER"
+fi
 
 echo "==> Pulling latest master"
 git fetch origin master
 git reset --hard origin/master
 NEW_HEAD="$(git rev-parse HEAD)"
-echo "    ${OLD_HEAD:0:12} -> ${NEW_HEAD:0:12}"
+echo "    last applied: ${OLD_HEAD:0:12} -> pulled: ${NEW_HEAD:0:12}"
+
+mark_deployed() {
+    echo "$NEW_HEAD" > "$DEPLOYED_MARKER"
+}
 
 echo "==> Reading DB connection args from the running container's own command"
 mapfile -t DB_ARGS < <(
@@ -123,7 +155,11 @@ sleep 6
 if [ "${#TO_INSTALL[@]}" -eq 0 ] && [ "${#TO_UPGRADE[@]}" -eq 0 ]; then
     echo "==> No addon changes, container refreshed, nothing further to migrate"
     STATUS="$(curl -sS -o /dev/null -w '%{http_code}' http://localhost:8069/web/login)"
-    [ "$STATUS" = "200" ] && echo "==> Deploy succeeded (login page HTTP $STATUS)" && exit 0
+    if [ "$STATUS" = "200" ]; then
+        mark_deployed
+        echo "==> Deploy succeeded (login page HTTP $STATUS)"
+        exit 0
+    fi
     echo "==> DEPLOY COMPLETED WITH WARNINGS: login page HTTP $STATUS" && exit 1
 fi
 
@@ -146,7 +182,7 @@ else
         run_upgrade > /tmp/govoo_deploy_upgrade.log 2>&1
         echo "    retry OK"
     else
-        echo "    non-transient failure, aborting deploy"
+        echo "    non-transient failure, aborting deploy -- marker NOT advanced, next run will retry this upgrade"
         tail -60 /tmp/govoo_deploy_upgrade.log
         exit 1
     fi
@@ -178,9 +214,10 @@ echo "==> Health check"
 STATUS="$(curl -sS -o /dev/null -w '%{http_code}' http://localhost:8069/web/login)"
 ERRORS="$(docker logs "$CONTAINER" --since 1m 2>&1 | grep -iE 'error|traceback' | grep -v -i pdfminer || true)"
 if [ "$STATUS" = "200" ] && [ -z "$ERRORS" ]; then
+    mark_deployed
     echo "==> Deploy succeeded (login page HTTP $STATUS, no errors in recent logs)"
 else
-    echo "==> DEPLOY COMPLETED WITH WARNINGS"
+    echo "==> DEPLOY COMPLETED WITH WARNINGS -- marker NOT advanced, next run will retry this upgrade"
     echo "    login page HTTP status: $STATUS"
     [ -n "$ERRORS" ] && echo "    recent log errors:" && echo "$ERRORS"
     exit 1
